@@ -1,231 +1,220 @@
 import React, { useState } from 'react';
 import { useMovies } from '../context/MovieContext';
-import { HeroSlider } from '../components/HeroSlider';
 import { MovieCard } from '../components/MovieCard';
+import { HeroSlider } from '../components/HeroSlider';
 import { TrailerModal } from '../components/TrailerModal';
-import { SkeletonCard, SkeletonHero } from '../components/SkeletonLoader';
-import { Sparkles, Tv, Clapperboard, Filter, ArrowUpDown } from 'lucide-react';
+import { Sparkles, TrendingUp, Filter, ArrowUpDown } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
-  const { movies, categories, selectedCategory, setSelectedCategory, sortBy, setSortBy, searchQuery } = useMovies();
-  const [trailerModal, setTrailerModal] = useState<{ isOpen: boolean; url: string; title: string }>({
+  const { movies, siteSettings, selectedCategory, setSelectedCategory, sortBy, setSortBy, searchQuery } = useMovies();
+  const [filterType, setFilterType] = useState<'all' | 'movies' | 'series'>('all');
+
+  // Trailer modal state
+  const [trailerState, setTrailerState] = useState<{ isOpen: boolean; url: string; title: string }>({
     isOpen: false,
     url: '',
     title: '',
   });
 
-  const [isLoading] = useState(false);
+  const handleOpenTrailer = (url: string, title: string) => {
+    setTrailerState({ isOpen: true, url, title });
+  };
 
-  // Filter movies
-  let filteredMovies = movies.filter(movie => {
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase();
-      const matchTitle = movie.title.toLowerCase().includes(q) || movie.sinhalaTitle.toLowerCase().includes(q);
-      const matchGenre = movie.genres.some(g => g.toLowerCase().includes(q));
-      return matchTitle || matchGenre;
-    }
+  // Filter movies based on category, search, and type
+  const filteredMovies = movies.filter(movie => {
+    const matchesSearch = searchQuery === '' ||
+      movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      movie.sinhalaTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      movie.genres.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    if (selectedCategory === 'All') return true;
-    if (selectedCategory === 'Sinhala Subbed') return movie.hasSinhalaSub;
-    if (selectedCategory === 'TV Series') return movie.isTVSeries;
-    if (selectedCategory === 'Dual Audio') return movie.isDualAudio;
+    const matchesCategory = selectedCategory === 'All' ||
+      movie.genres.includes(selectedCategory) ||
+      (selectedCategory === 'Sinhala Subbed' && movie.hasSinhalaSub) ||
+      (selectedCategory === 'TV Series' && movie.isTVSeries) ||
+      (selectedCategory === 'Dual Audio' && movie.isDualAudio);
 
-    return movie.genres.some(g => g.toLowerCase() === selectedCategory.toLowerCase());
+    const matchesType = filterType === 'all' ||
+      (filterType === 'movies' && !movie.isTVSeries) ||
+      (filterType === 'series' && movie.isTVSeries);
+
+    return matchesSearch && matchesCategory && matchesType;
   });
 
   // Sort movies
-  filteredMovies = [...filteredMovies].sort((a, b) => {
+  const sortedMovies = [...filteredMovies].sort((a, b) => {
     if (sortBy === 'rating') return b.imdbRating - a.imdbRating;
     if (sortBy === 'year') return b.year - a.year;
     if (sortBy === 'popular') return b.viewsCount - a.viewsCount;
-    // Default 'latest'
-    return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
+    return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime(); // default 'latest'
   });
 
-  const handleOpenTrailer = (url: string, title: string) => {
-    setTrailerModal({ isOpen: true, url, title });
-  };
-
-  // Split into structured grid sections for homepage if no search filter active
-  const latestSinhalaMovies = movies.filter(m => m.hasSinhalaSub && !m.isTVSeries);
-  const trendingSeries = movies.filter(m => m.isTVSeries);
-  const popularCollections = movies.filter(m => m.viewsCount > 30000 || m.isDualAudio);
+  const featuredMovies = movies.filter(m => m.isFeatured || m.isTrending);
+  const tvSeriesList = sortedMovies.filter(m => m.isTVSeries);
 
   return (
-    <div className="space-y-12 pb-12">
+    <div className="space-y-12 pb-16">
 
-      {/* Featured Hero Slider */}
+      {/* Featured Hero Carousel Slider */}
       {!searchQuery && selectedCategory === 'All' && (
-        <section>
-          {isLoading ? (
-            <SkeletonHero />
-          ) : (
-            <HeroSlider movies={movies} onTrailerClick={handleOpenTrailer} />
-          )}
-        </section>
+        <HeroSlider
+          movies={featuredMovies.length > 0 ? featuredMovies : movies.slice(0, 3)}
+          onTrailerClick={handleOpenTrailer}
+        />
       )}
 
-      {/* Filter and Sorting Header Toolbar */}
-      <section className="glass-panel p-4 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 border border-white/10 shadow-lg">
+      {/* Main Content Toolbar & Category Filters */}
+      <section className="space-y-6">
 
-        {/* Categories Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto w-full md:w-auto pb-2 md:pb-0 scrollbar-none">
-          <button
-            onClick={() => setSelectedCategory('All')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
-              selectedCategory === 'All'
-                ? 'bg-gradient-to-r from-purple-600 to-cyan-500 text-white shadow-lg shadow-purple-600/30'
-                : 'bg-[#12151e] text-gray-400 hover:text-white hover:bg-white/5 border border-white/5'
-            }`}
-          >
-            All Movies
-          </button>
-          {categories.map((cat) => (
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/10 pb-6">
+
+          {/* Section Heading */}
+          <div>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <span className="w-2 h-7 rounded-full bg-gradient-to-b from-rose-600 via-rose-500 to-amber-400" />
+              {searchQuery
+                ? `Search Results for "${searchQuery}"`
+                : selectedCategory !== 'All'
+                  ? `${selectedCategory} Collection`
+                  : siteSettings.latestMoviesTitle || 'අලුත්ම සිංහල උපසිරැසි (Latest Movies)'}
+            </h2>
+            <p className="text-xs text-gray-400 mt-1">
+              Explore {sortedMovies.length} high-speed 1080p Sinhala subtitled releases
+            </p>
+          </div>
+
+          {/* Controls: Type Filter & Sorting */}
+          <div className="flex flex-wrap items-center gap-3">
+
+            {/* Type Switcher */}
+            <div className="flex items-center p-1 rounded-xl bg-[#121620] border border-white/10 text-xs font-bold">
+              <button
+                onClick={() => setFilterType('all')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterType === 'all'
+                    ? 'bg-rose-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                All Releases
+              </button>
+              <button
+                onClick={() => setFilterType('movies')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterType === 'movies'
+                    ? 'bg-rose-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                Movies
+              </button>
+              <button
+                onClick={() => setFilterType('series')}
+                className={`px-3 py-1.5 rounded-lg transition-all ${
+                  filterType === 'series'
+                    ? 'bg-rose-600 text-white shadow-md'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                TV Series
+              </button>
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 bg-[#121620] border border-white/10 rounded-xl px-3 py-1.5 text-xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-rose-500" />
+              <span className="text-gray-400 font-medium">Sort:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+              >
+                <option value="latest" className="bg-[#121620]">Latest Uploads</option>
+                <option value="rating" className="bg-[#121620]">Highest IMDb Score</option>
+                <option value="popular" className="bg-[#121620]">Most Popular</option>
+                <option value="year" className="bg-[#121620]">Release Year</option>
+              </select>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* Quick Category Chips */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+          <span className="text-xs font-bold text-gray-400 flex items-center gap-1 shrink-0 mr-1">
+            <Filter className="w-3.5 h-3.5 text-rose-500" /> Filter:
+          </span>
+          {['All', 'Action', 'Sci-Fi', 'Romance', 'Horror', 'Sinhala Subbed', 'TV Series', 'Anime', 'Dual Audio'].map((category) => (
             <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.name)}
-              className={`px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                selectedCategory === cat.name
-                  ? 'bg-gradient-to-r from-purple-600 to-cyan-500 text-white shadow-lg shadow-purple-600/30'
-                  : 'bg-[#12151e] text-gray-400 hover:text-white hover:bg-white/5 border border-white/5'
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-3.5 py-1.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
+                selectedCategory === category
+                  ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/30'
+                  : 'bg-[#121620] text-gray-400 border border-white/5 hover:text-white hover:border-white/20'
               }`}
             >
-              <span>{cat.name}</span>
-              <span className="text-[10px] text-cyan-300/80 font-normal">({cat.sinhalaName})</span>
+              {category}
             </button>
           ))}
         </div>
 
-        {/* Sorting Dropdown */}
-        <div className="flex items-center gap-3 w-full md:w-auto justify-end border-t md:border-t-0 border-white/10 pt-3 md:pt-0">
-          <div className="flex items-center gap-1.5 text-xs text-gray-400 font-semibold">
-            <ArrowUpDown className="w-3.5 h-3.5 text-cyan-400" /> Sort:
+        {/* Main Grid: Movies Display */}
+        {sortedMovies.length > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+            {sortedMovies.map((movie) => (
+              <MovieCard key={movie.id} movie={movie} />
+            ))}
           </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="bg-[#12151e] text-xs font-bold text-white border border-white/10 rounded-xl px-3 py-2 focus:outline-none focus:border-cyan-400 cursor-pointer"
-          >
-            <option value="latest">Latest Uploads</option>
-            <option value="rating">IMDb Rating</option>
-            <option value="popular">Most Popular</option>
-            <option value="year">Release Year</option>
-          </select>
-        </div>
+        ) : (
+          <div className="text-center py-20 bg-[#121620] rounded-3xl border border-white/10 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 mx-auto flex items-center justify-center">
+              <Sparkles className="w-8 h-8" />
+            </div>
+            <h3 className="text-xl font-bold text-white">No Movies Found</h3>
+            <p className="text-xs text-gray-400 max-w-sm mx-auto">
+              We couldn't find any titles matching your selected filters or search query. Try resetting your search.
+            </p>
+            <button
+              onClick={() => { setSelectedCategory('All'); setFilterType('all'); }}
+              className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-md hover:bg-rose-500"
+            >
+              Reset Filters
+            </button>
+          </div>
+        )}
 
       </section>
 
-      {/* Filtered Grid View if category filter or search active */}
-      {(selectedCategory !== 'All' || searchQuery) ? (
-        <section className="space-y-6">
+      {/* Grid Section 2: Trending TV Series Section (If on All view) */}
+      {!searchQuery && selectedCategory === 'All' && tvSeriesList.length > 0 && (
+        <section className="space-y-6 pt-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div>
-              <h2 className="text-xl font-extrabold text-white flex items-center gap-2">
-                <Filter className="w-5 h-5 text-cyan-400" />
-                {searchQuery ? `Search Results for "${searchQuery}"` : `${selectedCategory} Movies`}
-              </h2>
-              <p className="text-xs text-gray-400 mt-1">Found {filteredMovies.length} titles matching criteria</p>
-            </div>
+            <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
+              <TrendingUp className="w-6 h-6 text-rose-500" />
+              {siteSettings.trendingSeriesTitle || 'Trending Sinhala Subbed TV Series'}
+            </h2>
+            <span className="text-xs text-rose-400 font-bold hover:underline cursor-pointer" onClick={() => setSelectedCategory('TV Series')}>
+              View All Series →
+            </span>
           </div>
 
-          {filteredMovies.length === 0 ? (
-            <div className="text-center py-20 glass-panel rounded-3xl border border-white/10">
-              <Clapperboard className="w-16 h-16 mx-auto text-gray-600 mb-4 animate-bounce" />
-              <h3 className="text-lg font-bold text-white">No Movies Found</h3>
-              <p className="text-xs text-gray-400 mt-1">Try adjusting your search query or selected category filter.</p>
-              <button
-                onClick={() => { setSelectedCategory('All'); }}
-                className="mt-4 px-4 py-2 bg-purple-600 text-xs font-bold text-white rounded-xl hover:bg-purple-500 transition-colors"
-              >
-                Reset Filters
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-6">
-              {filteredMovies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} onTrailerClick={handleOpenTrailer} />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
+            {tvSeriesList.slice(0, 6).map((movie) => (
+              <MovieCard key={`tv_${movie.id}`} movie={movie} />
+            ))}
+          </div>
         </section>
-      ) : (
-        /* Standard Categorized Home Sections */
-        <div className="space-y-12">
-
-          {/* Section 1: Latest Sinhala Subtitled Movies */}
-          <section className="space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-6 bg-gradient-to-b from-cyan-400 to-purple-600 rounded-full" />
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-wide flex items-center gap-2">
-                  අලුත්ම සිංහල උපසිරැසි චිත්‍රපට (Latest Sinhala Subbed Movies)
-                </h2>
-              </div>
-              <span className="text-xs font-bold text-cyan-400 flex items-center gap-1">
-                <Sparkles className="w-3.5 h-3.5" /> High Speed Downloads
-              </span>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-                : latestSinhalaMovies.slice(0, 6).map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} onTrailerClick={handleOpenTrailer} />
-                  ))}
-            </div>
-          </section>
-
-          {/* Section 2: Trending TV Series */}
-          <section className="space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-6 bg-gradient-to-b from-purple-500 to-rose-500 rounded-full" />
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-wide flex items-center gap-2">
-                  <Tv className="w-5 h-5 text-purple-400" />
-                  Trending TV Series & Anime (කථාමාලා)
-                </h2>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-                : trendingSeries.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} onTrailerClick={handleOpenTrailer} />
-                  ))}
-            </div>
-          </section>
-
-          {/* Section 3: Popular Collections & Dual Audio */}
-          <section className="space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-6 bg-gradient-to-b from-amber-400 to-orange-500 rounded-full" />
-                <h2 className="text-lg sm:text-xl font-black text-white tracking-wide">
-                  Popular High Rating Cinema (ජනප්‍රියම එකතුව)
-                </h2>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-              {isLoading
-                ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
-                : popularCollections.map((movie) => (
-                    <MovieCard key={movie.id} movie={movie} onTrailerClick={handleOpenTrailer} />
-                  ))}
-            </div>
-          </section>
-
-        </div>
       )}
 
-      {/* Trailer Video Modal */}
+      {/* Trailer Modal */}
       <TrailerModal
-        isOpen={trailerModal.isOpen}
-        onClose={() => setTrailerModal({ ...trailerModal, isOpen: false })}
-        trailerUrl={trailerModal.url}
-        title={trailerModal.title}
+        isOpen={trailerState.isOpen}
+        onClose={() => setTrailerState({ isOpen: false, url: '', title: '' })}
+        trailerUrl={trailerState.url}
+        title={trailerState.title}
       />
+
     </div>
   );
 };

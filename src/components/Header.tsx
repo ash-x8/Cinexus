@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Film, Star, Shield, Menu, X, Flame, Sparkles, Filter, ChevronRight, Megaphone } from 'lucide-react';
+import { Search, Film, Star, Menu, X, Sparkles, Filter, ChevronRight, Megaphone } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 
 export const Header: React.FC = () => {
@@ -148,25 +148,24 @@ export const Header: React.FC = () => {
             )}
           </div>
 
-          {/* Quick Admin & Action Nav */}
-          <div className="hidden lg:flex items-center gap-4">
-            <Link
-              to="/admin"
-              className="px-4 py-2 text-xs font-bold rounded-xl bg-gradient-to-r from-purple-900/50 to-indigo-900/50 hover:from-purple-800/70 hover:to-indigo-800/70 border border-purple-500/30 text-purple-200 hover:text-white flex items-center gap-2 transition-all shadow-md hover:shadow-purple-500/20"
+          {/* Quick Category Badges Nav (Desktop) */}
+          <div className="hidden lg:flex items-center gap-2">
+            <button
+              onClick={() => handleCategorySelect('Sinhala Subbed')}
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-purple-950/60 border border-purple-500/30 text-purple-300 hover:text-white hover:bg-purple-900/80 transition-all"
             >
-              <Shield className="w-4 h-4 text-cyan-400" />
-              Admin Portal
-            </Link>
+              Sinhala Subbed
+            </button>
+            <button
+              onClick={() => handleCategorySelect('TV Series')}
+              className="px-3 py-1.5 text-xs font-bold rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 hover:text-white hover:bg-cyan-900/80 transition-all"
+            >
+              TV Series
+            </button>
           </div>
 
           {/* Mobile Menu Toggle Button */}
           <div className="flex md:hidden items-center gap-2">
-            <Link
-              to="/admin"
-              className="p-2 text-xs font-semibold rounded-lg bg-purple-900/40 border border-purple-500/30 text-purple-300"
-            >
-              <Shield className="w-4 h-4 text-cyan-400" />
-            </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2.5 rounded-xl bg-[#12151e] border border-white/10 text-gray-300 hover:text-white"

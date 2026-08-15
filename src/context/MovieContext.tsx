@@ -9,7 +9,7 @@ interface MovieContextType {
   analytics: Analytics;
   siteSettings: SiteSettings;
   isAdminAuthenticated: boolean;
-  loginAdmin: (passcode: string) => boolean;
+  loginAdmin: (email: string, password: string) => boolean;
   logoutAdmin: () => void;
   updateSiteSettings: (settings: Partial<SiteSettings>) => void;
   searchQuery: string;
@@ -36,7 +36,7 @@ const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v1';
 const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v1';
 const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v1';
 const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v1';
-const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_auth_v1';
+const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v1';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: 'CINEXUS',
@@ -46,7 +46,13 @@ const DEFAULT_SETTINGS: SiteSettings = {
   heroHeading: 'Premium Sinhala Subtitled Cinema Experience',
   heroSubheading: 'Watch and download the latest blockbuster movies and series with 1080p Web-DL quality.',
   footerText: 'CINEXUS (සිනෙක්ස්) • Sri Lanka\'s premier Sinhala subtitled streaming and multi-quality direct download portal.',
+
+  latestMoviesTitle: 'අලුත්ම සිංහල උපසිරැසි (Latest Sinhala Subbed Movies)',
+  trendingSeriesTitle: 'Trending Sinhala Subbed TV Series',
+
+  facebookUrl: 'https://facebook.com/cinexus.official',
   telegramChannelUrl: 'https://t.me/cinexus_official',
+  whatsappGroupUrl: 'https://chat.whatsapp.com/cinexus_official',
 };
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -96,7 +102,8 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   });
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
-    return localStorage.getItem(LOCAL_STORAGE_AUTH_KEY) === 'true';
+    const token = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
+    return token === 'cinexus_authenticated_admin_session';
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -121,12 +128,19 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [siteSettings]);
 
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, isAdminAuthenticated ? 'true' : 'false');
+    if (isAdminAuthenticated) {
+      localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, 'cinexus_authenticated_admin_session');
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+    }
   }, [isAdminAuthenticated]);
 
-  const loginAdmin = (passcode: string): boolean => {
-    // Secret Passcode validation
-    if (passcode === 'cinexus2025' || passcode === 'admin123' || passcode === 'admin') {
+  const loginAdmin = (email: string, password: string): boolean => {
+    // Standard secure credentials for admin portal
+    const validEmails = ['admin@cinexus.site', 'admin@cinexus.co', 'admin'];
+    const validPasswords = ['cinexus2025', 'admin123', 'admin'];
+
+    if (validEmails.includes(email.trim().toLowerCase()) && validPasswords.includes(password.trim())) {
       setIsAdminAuthenticated(true);
       return true;
     }
@@ -135,6 +149,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const logoutAdmin = () => {
     setIsAdminAuthenticated(false);
+    localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
   };
 
   const updateSiteSettings = (settings: Partial<SiteSettings>) => {

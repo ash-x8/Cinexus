@@ -2,13 +2,13 @@
 
 @layer base {
   :root {
-    --bg-dark: #08090c;
-    --card-bg: #12151e;
-    --card-hover: #1a1e2b;
+    --bg-dark: #0a0b0e;
+    --card-bg: #121620;
+    --card-hover: #1a1f2c;
+    --accent-red: #e50914;
     --accent-purple: #7928ca;
     --accent-cyan: #00dfd8;
-    --accent-crimson: #e50914;
-    --accent-glow: rgba(121, 40, 202, 0.35);
+    --accent-gold: #f59e0b;
   }
 
   body {
@@ -21,21 +21,21 @@
 
 /* Glassmorphism utility classes */
 .glass-panel {
-  background: rgba(18, 21, 30, 0.7);
+  background: rgba(18, 22, 32, 0.75);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-nav {
-  background: rgba(8, 9, 12, 0.85);
+  background: rgba(10, 11, 14, 0.88);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .glass-card {
-  background: rgba(18, 21, 30, 0.8);
+  background: rgba(18, 22, 32, 0.85);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -44,17 +44,9 @@
 
 .glass-card:hover {
   transform: translateY(-4px) scale(1.01);
-  border-color: rgba(121, 40, 202, 0.4);
-  box-shadow: 0 10px 30px -10px rgba(121, 40, 202, 0.3),
-              0 0 15px -3px rgba(0, 223, 216, 0.2);
-}
-
-.neon-glow {
-  box-shadow: 0 0 20px rgba(121, 40, 202, 0.4), 0 0 35px rgba(0, 223, 216, 0.2);
-}
-
-.neon-text-glow {
-  text-shadow: 0 0 12px rgba(121, 40, 202, 0.6), 0 0 20px rgba(0, 223, 216, 0.4);
+  border-color: rgba(229, 9, 20, 0.4);
+  box-shadow: 0 10px 30px -10px rgba(229, 9, 20, 0.3),
+              0 0 15px -3px rgba(245, 158, 11, 0.2);
 }
 
 .crimson-glow {
@@ -68,32 +60,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #08090c;
+  background: #0a0b0e;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1e2333;
+  background: #1c2230;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #7928ca;
-}
-
-/* Micro animations */
-@keyframes pulseGlow {
-  0%, 100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.9;
-    transform: scale(1.05);
-  }
-}
-
-.animate-pulse-glow {
-  animation: pulseGlow 4s infinite ease-in-out;
+  background: #e50914;
 }
 
 /* Shimmer loader animation */
