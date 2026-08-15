@@ -8,9 +8,10 @@ export interface DownloadLink {
 
 export interface ServerPlayer {
   id: string;
-  name: string; // e.g. 'Server 1 (HD)', 'Server 2 (Fast)', 'Streamtape', 'DooDrive / GDrive'
-  url: string; // embed URL or stream URL
+  name: string; // e.g., 'Server 1 (StreamHG)', 'Server 2 (Doodstream)', 'Server 3 (Streamtape)', 'Server 4 (Facebook Video)', 'Server 5 (YouTube Trailer)'
+  url: string; // embed URL
   quality: string;
+  serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic';
 }
 
 export interface SubtitleAuthor {
@@ -44,7 +45,7 @@ export interface Movie {
   audioLanguage: string;
   subtitleAuthor: SubtitleAuthor;
 
-  // Video and downloads
+  // Video and downloads (5 servers: StreamHG, Doodstream, Streamtape, Facebook Embed, YouTube Trailer)
   servers: ServerPlayer[];
   downloadLinks: DownloadLink[];
 
@@ -99,4 +100,5 @@ export interface Analytics {
   activeStreams: number;
   totalDownloads: number;
   userTrafficToday: number;
+  recentSearches?: string[];
 }

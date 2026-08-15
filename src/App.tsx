@@ -1,5 +1,5 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
 import { Header } from './components/Header';
@@ -8,22 +8,53 @@ import { HomePage } from './pages/HomePage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
 import { AdminPage } from './pages/AdminPage';
 
+// Helper component to check window location for /admin, /#admin, or /?route=admin
+const AdminRouteInterceptor: React.FC = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const fullUrl = window.location.href;
+    const searchParams = new URLSearchParams(window.location.search);
+    const routeParam = searchParams.get('route');
+
+    if (
+      window.location.pathname === '/admin' ||
+      window.location.hash === '#admin' ||
+      routeParam === 'admin'
+    ) {
+      if (location.pathname !== '/admin') {
+        navigate('/admin', { replace: true });
+      }
+    }
+  }, [location, navigate]);
+
+  return null;
+};
+
+export const AppContent: React.FC = () => {
+  return (
+    <div className="min-h-screen bg-[#08090c] text-gray-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+      <AdminRouteInterceptor />
+      <Header />
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/movie/:id" element={<MovieDetailPage />} />
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="*" element={<HomePage />} />
+        </Routes>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   return (
     <MovieProvider>
       <Router>
-        <div className="min-h-screen bg-[#08090c] text-gray-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-          <Header />
-          <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/movie/:id" element={<MovieDetailPage />} />
-              <Route path="/admin" element={<AdminPage />} />
-              <Route path="*" element={<HomePage />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <AppContent />
         <Analytics />
       </Router>
     </MovieProvider>

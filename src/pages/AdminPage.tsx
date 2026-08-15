@@ -26,7 +26,9 @@ import {
   ShieldCheck,
   Share2,
   Mail,
-  Key
+  Key,
+  Server,
+  Loader2
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -44,7 +46,8 @@ export const AdminPage: React.FC = () => {
     deleteMovie,
     addCategory,
     deleteCategory,
-    resetToDefaultData
+    resetToDefaultData,
+    fetchOMDbMetadata
   } = useMovies();
 
   // Auth passcode / email state
@@ -58,6 +61,9 @@ export const AdminPage: React.FC = () => {
   // Site Settings Form State
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
+
+  // OMDb fetch loading indicator
+  const [isOmdbLoading, setIsOmdbLoading] = useState(false);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,16 +109,6 @@ export const AdminPage: React.FC = () => {
       downloadsCount: 1500,
       releaseDate: new Date().toISOString().split('T')[0]
     },
-    servers: [
-      { id: 's1', name: 'Server 1 (CINEXUS Embed)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p' },
-      { id: 's2', name: 'Server 2 (Streamtape / Fast)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p' }
-    ],
-    downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '2.5 GB', url: '#download-1080p', format: 'MKV / x264' },
-      { id: 'dl2', quality: '720p', size: '1.2 GB', url: '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: '480p', size: '600 MB', url: '#download-480p', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', size: 'Direct Telegram', url: 'https://t.me/cinexus_official', format: 'Telegram' }
-    ],
     hasSinhalaSub: true,
     isDualAudio: false,
     isTrending: true,
@@ -120,9 +116,14 @@ export const AdminPage: React.FC = () => {
     isTVSeries: false,
   });
 
-  // Server & Download inputs helper state
+  // 5 Server player embed helper inputs
   const [server1Url, setServer1Url] = useState('');
   const [server2Url, setServer2Url] = useState('');
+  const [server3Url, setServer3Url] = useState('');
+  const [server4Url, setServer4Url] = useState('');
+  const [server5Url, setServer5Url] = useState('');
+
+  // Download inputs helper state
   const [dl480Url, setDl480Url] = useState('');
   const [dl720Url, setDl720Url] = useState('');
   const [dl1080Url, setDl1080Url] = useState('');
@@ -132,30 +133,50 @@ export const AdminPage: React.FC = () => {
   const [newCatName, setNewCatName] = useState('');
   const [newCatSinhala, setNewCatSinhala] = useState('');
 
-  // TMDB Auto-Fetch Simulator
-  const handleTMDBCLEAFetch = () => {
+  // OMDb API Auto-Fetch Helper (Key: 87cd62a9)
+  const handleOMDbFetch = async () => {
     if (!formData.title) {
-      alert('Please enter a movie title first to fetch TMDB metadata.');
+      alert('Please enter a movie title or IMDb ID first.');
       return;
     }
-    setFormData(prev => ({
-      ...prev,
-      sinhalaTitle: prev.title ? `${prev.title} (සිංහල උපසිරැසි)` : '',
-      imdbRating: Number((Math.random() * (9.2 - 7.0) + 7.0).toFixed(1)),
-      posterUrl: prev.posterUrl || 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop',
-      backdropUrl: prev.backdropUrl || 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1600&auto=format&fit=crop',
-      trailerUrl: prev.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0',
-      sinhalaPlot: `${prev.title} සඳහා සිංහල උපසිරැසි සමඟින් ඉහළම ගුණාත්මක භාවයෙන් යුතුව සිනෙක්ස් අඩවියෙන් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
-      englishPlot: `Official full movie details for ${prev.title}. High quality video stream and fast download links with complete Sinhala subtitle files.`,
-      director: 'Hollywood Director',
-      cast: ['Star Actor A', 'Star Actress B']
-    }));
+    setIsOmdbLoading(true);
+    try {
+      const data = await fetchOMDbMetadata(formData.title);
+      if (data && data.Response !== 'False') {
+        setFormData(prev => ({
+          ...prev,
+          title: data.Title || prev.title,
+          sinhalaTitle: prev.sinhalaTitle || `${data.Title} (සිංහල උපසිරැසි)`,
+          year: parseInt(data.Year) || prev.year,
+          imdbRating: parseFloat(data.imdbRating) || 8.0,
+          posterUrl: data.Poster && data.Poster !== 'N/A' ? data.Poster : prev.posterUrl,
+          backdropUrl: data.Poster && data.Poster !== 'N/A' ? data.Poster : prev.backdropUrl,
+          englishPlot: data.Plot || prev.englishPlot,
+          sinhalaPlot: prev.sinhalaPlot || `${data.Title} සඳහා සියලුම සිංහල උපසිරැසි සමඟින් උසස්ම ගුණාත්මක භාවයෙන් යුතුව සිනෙක්ස් අඩවියෙන් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
+          director: data.Director || prev.director,
+          cast: data.Actors ? data.Actors.split(', ') : prev.cast,
+          genres: data.Genre ? data.Genre.split(', ') : prev.genres,
+          duration: data.Runtime || prev.duration,
+        }));
+      } else {
+        alert(`OMDb Fetch Notice: ${data.Error || 'Movie not found.'}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Failed to fetch from OMDb API. Please check network connection.');
+    } finally {
+      setIsOmdbLoading(false);
+    }
   };
 
   const handleOpenAddModal = () => {
     setEditingMovieId(null);
     setServer1Url('https://www.youtube.com/embed/d9MyW72ELq0');
     setServer2Url('https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer3Url('https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer4Url('https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%-[#]');
+    setServer5Url('https://www.youtube.com/embed/d9MyW72ELq0');
+
     setDl480Url('#download-480p');
     setDl720Url('#download-720p');
     setDl1080Url('#download-1080p');
@@ -182,16 +203,6 @@ export const AdminPage: React.FC = () => {
         downloadsCount: 1500,
         releaseDate: new Date().toISOString().split('T')[0]
       },
-      servers: [
-        { id: 's1', name: 'Server 1 (CINEXUS HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p' },
-        { id: 's2', name: 'Server 2 (Fast Stream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p' }
-      ],
-      downloadLinks: [
-        { id: 'dl1', quality: '1080p', size: '2.5 GB', url: '#download-1080p', format: 'MKV' },
-        { id: 'dl2', quality: '720p', size: '1.2 GB', url: '#download-720p', format: 'MP4' },
-        { id: 'dl3', quality: '480p', size: '600 MB', url: '#download-480p', format: 'MP4' },
-        { id: 'dl4', quality: 'Telegram', size: 'Direct Telegram', url: 'https://t.me/cinexus_official', format: 'Telegram' }
-      ],
       hasSinhalaSub: true,
       isDualAudio: false,
       isTrending: true,
@@ -205,11 +216,12 @@ export const AdminPage: React.FC = () => {
     setEditingMovieId(movie.id);
     setFormData(movie);
 
-    // Set server and download helper fields
-    const s1 = movie.servers?.find(s => s.id === 's1')?.url || movie.servers?.[0]?.url || '';
-    const s2 = movie.servers?.find(s => s.id === 's2')?.url || movie.servers?.[1]?.url || '';
-    setServer1Url(s1);
-    setServer2Url(s2);
+    // Set 5 server helper fields
+    setServer1Url(movie.servers?.[0]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer2Url(movie.servers?.[1]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer3Url(movie.servers?.[2]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer4Url(movie.servers?.[3]?.url || '');
+    setServer5Url(movie.servers?.[4]?.url || movie.trailerUrl || '');
 
     const d480 = movie.downloadLinks?.find(d => d.quality === '480p')?.url || '';
     const d720 = movie.downloadLinks?.find(d => d.quality === '720p')?.url || '';
@@ -231,10 +243,13 @@ export const AdminPage: React.FC = () => {
       return;
     }
 
-    // Build servers array
+    // Build 5 servers array
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1 (CINEXUS Embed)', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p' },
-      { id: 's2', name: 'Server 2 (Streamtape / Fast)', url: server2Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p' }
+      { id: 's1', name: 'Server 1 (StreamHG)', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: server2Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: server3Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Free Data)', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ];
 
     // Build download links array
@@ -280,7 +295,7 @@ export const AdminPage: React.FC = () => {
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+        <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 via-rose-600 to-amber-500 p-0.5 mx-auto shadow-lg shadow-purple-600/30 flex items-center justify-center">
             <div className="w-full h-full bg-[#121620] rounded-2xl flex items-center justify-center text-cyan-400">
               <Lock className="w-8 h-8 text-rose-500" />
@@ -289,10 +304,10 @@ export const AdminPage: React.FC = () => {
 
           <div>
             <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 font-extrabold text-[10px] uppercase tracking-wider border border-rose-500/30">
-              Restricted Control Area
+              Restricted Portal
             </span>
-            <h2 className="text-2xl font-black text-white mt-2">CINEXUS Admin Portal</h2>
-            <p className="text-xs text-gray-400 mt-1">Please enter administrator credentials to gain access to the dashboard.</p>
+            <h2 className="text-2xl font-black text-white mt-2">CINEXUS Admin Access</h2>
+            <p className="text-xs text-gray-400 mt-1">Please enter administrator credentials to gain access.</p>
           </div>
 
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
@@ -305,7 +320,7 @@ export const AdminPage: React.FC = () => {
                 placeholder="admin@cinexus.site"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
                 autoFocus
                 required
               />
@@ -320,7 +335,7 @@ export const AdminPage: React.FC = () => {
                 placeholder="Enter password (cinexus2025)"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
                 required
               />
             </div>
@@ -353,7 +368,7 @@ export const AdminPage: React.FC = () => {
     <div className="space-y-8 pb-16">
 
       {/* Top Control Panel Header */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-extrabold text-xs uppercase tracking-wider border border-rose-500/30">
@@ -470,7 +485,7 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Movies List Table */}
-          <div className="glass-panel rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-gray-300">
                 <thead className="bg-[#0c0e15] text-gray-400 font-bold uppercase tracking-wider border-b border-white/10">
@@ -563,7 +578,7 @@ export const AdminPage: React.FC = () => {
       {/* TAB 2: GENERAL SITE CONTENT CUSTOMIZER */}
       {activeTab === 'branding' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -694,7 +709,7 @@ export const AdminPage: React.FC = () => {
       {/* TAB 3: SOCIAL MEDIA LINKS CONTROLLER */}
       {activeTab === 'social' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -762,7 +777,7 @@ export const AdminPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-semibold uppercase">Total Catalog Movies</p>
                 <h3 className="text-2xl font-black text-white mt-1">{analytics.totalMovies}</h3>
@@ -772,7 +787,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-semibold uppercase">Active Live Streams</p>
                 <h3 className="text-2xl font-black text-cyan-400 mt-1">{analytics.activeStreams.toLocaleString()}</h3>
@@ -782,7 +797,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-semibold uppercase">Total Downloads</p>
                 <h3 className="text-2xl font-black text-amber-400 mt-1">{analytics.totalDownloads.toLocaleString()}</h3>
@@ -792,7 +807,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="glass-panel p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 font-semibold uppercase">User Traffic Today</p>
                 <h3 className="text-2xl font-black text-emerald-400 mt-1">{analytics.userTrafficToday.toLocaleString()}</h3>
@@ -804,25 +819,16 @@ export const AdminPage: React.FC = () => {
 
           </div>
 
-          <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" /> Platform System Status
+              <Sparkles className="w-4 h-4 text-cyan-400" /> Recent Search Queries Log
             </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-              <div className="bg-[#121620] p-4 rounded-xl border border-white/5 space-y-1">
-                <span className="text-gray-400">Embed Server 1 (CINEXUS Engine)</span>
-                <p className="font-bold text-emerald-400 flex items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" /> Operational (100%)
-                </p>
-              </div>
-              <div className="bg-[#121620] p-4 rounded-xl border border-white/5 space-y-1">
-                <span className="text-gray-400">Database Synchronization</span>
-                <p className="font-bold text-cyan-400">LocalStorage Dynamic Sync Active</p>
-              </div>
-              <div className="bg-[#121620] p-4 rounded-xl border border-white/5 space-y-1">
-                <span className="text-gray-400">Telegram Channel Bot</span>
-                <p className="font-bold text-purple-400">Connected (@cinexus_official)</p>
-              </div>
+            <div className="flex flex-wrap gap-2 text-xs">
+              {analytics.recentSearches?.map((query, index) => (
+                <span key={index} className="px-3 py-1.5 rounded-xl bg-[#121620] border border-white/10 text-cyan-300 font-bold">
+                  🔍 {query}
+                </span>
+              ))}
             </div>
           </div>
         </div>
@@ -833,7 +839,7 @@ export const AdminPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
 
           {/* Add Category Form */}
-          <div className="glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Plus className="w-4 h-4 text-rose-500" /> Add New Genre Category
             </h3>
@@ -873,7 +879,7 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Categories List */}
-          <div className="md:col-span-2 glass-panel p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="md:col-span-2 bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white">Active Categories ({categories.length})</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {categories.map((cat) => (
@@ -896,7 +902,7 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ADD / EDIT MOVIE MODAL FORM */}
+      {/* ADD / EDIT MOVIE MODAL FORM (5 STREAMING SERVERS & DOWNLOADS) */}
       {isMovieModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
           <div className="relative w-full max-w-3xl bg-[#121620] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -920,21 +926,23 @@ export const AdminPage: React.FC = () => {
             {/* Modal Body Form */}
             <form onSubmit={handleSaveMovie} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
 
-              {/* TMDB Auto Fetch Assistant */}
+              {/* OMDb Auto Fetch Assistant (API Key: 87cd62a9) */}
               <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-900/40 via-rose-900/30 to-indigo-900/40 border border-purple-500/30 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
                   <Bot className="w-5 h-5 text-cyan-400" />
                   <div>
-                    <p className="text-xs font-bold text-white">TMDB Auto-Fetch Assistant</p>
-                    <p className="text-[11px] text-gray-400">Type title below and click Auto-Fetch to auto-fill metadata.</p>
+                    <p className="text-xs font-bold text-white">OMDb API Auto-Fetcher (Key: 87cd62a9)</p>
+                    <p className="text-[11px] text-gray-400">Enter title or IMDb ID (e.g., Avatar or tt1630029) and click Fetch.</p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={handleTMDBCLEAFetch}
-                  className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs whitespace-nowrap shadow-md"
+                  onClick={handleOMDbFetch}
+                  disabled={isOmdbLoading}
+                  className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs whitespace-nowrap shadow-md flex items-center gap-1.5"
                 >
-                  Auto-Fetch
+                  {isOmdbLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  OMDb Auto-Fetch
                 </button>
               </div>
 
@@ -1023,28 +1031,58 @@ export const AdminPage: React.FC = () => {
                   />
                 </div>
 
-                {/* Multi-Server Embedded Player URLs */}
+                {/* 5-Server Embedded Player URLs Manager */}
                 <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#0a0b0e] border border-white/10">
                   <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
-                    <Film className="w-3.5 h-3.5 text-rose-500" /> Multi-Server Embedded Player URLs
+                    <Server className="w-3.5 h-3.5 text-rose-500" /> Multi-Server Embedded Player URLs (Servers 1 - 5)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 1 Embed URL (Streamtape / DooDrive / GDrive)</label>
+                      <label className="text-[11px] text-gray-400 block mb-1">Server 1 (StreamHG Embed Link)</label>
                       <input
                         type="text"
                         value={server1Url}
                         onChange={(e) => setServer1Url(e.target.value)}
-                        placeholder="https://www.youtube.com/embed/..."
+                        placeholder="https://streamhg.com/e/..."
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 2 Embed URL (Fast Stream)</label>
+                      <label className="text-[11px] text-gray-400 block mb-1">Server 2 (Doodstream Embed Link)</label>
                       <input
                         type="text"
                         value={server2Url}
                         onChange={(e) => setServer2Url(e.target.value)}
+                        placeholder="https://doodstream.com/e/..."
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Server 3 (Streamtape Embed Link)</label>
+                      <input
+                        type="text"
+                        value={server3Url}
+                        onChange={(e) => setServer3Url(e.target.value)}
+                        placeholder="https://streamtape.com/e/..."
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-gray-400 block mb-1">Server 4 (Facebook Embed Link - Free Data)</label>
+                      <input
+                        type="text"
+                        value={server4Url}
+                        onChange={(e) => setServer4Url(e.target.value)}
+                        placeholder="https://www.facebook.com/plugins/video.php?href=..."
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <label className="text-[11px] text-gray-400 block mb-1">Server 5 (Official YouTube Trailer Embed Link)</label>
+                      <input
+                        type="text"
+                        value={server5Url}
+                        onChange={(e) => setServer5Url(e.target.value)}
                         placeholder="https://www.youtube.com/embed/..."
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
                       />
