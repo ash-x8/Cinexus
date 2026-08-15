@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -23,6 +24,7 @@ export const App: React.FC = () => {
           </main>
           <Footer />
         </div>
+        <Analytics />
       </Router>
     </MovieProvider>
   );
