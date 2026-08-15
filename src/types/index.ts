@@ -83,7 +83,15 @@ export interface SiteSettings {
   heroHeading: string;
   heroSubheading: string;
   footerText: string;
+
+  // Dynamic Section Titles
+  latestMoviesTitle: string;
+  trendingSeriesTitle: string;
+
+  // Social Media Links
+  facebookUrl: string;
   telegramChannelUrl: string;
+  whatsappGroupUrl: string;
 }
 
 export interface Analytics {
