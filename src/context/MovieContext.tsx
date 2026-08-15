@@ -2,6 +2,11 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Movie, Category, Tag, Analytics, SiteSettings } from '../types';
 import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
 
+// Supabase API credentials & CDN client initialization
+export const SUPABASE_URL = 'https://xyzcompany.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emNvbXBhbnkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjU0MDgwMCwiZXhwIjoyMDA4MTE2ODAwfQ.example_signature_token';
+export const OMDB_API_KEY = '87cd62a9';
+
 interface MovieContextType {
   movies: Movie[];
   categories: Category[];
@@ -28,6 +33,8 @@ interface MovieContextType {
   addCategory: (category: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
   resetToDefaultData: () => void;
+  fetchOMDbMetadata: (titleOrImdbId: string) => Promise<any>;
+  logSearchQuery: (query: string) => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -87,9 +94,10 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
     return {
       totalMovies: INITIAL_MOVIES.length,
-      activeStreams: 1240,
+      activeStreams: 1420,
       totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + m.downloadsCount, 0),
       userTrafficToday: 18450,
+      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
     };
   });
 
@@ -110,7 +118,30 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
 
-  // Sync to local storage
+  // Initialize Supabase CDN Realtime Subscription Listener if window.supabase exists
+  useEffect(() => {
+    if (typeof (window as any).supabase !== 'undefined') {
+      try {
+        const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        const channel = supabaseClient
+          .channel('cinexus_realtime_metrics')
+          .on('broadcast', { event: 'metrics_update' }, (payload: any) => {
+            if (payload?.analytics) {
+              setAnalytics(prev => ({ ...prev, ...payload.analytics }));
+            }
+          })
+          .subscribe();
+
+        return () => {
+          supabaseClient.removeChannel(channel);
+        };
+      } catch (e) {
+        console.warn('Supabase Realtime Fallback to LocalStorage:', e);
+      }
+    }
+  }, []);
+
+  // Sync state changes to local storage
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(movies));
   }, [movies]);
@@ -136,7 +167,6 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [isAdminAuthenticated]);
 
   const loginAdmin = (email: string, password: string): boolean => {
-    // Standard secure credentials for admin portal
     const validEmails = ['admin@cinexus.site', 'admin@cinexus.co', 'admin'];
     const validPasswords = ['cinexus2025', 'admin123', 'admin'];
 
@@ -199,15 +229,33 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCategories(prev => prev.filter(c => c.id !== id));
   };
 
+  const logSearchQuery = (query: string) => {
+    if (!query || query.trim().length < 2) return;
+    setAnalytics(prev => {
+      const existing = prev.recentSearches || [];
+      const updated = [query.trim(), ...existing.filter(q => q.toLowerCase() !== query.trim().toLowerCase())].slice(0, 10);
+      return { ...prev, recentSearches: updated };
+    });
+  };
+
+  // OMDb API Fetcher using API key 87cd62a9
+  const fetchOMDbMetadata = async (titleOrImdbId: string) => {
+    const paramKey = titleOrImdbId.startsWith('tt') ? 'i' : 't';
+    const response = await fetch(`https://www.omdbapi.com/?apikey=${OMDB_API_KEY}&${paramKey}=${encodeURIComponent(titleOrImdbId)}`);
+    const data = await response.json();
+    return data;
+  };
+
   const resetToDefaultData = () => {
     setMovies(INITIAL_MOVIES);
     setCategories(INITIAL_CATEGORIES);
     setSiteSettings(DEFAULT_SETTINGS);
     setAnalytics({
       totalMovies: INITIAL_MOVIES.length,
-      activeStreams: 1240,
+      activeStreams: 1420,
       totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + m.downloadsCount, 0),
       userTrafficToday: 18450,
+      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
     });
     localStorage.removeItem(LOCAL_STORAGE_MOVIES_KEY);
     localStorage.removeItem(LOCAL_STORAGE_CATEGORIES_KEY);
@@ -240,6 +288,8 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addCategory,
       deleteCategory,
       resetToDefaultData,
+      fetchOMDbMetadata,
+      logSearchQuery,
     }}>
       {children}
     </MovieContext.Provider>
