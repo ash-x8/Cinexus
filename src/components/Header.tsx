@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Film, Star, Shield, Menu, X, Flame, Sparkles, Filter, ChevronRight } from 'lucide-react';
+import { Search, Film, Star, Shield, Menu, X, Flame, Sparkles, Filter, ChevronRight, Megaphone } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 
 export const Header: React.FC = () => {
-  const { movies, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } = useMovies();
+  const { movies, siteSettings, searchQuery, setSearchQuery, selectedCategory, setSelectedCategory } = useMovies();
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
@@ -43,27 +43,35 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 glass-nav transition-all duration-300">
+      {/* Dynamic Top Announcement Banner */}
+      {siteSettings.showAnnouncement && siteSettings.announcementText && (
+        <div className="bg-gradient-to-r from-purple-900 via-rose-900 to-indigo-950 border-b border-rose-500/20 px-4 py-1.5 text-center text-[11px] font-bold text-amber-300 flex items-center justify-center gap-2">
+          <Megaphone className="w-3.5 h-3.5 text-amber-400 animate-bounce" />
+          <span>{siteSettings.announcementText}</span>
+        </div>
+      )}
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
 
           {/* Logo & Brand */}
           <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 via-indigo-600 to-cyan-400 p-[2px] shadow-lg shadow-purple-900/40 group-hover:shadow-cyan-500/30 transition-all duration-300">
+            <div className="relative flex items-center justify-center w-11 h-11 rounded-xl bg-gradient-to-br from-purple-600 via-rose-600 to-amber-400 p-[2px] shadow-lg shadow-purple-900/40 group-hover:shadow-amber-500/30 transition-all duration-300">
               <div className="w-full h-full bg-[#08090c] rounded-[10px] flex items-center justify-center">
-                <Film className="w-6 h-6 text-cyan-400 group-hover:scale-110 transition-transform duration-300" />
+                <Film className="w-6 h-6 text-amber-400 group-hover:scale-110 transition-transform duration-300" />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-1.5">
-                <span className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-white via-cyan-200 to-purple-400 bg-clip-text text-transparent">
-                  CINEXUS
+                <span className="text-2xl font-extrabold tracking-wider bg-gradient-to-r from-white via-cyan-200 to-amber-300 bg-clip-text text-transparent">
+                  {siteSettings.siteTitle || 'CINEXUS'}
                 </span>
-                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 uppercase tracking-widest">
+                <span className="px-1.5 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 uppercase tracking-widest">
                   SITE
                 </span>
               </div>
               <p className="text-[11px] font-semibold text-purple-300/80 tracking-widest flex items-center gap-1">
-                සිනෙක්ස් <span className="inline-block w-1 h-1 rounded-full bg-cyan-400 animate-pulse" /> Sinhala Subbed
+                {siteSettings.sinhalaTitle || 'සිනෙක්ස්'} <span className="inline-block w-1 h-1 rounded-full bg-amber-400 animate-pulse" /> Sinhala Subbed
               </p>
             </div>
           </Link>

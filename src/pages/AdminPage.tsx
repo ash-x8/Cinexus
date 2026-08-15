@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMovies } from '../context/MovieContext';
-import type { Movie } from '../types';
+import type { Movie, SiteSettings } from '../types';
 import {
   Film,
   Plus,
@@ -16,7 +16,14 @@ import {
   RotateCcw,
   X,
   Check,
-  Bot
+  Bot,
+  Lock,
+  LogOut,
+  Settings,
+  Megaphone,
+  Globe,
+  Save,
+  ShieldCheck
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -24,6 +31,11 @@ export const AdminPage: React.FC = () => {
     movies,
     categories,
     analytics,
+    siteSettings,
+    isAdminAuthenticated,
+    loginAdmin,
+    logoutAdmin,
+    updateSiteSettings,
     addMovie,
     updateMovie,
     deleteMovie,
@@ -32,7 +44,33 @@ export const AdminPage: React.FC = () => {
     resetToDefaultData
   } = useMovies();
 
-  const [activeTab, setActiveTab] = useState<'analytics' | 'movies' | 'categories'>('movies');
+  // Auth passcode state
+  const [passcode, setPasscode] = useState('');
+  const [authError, setAuthError] = useState('');
+
+  // Admin Tab State
+  const [activeTab, setActiveTab] = useState<'analytics' | 'movies' | 'categories' | 'branding'>('movies');
+
+  // Site Settings Form State
+  const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
+  const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
+
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (loginAdmin(passcode)) {
+      setAuthError('');
+      setPasscode('');
+    } else {
+      setAuthError('Invalid Admin Passcode! (Default: cinexus2025)');
+    }
+  };
+
+  const handleSaveSettings = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateSiteSettings(settingsForm);
+    setSettingsSavedMsg(true);
+    setTimeout(() => setSettingsSavedMsg(false), 3000);
+  };
   const [searchAdmin, setSearchAdmin] = useState('');
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
   const [editingMovieId, setEditingMovieId] = useState<string | null>(null);
@@ -179,6 +217,59 @@ export const AdminPage: React.FC = () => {
     m.sinhalaTitle.toLowerCase().includes(searchAdmin.toLowerCase())
   );
 
+  // Security Authentication Check
+  if (!isAdminAuthenticated) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+        <div className="w-full max-w-md glass-panel p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 to-rose-600 p-0.5 mx-auto shadow-lg shadow-purple-600/30 flex items-center justify-center">
+            <div className="w-full h-full bg-[#121620] rounded-2xl flex items-center justify-center text-cyan-400">
+              <Lock className="w-8 h-8" />
+            </div>
+          </div>
+
+          <div>
+            <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 font-extrabold text-[10px] uppercase tracking-wider">
+              Restricted Area
+            </span>
+            <h2 className="text-2xl font-black text-white mt-2">CINEXUS Admin Access</h2>
+            <p className="text-xs text-gray-400 mt-1">Please enter the master administrator passcode to unlock dashboard control.</p>
+          </div>
+
+          <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
+            <div>
+              <label className="text-xs font-semibold text-gray-300 block mb-1.5">Master Passcode</label>
+              <input
+                type="password"
+                placeholder="Enter admin passcode (e.g. cinexus2025)"
+                value={passcode}
+                onChange={(e) => setPasscode(e.target.value)}
+                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                autoFocus
+                required
+              />
+            </div>
+
+            {authError && (
+              <p className="text-xs text-rose-400 font-semibold bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+                {authError}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all"
+            >
+              <ShieldCheck className="w-4 h-4" /> Authenticate & Access Admin
+            </button>
+          </form>
+
+          <p className="text-[11px] text-gray-500">Default passcode: <code className="text-cyan-300 bg-white/5 px-1.5 py-0.5 rounded">cinexus2025</code></p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 pb-16">
 
@@ -189,7 +280,7 @@ export const AdminPage: React.FC = () => {
             <span className="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-extrabold text-xs uppercase tracking-wider">
               System Control
             </span>
-            <span className="text-xs text-purple-300 font-bold">CINEXUS Admin v2.0</span>
+            <span className="text-xs text-purple-300 font-bold">CINEXUS Admin v2.5</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
             Site Management & Dashboard (පාලන පුවරුව)
@@ -211,11 +302,19 @@ export const AdminPage: React.FC = () => {
           >
             <Plus className="w-4 h-4" /> Add New Movie / Series
           </button>
+
+          <button
+            onClick={logoutAdmin}
+            className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors"
+            title="Lock & Exit Admin"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-2 border-b border-white/10 pb-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-2">
         <button
           onClick={() => setActiveTab('movies')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
@@ -225,6 +324,17 @@ export const AdminPage: React.FC = () => {
           }`}
         >
           <Film className="w-4 h-4" /> Movies & Series ({movies.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('branding')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'branding'
+              ? 'bg-gradient-to-r from-purple-600 to-cyan-500 text-white shadow-md'
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Settings className="w-4 h-4" /> Branding & Announcements
         </button>
 
         <button
@@ -249,6 +359,125 @@ export const AdminPage: React.FC = () => {
           <Tag className="w-4 h-4" /> Category & Genre Manager
         </button>
       </div>
+
+      {/* TAB 0: BRANDING & ANNOUNCEMENTS CONTROL */}
+      {activeTab === 'branding' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <form onSubmit={handleSaveSettings} className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Globe className="w-5 h-5 text-cyan-400" /> Site Customization & Branding Editor
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Change site titles, global announcement banners, hero section copy, and footer text in real-time.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30"
+              >
+                <Save className="w-4 h-4" /> Save Site Settings
+              </button>
+            </div>
+
+            {settingsSavedMsg && (
+              <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" /> Site branding and announcement settings saved successfully!
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Brand Title (English)</label>
+                <input
+                  type="text"
+                  value={settingsForm.siteTitle}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Brand Title (Sinhala - සිනෙක්ස්)</label>
+                <input
+                  type="text"
+                  value={settingsForm.sinhalaTitle}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, sinhalaTitle: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                  required
+                />
+              </div>
+
+              <div className="md:col-span-2 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-gray-300 flex items-center gap-2">
+                    <Megaphone className="w-4 h-4 text-amber-400" /> Global Top Announcement Banner
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-400">
+                    <input
+                      type="checkbox"
+                      checked={settingsForm.showAnnouncement}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, showAnnouncement: e.target.checked })}
+                      className="accent-cyan-400 w-4 h-4"
+                    />
+                    Enable Announcement Banner
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value={settingsForm.announcementText}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
+                  placeholder="Enter notice text shown at the top of every page..."
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Hero Slider Headline</label>
+                <input
+                  type="text"
+                  value={settingsForm.heroHeading}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, heroHeading: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Hero Slider Subtitle</label>
+                <input
+                  type="text"
+                  value={settingsForm.heroSubheading}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, heroSubheading: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Telegram Channel Link</label>
+                <input
+                  type="text"
+                  value={settingsForm.telegramChannelUrl}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, telegramChannelUrl: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5">Footer Text Copyright</label>
+                <input
+                  type="text"
+                  value={settingsForm.footerText}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, footerText: e.target.value })}
+                  className="w-full bg-[#08090c] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-cyan-400"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
 
       {/* TAB 1: ANALYTICS OVERVIEW */}
       {activeTab === 'analytics' && (

@@ -1,8 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Film, Send, Heart, Shield, Sparkles, Globe } from 'lucide-react';
+import { useMovies } from '../context/MovieContext';
 
 export const Footer: React.FC = () => {
+  const { siteSettings } = useMovies();
+
   return (
     <footer className="mt-20 border-t border-white/10 bg-[#06070a] relative overflow-hidden">
       {/* Background glow gradient */}
@@ -14,24 +17,24 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div className="md:col-span-1 space-y-4">
             <Link to="/" className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-cyan-400 p-[2px]">
+              <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-purple-600 to-amber-400 p-[2px]">
                 <div className="w-full h-full bg-[#08090c] rounded-[10px] flex items-center justify-center">
-                  <Film className="w-5 h-5 text-cyan-400" />
+                  <Film className="w-5 h-5 text-amber-400" />
                 </div>
               </div>
               <div>
-                <span className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-cyan-200 to-purple-400 bg-clip-text text-transparent">
-                  CINEXUS
+                <span className="text-xl font-extrabold tracking-wider bg-gradient-to-r from-white via-cyan-200 to-amber-300 bg-clip-text text-transparent">
+                  {siteSettings.siteTitle || 'CINEXUS'}
                 </span>
-                <p className="text-[10px] text-purple-300 font-semibold">සිනෙක්ස් සිංහල උපසිරැසි</p>
+                <p className="text-[10px] text-amber-300/90 font-semibold">{siteSettings.sinhalaTitle || 'සිනෙක්ස්'} සිංහල උපසිරැසි</p>
               </div>
             </Link>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Sri Lanka's premium next-generation movie streaming & high-speed download platform with Sinhala subtitles. Modern design, zero intrusive ads, and ultra-fast embeds.
+              {siteSettings.footerText || "CINEXUS • Sri Lanka's premier Sinhala subtitled streaming & direct download portal."}
             </p>
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://t.me/cinexus_movies"
+                href={siteSettings.telegramChannelUrl || 'https://t.me/cinexus_movies'}
                 target="_blank"
                 rel="noreferrer"
                 className="px-3 py-2 text-xs rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 hover:bg-cyan-500/20 transition-colors flex items-center gap-1.5 font-semibold"

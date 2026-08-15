@@ -75,6 +75,17 @@ export interface Tag {
   name: string;
 }
 
+export interface SiteSettings {
+  siteTitle: string;
+  sinhalaTitle: string;
+  announcementText: string;
+  showAnnouncement: boolean;
+  heroHeading: string;
+  heroSubheading: string;
+  footerText: string;
+  telegramChannelUrl: string;
+}
+
 export interface Analytics {
   totalMovies: number;
   activeStreams: number;

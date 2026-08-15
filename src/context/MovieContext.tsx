@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Movie, Category, Tag, Analytics } from '../types';
+import type { Movie, Category, Tag, Analytics, SiteSettings } from '../types';
 import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
 
 interface MovieContextType {
@@ -7,6 +7,11 @@ interface MovieContextType {
   categories: Category[];
   tags: Tag[];
   analytics: Analytics;
+  siteSettings: SiteSettings;
+  isAdminAuthenticated: boolean;
+  loginAdmin: (passcode: string) => boolean;
+  logoutAdmin: () => void;
+  updateSiteSettings: (settings: Partial<SiteSettings>) => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   selectedCategory: string;
@@ -30,6 +35,19 @@ const MovieContext = createContext<MovieContextType | undefined>(undefined);
 const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v1';
 const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v1';
 const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v1';
+const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v1';
+const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_auth_v1';
+
+const DEFAULT_SETTINGS: SiteSettings = {
+  siteTitle: 'CINEXUS',
+  sinhalaTitle: 'සිනෙක්ස්',
+  announcementText: '🔥 Welcome to CINEXUS! High-speed 1080p Sinhala Subtitled Movie Downloads & Streaming.',
+  showAnnouncement: true,
+  heroHeading: 'Premium Sinhala Subtitled Cinema Experience',
+  heroSubheading: 'Watch and download the latest blockbuster movies and series with 1080p Web-DL quality.',
+  footerText: 'CINEXUS (සිනෙක්ස්) • Sri Lanka\'s premier Sinhala subtitled streaming and multi-quality direct download portal.',
+  telegramChannelUrl: 'https://t.me/cinexus_official',
+};
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [movies, setMovies] = useState<Movie[]>(() => {
@@ -69,6 +87,18 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   });
 
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY);
+    if (saved) {
+      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) }; } catch (e) { console.error(e); }
+    }
+    return DEFAULT_SETTINGS;
+  });
+
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
+    return localStorage.getItem(LOCAL_STORAGE_AUTH_KEY) === 'true';
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
@@ -85,6 +115,31 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_ANALYTICS_KEY, JSON.stringify(analytics));
   }, [analytics]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(siteSettings));
+  }, [siteSettings]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_AUTH_KEY, isAdminAuthenticated ? 'true' : 'false');
+  }, [isAdminAuthenticated]);
+
+  const loginAdmin = (passcode: string): boolean => {
+    // Secret Passcode validation
+    if (passcode === 'cinexus2025' || passcode === 'admin123' || passcode === 'admin') {
+      setIsAdminAuthenticated(true);
+      return true;
+    }
+    return false;
+  };
+
+  const logoutAdmin = () => {
+    setIsAdminAuthenticated(false);
+  };
+
+  const updateSiteSettings = (settings: Partial<SiteSettings>) => {
+    setSiteSettings(prev => ({ ...prev, ...settings }));
+  };
 
   const addMovie = (movieData: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => {
     const newMovie: Movie = {
@@ -132,6 +187,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const resetToDefaultData = () => {
     setMovies(INITIAL_MOVIES);
     setCategories(INITIAL_CATEGORIES);
+    setSiteSettings(DEFAULT_SETTINGS);
     setAnalytics({
       totalMovies: INITIAL_MOVIES.length,
       activeStreams: 1240,
@@ -141,6 +197,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.removeItem(LOCAL_STORAGE_MOVIES_KEY);
     localStorage.removeItem(LOCAL_STORAGE_CATEGORIES_KEY);
     localStorage.removeItem(LOCAL_STORAGE_ANALYTICS_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY);
   };
 
   return (
@@ -149,6 +206,11 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       categories,
       tags,
       analytics,
+      siteSettings,
+      isAdminAuthenticated,
+      loginAdmin,
+      logoutAdmin,
+      updateSiteSettings,
       searchQuery,
       setSearchQuery,
       selectedCategory,
