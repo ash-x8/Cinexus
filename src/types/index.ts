@@ -18,6 +18,12 @@ export interface ServerPlayer {
   serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic' | string;
 }
 
+export interface CastMember {
+  name: string;
+  character?: string;
+  profileUrl?: string;
+}
+
 export interface Movie {
   id: string;
   title: string;
@@ -40,7 +46,7 @@ export interface Movie {
   languages: string[]; // e.g., ['Tamil', 'Hindi', 'English', 'Sinhala', 'Malayalam', 'Telugu', 'Kannada', 'Japanese', 'Chinese', 'Korean']
   language: string; // Primary language e.g. 'Tamil'
   contentType: 'Sinhala Sub' | 'Without Sub / English' | 'Sinhala Dubbed' | string;
-  cast: string[];
+  cast: (string | CastMember)[];
   director: string;
   audioLanguage: string;
   subtitleSourceUrl?: string; // Direct link to download external subtitle file

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowUp, Share2, Send, MessageSquare, Video, Globe, Mail } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ContentModal, type ContentModalType } from './ContentModal';
 
 export const Footer: React.FC = () => {
-  const { siteSettings, setSelectedCategory, setSelectedGenre, setSelectedLanguage, setSelectedContentType } = useMovies();
+  const { siteSettings, setSelectedCategory, setSelectedGenre, setSelectedLanguage } = useMovies();
   const { t } = useLanguage();
   const [activeModal, setActiveModal] = useState<ContentModalType>(null);
+  const navigate = useNavigate();
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -22,6 +23,7 @@ export const Footer: React.FC = () => {
     } else {
       setSelectedGenre(cat);
     }
+    navigate('/');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -130,13 +132,13 @@ export const Footer: React.FC = () => {
               )}
 
               {siteSettings.contactEmail && (
-                <button
-                  onClick={() => setActiveModal('contact')}
+                <Link
+                  to="/contact"
                   className="w-9 h-9 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#FF0E25]/30 hover:border-[#FF0E25]/50 transition-all"
                   title="Contact Support"
                 >
                   <Mail className="w-4 h-4 text-amber-400" />
-                </button>
+                </Link>
               )}
             </div>
           </div>
@@ -201,51 +203,51 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 4: Dynamic Company & Legal Column */}
+          {/* Column 4: Dynamic Company & Legal Pages (Clickable Routes) */}
           <div>
             <h4 className="text-xs font-black text-[#FF0E25] tracking-wider uppercase mb-4">
               Company & Legal
             </h4>
             <ul className="space-y-2.5 text-[#9E9EA0] font-medium">
               <li>
-                <button
-                  onClick={() => setActiveModal('about')}
-                  className="hover:text-[#FF0E25] transition-colors text-left"
+                <Link
+                  to="/about-us"
+                  className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('aboutUs')}
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => setActiveModal('terms')}
-                  className="hover:text-[#FF0E25] transition-colors text-left"
+                <Link
+                  to="/terms"
+                  className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('termsOfService')}
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => setActiveModal('privacy')}
-                  className="hover:text-[#FF0E25] transition-colors text-left"
+                <Link
+                  to="/privacy"
+                  className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('privacyPolicy')}
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => setActiveModal('contact')}
-                  className="hover:text-[#FF0E25] transition-colors text-left"
+                <Link
+                  to="/contact"
+                  className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('contactUs')}
-                </button>
+                </Link>
               </li>
               <li>
-                <button
-                  onClick={() => setActiveModal('faq')}
-                  className="hover:text-[#FF0E25] transition-colors text-left"
+                <Link
+                  to="/faq"
+                  className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('faq')}
-                </button>
+                </Link>
               </li>
             </ul>
           </div>
@@ -266,7 +268,7 @@ export const Footer: React.FC = () => {
         </div>
       </div>
 
-      {/* Dynamic Modal Renderer for legal and account pages */}
+      {/* Dynamic Modal Renderer for account & request modals */}
       <ContentModal
         type={activeModal}
         onClose={() => setActiveModal(null)}
