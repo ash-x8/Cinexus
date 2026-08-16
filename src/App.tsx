@@ -3,11 +3,14 @@ import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'r
 import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
 import { LanguageProvider } from './context/LanguageContext';
+import { PlayerProvider } from './context/PlayerContext';
+import { FloatingMiniPlayer } from './components/FloatingMiniPlayer';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
 import { AdminPage } from './pages/AdminPage';
+import { LegalPage } from './pages/LegalPage';
 
 // Helper component to check window location for /admin, /#admin, or /?route=admin
 const AdminRouteInterceptor: React.FC = () => {
@@ -43,10 +46,16 @@ export const AppContent: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/about-us" element={<LegalPage type="about" />} />
+          <Route path="/terms" element={<LegalPage type="terms" />} />
+          <Route path="/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/contact" element={<LegalPage type="contact" />} />
+          <Route path="/faq" element={<LegalPage type="faq" />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
       <Footer />
+      <FloatingMiniPlayer />
     </div>
   );
 };
@@ -55,10 +64,12 @@ export const App: React.FC = () => {
   return (
     <MovieProvider>
       <LanguageProvider>
-        <Router>
-          <AppContent />
-          <Analytics />
-        </Router>
+        <PlayerProvider>
+          <Router>
+            <AppContent />
+            <Analytics />
+          </Router>
+        </PlayerProvider>
       </LanguageProvider>
     </MovieProvider>
   );

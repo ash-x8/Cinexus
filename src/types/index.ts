@@ -18,13 +18,6 @@ export interface ServerPlayer {
   serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic' | string;
 }
 
-export interface SubtitleAuthor {
-  name: string;
-  avatarUrl?: string;
-  downloadsCount?: number;
-  releaseDate?: string;
-}
-
 export interface Movie {
   id: string;
   title: string;
@@ -50,7 +43,7 @@ export interface Movie {
   cast: string[];
   director: string;
   audioLanguage: string;
-  subtitleAuthor: SubtitleAuthor;
+  subtitleSourceUrl?: string; // Direct link to download external subtitle file
 
   // Video and downloads
   servers: ServerPlayer[];

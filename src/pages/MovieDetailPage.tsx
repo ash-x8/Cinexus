@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
+import { usePlayer } from '../context/PlayerContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
 import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
@@ -14,7 +15,6 @@ import {
   Calendar,
   Subtitles,
   Server,
-  UserCheck,
   Send,
   ArrowLeft,
   Film,
@@ -33,6 +33,7 @@ export const MovieDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { movies, incrementViews, incrementDownloads } = useMovies();
   const { t } = useLanguage();
+  const { playStream } = usePlayer();
 
   const movie = movies.find(m => m.id === id);
 
@@ -76,6 +77,21 @@ export const MovieDetailPage: React.FC = () => {
   const sanitizedPlayerUrl = rawServer ? sanitizeEmbedUrl(rawServer.url, rawServer.serverType) : '';
   const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
+  // Sync current video stream to global PlayerContext for background floating mini-player persistence
+  const handlePlayActiveServer = (serverId: string) => {
+    setActiveServer(serverId);
+    const selected = movie.servers?.find(s => s.id === serverId);
+    if (selected) {
+      playStream({
+        movieId: movie.id,
+        title: movie.title,
+        posterUrl: movie.posterUrl,
+        streamUrl: selected.url,
+        serverName: selected.name || 'CINEXUS Stream',
+      });
+    }
+  };
+
   const relatedMovies = movies.filter(m => m.id !== movie.id && m.genres.some(g => movie.genres.includes(g))).slice(0, 6);
 
   const handleDownloadTrigger = (quality: string, url: string, audioSubAttr?: string) => {
@@ -95,6 +111,7 @@ export const MovieDetailPage: React.FC = () => {
 
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
   const categoryType = movie.contentType || (movie.hasSinhalaSub ? 'Sinhala Sub' : 'Without Sub / English');
+  const subtitleLink = movie.subtitleSourceUrl || 'https://cinesubz.co';
 
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
@@ -187,7 +204,7 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Meta Grid */}
+      {/* Cinesub-Style Meta Grid Overview */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/5 shadow-2xl">
         <h3 className="text-xs font-black text-[#FF0E25] tracking-wider uppercase mb-4 flex items-center gap-1.5">
           <Layers className="w-4 h-4" /> Cinesub Meta Grid Overview
@@ -226,7 +243,7 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ONLINE STREAMING PLAYER (100% IN-SITE STREAMING ENGINE WITH ZERO EXTERNAL REDIRECTION) */}
+      {/* ONLINE STREAMING PLAYER */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
           <div>
@@ -244,7 +261,7 @@ export const MovieDetailPage: React.FC = () => {
             {movie.servers?.map((server, index) => (
               <button
                 key={server.id}
-                onClick={() => setActiveServer(server.id)}
+                onClick={() => handlePlayActiveServer(server.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   activeServer === server.id
                     ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
@@ -258,7 +275,7 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dynamic Video Player Frame with Monetization Sync & Fallback Processing Overlay */}
+        {/* Dynamic Video Player Frame */}
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner group">
           {isIframeProcessing && (
             <div className="absolute inset-0 z-20 bg-[#0A0A0E]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 border border-white/10">
@@ -294,18 +311,30 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* DIRECT BROWSER DOWNLOAD ENGINE & CATEGORIZED DOWNLOAD LINKS */}
+      {/* DIRECT BROWSER DOWNLOAD ENGINE & SUBTITLE SOURCE LINK */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
-        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
           <div>
             <h2 className="text-lg font-black text-white flex items-center gap-2">
               <Download className="w-5 h-5 text-[#FF0E25]" />
-              Direct Browser Download Engine & Telegram (බාගත කරගන්න)
+              Direct Browser Download Engine & Subtitles (බාගත කරගන්න)
             </h2>
             <p className="text-xs text-[#9E9EA0] mt-0.5">
-              Instant HTML5 dynamic downloads for Telegram/MP4/MKV files without blank tabs.
+              Instant dynamic downloads for video files and external Sinhala subtitle file.
             </p>
           </div>
+
+          {/* Clean Subtitle Download Source Button */}
+          <a
+            href={subtitleLink}
+            target="_blank"
+            rel="noreferrer"
+            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
+          >
+            <Subtitles className="w-4 h-4 text-cyan-300" />
+            [🌐 Download Subtitle File]
+            <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
+          </a>
         </div>
 
         {downloadSuccessMessage && (
@@ -382,10 +411,10 @@ export const MovieDetailPage: React.FC = () => {
       {/* PLOT SUMMARY CARD & CAST INFO */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Left Column: Formatted Plot Summary & Cast */}
+        {/* Formatted Plot Summary with line-height: 1.8 */}
         <div className="lg:col-span-2 space-y-8">
 
-          {/* Plot Summary Card with line-height: 1.8 */}
+          {/* Plot Summary Card */}
           <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-5">
             <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <h3 className="text-base font-extrabold text-white flex items-center gap-2">
@@ -449,38 +478,26 @@ export const MovieDetailPage: React.FC = () => {
 
         </div>
 
-        {/* Right Column: Subtitle Translator Card */}
+        {/* Right Column: Subtitle Source Link Card */}
         <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6 flex flex-col justify-between">
           <div>
             <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-              <UserCheck className="w-4 h-4 text-[#FF0E25]" /> Subtitle Translator (උපසිරැසිකරු)
+              <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
             </h3>
 
-            <div className="mt-4 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF0E25] to-[#C80016] p-[2px]">
-                <div className="w-full h-full bg-[#0A0A0E] rounded-[14px] flex items-center justify-center font-bold text-white text-lg">
-                  {movie.subtitleAuthor?.name?.[0] || 'C'}
-                </div>
-              </div>
-              <div>
-                <h4 className="text-sm font-extrabold text-white">{movie.subtitleAuthor?.name || 'CINEXUS Subbing Team'}</h4>
-                <p className="text-xs text-rose-300 font-semibold">Senior Sinhala Subtitle Translator</p>
-              </div>
-            </div>
-
-            <div className="mt-5 space-y-2.5 text-xs bg-[#0A0A0E] p-4 rounded-2xl border border-white/5">
-              <div className="flex justify-between text-[#9E9EA0]">
-                <span>Total Sub Downloads:</span>
-                <span className="font-extrabold text-[#FF0E25]">{movie.subtitleAuthor?.downloadsCount?.toLocaleString() || '12,500'}</span>
-              </div>
-              <div className="flex justify-between text-[#9E9EA0]">
-                <span>Release Date:</span>
-                <span className="font-extrabold text-white">{movie.subtitleAuthor?.releaseDate || 'Recently Added'}</span>
-              </div>
-              <div className="flex justify-between text-[#9E9EA0]">
-                <span>Audio Language:</span>
-                <span className="font-extrabold text-white">{movie.audioLanguage}</span>
-              </div>
+            <div className="mt-4 p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-3">
+              <p className="text-xs text-[#9E9EA0] leading-[1.8]">
+                Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
+              </p>
+              <a
+                href={subtitleLink}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+              >
+                <Globe className="w-4 h-4 text-cyan-300" />
+                [🌐 Download Subtitle File]
+              </a>
             </div>
           </div>
 
@@ -490,13 +507,13 @@ export const MovieDetailPage: React.FC = () => {
             rel="noreferrer"
             className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
           >
-            <Send className="w-4 h-4" /> Join Subtitle Telegram Community
+            <Send className="w-4 h-4" /> Join Telegram Movie Community
           </a>
         </div>
 
       </div>
 
-      {/* Related Movies Grid */}
+      {/* Recommended Movies Grid */}
       {relatedMovies.length > 0 && (
         <section className="space-y-5 pt-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">

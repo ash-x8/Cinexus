@@ -33,11 +33,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver', 'Kate Winslet'],
     director: 'James Cameron',
     audioLanguage: 'English / English (Sinhala Sub)',
-    subtitleAuthor: {
-      name: 'නිසල් රණසිංහ',
-      downloadsCount: 14200,
-      releaseDate: '2023-01-15'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG / HGCloud HD)', url: 'https://hgcloud.to/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
@@ -82,11 +78,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Javier Bardem'],
     director: 'Denis Villeneuve',
     audioLanguage: 'English (Sinhala Subtitled)',
-    subtitleAuthor: {
-      name: 'කසුන් පෙරේරා',
-      downloadsCount: 22100,
-      releaseDate: '2024-03-01'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG / HGCloud 4K)', url: 'https://audinifer.com/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
@@ -131,11 +123,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Vijay', 'Sanjay Dutt', 'Trisha Krishnan', 'Arjun Sarja'],
     director: 'Lokesh Kanagaraj',
     audioLanguage: 'Tamil (Sinhala Sub)',
-    subtitleAuthor: {
-      name: 'ධනුෂ්ක අබේසිංහ',
-      downloadsCount: 18400,
-      releaseDate: '2023-11-20'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://streamhg.com/e/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/mqqft2x_Aa4', quality: '720p', serverType: 'doodstream' },
@@ -178,11 +166,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Millie Bobby Brown', 'Finn Wolfhard', 'Winona Ryder', 'David Harbour'],
     director: 'The Duffer Brothers',
     audioLanguage: 'English (Complete Sinhala Sub Pack)',
-    subtitleAuthor: {
-      name: 'සංජය ප්‍රනාන්දු',
-      downloadsCount: 31000,
-      releaseDate: '2022-07-01'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG All Episodes)', url: 'https://streamhg.com/e/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/yQEondeGvKo', quality: '720p', serverType: 'doodstream' },
@@ -227,11 +211,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain', 'Michael Caine'],
     director: 'Christopher Nolan',
     audioLanguage: 'English / Dual Audio Sinhala',
-    subtitleAuthor: {
-      name: 'ලහිරු මධුෂාන්',
-      downloadsCount: 41200,
-      releaseDate: '2021-08-12'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG 1080p)', url: 'https://streamhg.com/e/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/zSWdZVtXT7E', quality: '720p', serverType: 'doodstream' },
@@ -275,11 +255,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Natsuki Hanae', 'Akari Kitō', 'Hiro Shimono', 'Yoshitsugu Matsuoka'],
     director: 'Haruo Sotozaki',
     audioLanguage: 'Japanese (Sinhala Subbed)',
-    subtitleAuthor: {
-      name: 'ඇනිමේ සිංහල සබ්',
-      downloadsCount: 19800,
-      releaseDate: '2024-05-12'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG Anime HD)', url: 'https://streamhg.com/e/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/a9tq0aS5Zu8', quality: '720p', serverType: 'doodstream' },
@@ -322,11 +298,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Soubin Shahir', 'Sreenath Bhasi', 'Balu Varghese', 'Ganapathi'],
     director: 'Chidambaram',
     audioLanguage: 'Malayalam (Sinhala Sub)',
-    subtitleAuthor: {
-      name: 'ලසිත් පතිරණ',
-      downloadsCount: 25400,
-      releaseDate: '2024-03-25'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
@@ -368,11 +340,7 @@ export const INITIAL_MOVIES: Movie[] = [
     cast: ['Prabhas', 'Amitabh Bachchan', 'Kamal Haasan', 'Deepika Padukone'],
     director: 'Nag Ashwin',
     audioLanguage: 'Sinhala Dubbed / Telugu',
-    subtitleAuthor: {
-      name: 'සිනෙක්ස් ඩබ් කණ්ඩායම',
-      downloadsCount: 38900,
-      releaseDate: '2024-07-05'
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG Sinhala Dub)', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
