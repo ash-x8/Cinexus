@@ -19,7 +19,10 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
   const primaryLanguage = movie.language || movie.languages?.[0] || 'English';
 
   return (
-    <div className="group relative rounded-2xl glass-card overflow-hidden flex flex-col justify-between h-full transform transition-all duration-300 border border-white/5 hover:border-[#FF0E25]/40 hover:shadow-xl hover:shadow-[#FF0E25]/10 bg-[#121620]">
+    <Link
+      to={`/movie/${movie.id}`}
+      className="group relative rounded-2xl glass-card overflow-hidden flex flex-col justify-between h-full transform transition-all duration-300 border border-white/5 hover:border-[#FF0E25]/40 hover:shadow-xl hover:shadow-[#FF0E25]/10 bg-[#121620] block cursor-pointer"
+    >
 
       {/* Top Image Container */}
       <div className="relative aspect-[2/3] overflow-hidden bg-[#0A0A0E]">
@@ -87,18 +90,18 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
 
         {/* Hover Action Play Button */}
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 opacity-0 group-hover:opacity-100 transition-all duration-300 z-20 p-4">
-          <Link
-            to={`/movie/${movie.id}`}
+          <div
             className="w-12 h-12 rounded-full bg-[#FF0E25] hover:bg-[#C80016] text-white flex items-center justify-center shadow-lg shadow-[#FF0E25]/50 transform group-hover:scale-110 transition-all"
             title="Watch Now"
           >
             <Play className="w-6 h-6 fill-white ml-0.5" />
-          </Link>
+          </div>
 
           {onTrailerClick && movie.trailerUrl && (
             <button
               onClick={(e) => {
                 e.preventDefault();
+                e.stopPropagation();
                 onTrailerClick(movie.trailerUrl, movie.title);
               }}
               className="px-3 py-1.5 rounded-xl bg-black/80 hover:bg-black text-xs font-bold text-gray-200 border border-white/20 hover:border-[#FF0E25] backdrop-blur-md flex items-center gap-1.5 transition-all"
@@ -113,14 +116,15 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
       {/* Bottom Info Section */}
       <div className="p-3 flex flex-col justify-between flex-1 bg-gradient-to-b from-[#121620] to-[#0A0A0E]">
         <div>
-          <Link to={`/movie/${movie.id}`} className="block group/title">
-            <h3 className="text-xs sm:text-sm font-bold text-white group-hover/title:text-[#FF0E25] line-clamp-1 transition-colors">
-              {movie.title}
-            </h3>
-            <p className="text-[11px] text-rose-300/80 font-medium line-clamp-1 mt-0.5">
-              {movie.sinhalaTitle}
-            </p>
-          </Link>
+          <h3 className="text-xs sm:text-sm font-bold text-white group-hover:text-[#FF0E25] line-clamp-1 transition-colors">
+            {movie.title}
+          </h3>
+          <p className="text-[11px] text-rose-300/80 font-medium line-clamp-1 mt-0.5">
+            {movie.sinhalaTitle}
+          </p>
+          <p className="text-[10px] text-[#9E9EA0] line-clamp-2 mt-1 leading-snug font-normal">
+            {movie.englishPlot || movie.sinhalaPlot}
+          </p>
         </div>
 
         <div className="mt-2.5 pt-2 border-t border-white/5 flex items-center justify-between text-[10px] text-[#9E9EA0] font-medium">
@@ -134,6 +138,6 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
         </div>
       </div>
 
-    </div>
+    </Link>
   );
 };
