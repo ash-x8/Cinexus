@@ -52,7 +52,7 @@ export const HomePage: React.FC = () => {
   const tvSeriesList = sortedMovies.filter(m => m.isTVSeries);
 
   return (
-    <div className="space-y-12 pb-16">
+    <div className="space-y-12 pb-16 animate-in fade-in duration-300">
 
       {/* Featured Hero Carousel Slider */}
       {!searchQuery && selectedCategory === 'All' && (
@@ -70,15 +70,15 @@ export const HomePage: React.FC = () => {
           {/* Section Heading */}
           <div>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <span className="w-2 h-7 rounded-full bg-gradient-to-b from-rose-600 via-rose-500 to-amber-400" />
+              <span className="w-2 h-7 rounded-full bg-gradient-to-b from-[#FF0E25] via-[#C80016] to-amber-400" />
               {searchQuery
                 ? `Search Results for "${searchQuery}"`
                 : selectedCategory !== 'All'
                   ? `${selectedCategory} Collection`
                   : siteSettings.latestMoviesTitle || 'අලුත්ම සිංහල උපසිරැසි (Latest Movies)'}
             </h2>
-            <p className="text-xs text-gray-400 mt-1">
-              Explore {sortedMovies.length} high-speed 1080p Sinhala subtitled releases
+            <p className="text-xs text-[#9E9EA0] mt-1">
+              Explore {sortedMovies.length} high-speed 1080p & 4K Sinhala subtitled releases
             </p>
           </div>
 
@@ -86,13 +86,13 @@ export const HomePage: React.FC = () => {
           <div className="flex flex-wrap items-center gap-3">
 
             {/* Type Switcher */}
-            <div className="flex items-center p-1 rounded-xl bg-[#121620] border border-white/10 text-xs font-bold">
+            <div className="flex items-center p-1 rounded-xl bg-[#11141f] border border-white/10 text-xs font-bold">
               <button
                 onClick={() => setFilterType('all')}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   filterType === 'all'
-                    ? 'bg-rose-600 text-white shadow-md'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-[#FF0E25] text-white shadow-md'
+                    : 'text-[#9E9EA0] hover:text-white'
                 }`}
               >
                 All Releases
@@ -101,8 +101,8 @@ export const HomePage: React.FC = () => {
                 onClick={() => setFilterType('movies')}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   filterType === 'movies'
-                    ? 'bg-rose-600 text-white shadow-md'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-[#FF0E25] text-white shadow-md'
+                    : 'text-[#9E9EA0] hover:text-white'
                 }`}
               >
                 Movies
@@ -111,8 +111,8 @@ export const HomePage: React.FC = () => {
                 onClick={() => setFilterType('series')}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   filterType === 'series'
-                    ? 'bg-rose-600 text-white shadow-md'
-                    : 'text-gray-400 hover:text-white'
+                    ? 'bg-[#FF0E25] text-white shadow-md'
+                    : 'text-[#9E9EA0] hover:text-white'
                 }`}
               >
                 TV Series
@@ -120,18 +120,18 @@ export const HomePage: React.FC = () => {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-2 bg-[#121620] border border-white/10 rounded-xl px-3 py-1.5 text-xs">
-              <ArrowUpDown className="w-3.5 h-3.5 text-rose-500" />
-              <span className="text-gray-400 font-medium">Sort:</span>
+            <div className="flex items-center gap-2 bg-[#11141f] border border-white/10 rounded-xl px-3 py-1.5 text-xs">
+              <ArrowUpDown className="w-3.5 h-3.5 text-[#FF0E25]" />
+              <span className="text-[#9E9EA0] font-medium">Sort:</span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
               >
-                <option value="latest" className="bg-[#121620]">Latest Uploads</option>
-                <option value="rating" className="bg-[#121620]">Highest IMDb Score</option>
-                <option value="popular" className="bg-[#121620]">Most Popular</option>
-                <option value="year" className="bg-[#121620]">Release Year</option>
+                <option value="latest" className="bg-[#11141f]">Latest Uploads</option>
+                <option value="rating" className="bg-[#11141f]">Highest IMDb Score</option>
+                <option value="popular" className="bg-[#11141f]">Most Popular</option>
+                <option value="year" className="bg-[#11141f]">Release Year</option>
               </select>
             </div>
 
@@ -141,8 +141,8 @@ export const HomePage: React.FC = () => {
 
         {/* Quick Category Chips */}
         <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-          <span className="text-xs font-bold text-gray-400 flex items-center gap-1 shrink-0 mr-1">
-            <Filter className="w-3.5 h-3.5 text-rose-500" /> Filter:
+          <span className="text-xs font-bold text-[#9E9EA0] flex items-center gap-1 shrink-0 mr-1">
+            <Filter className="w-3.5 h-3.5 text-[#FF0E25]" /> Filter:
           </span>
           {['All', 'Action', 'Sci-Fi', 'Romance', 'Horror', 'Sinhala Subbed', 'TV Series', 'Anime', 'Dual Audio'].map((category) => (
             <button
@@ -150,8 +150,8 @@ export const HomePage: React.FC = () => {
               onClick={() => setSelectedCategory(category)}
               className={`px-3.5 py-1.5 text-xs font-bold rounded-xl whitespace-nowrap transition-all ${
                 selectedCategory === category
-                  ? 'bg-gradient-to-r from-rose-600 to-amber-500 text-white shadow-md shadow-rose-600/30'
-                  : 'bg-[#121620] text-gray-400 border border-white/5 hover:text-white hover:border-white/20'
+                  ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
+                  : 'bg-[#11141f] text-[#9E9EA0] border border-white/5 hover:text-white hover:border-white/20'
               }`}
             >
               {category}
@@ -167,17 +167,17 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 bg-[#121620] rounded-3xl border border-white/10 space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-rose-500/10 text-rose-500 mx-auto flex items-center justify-center">
+          <div className="text-center py-20 bg-[#11141f] rounded-3xl border border-white/10 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-[#FF0E25]/10 text-[#FF0E25] mx-auto flex items-center justify-center">
               <Sparkles className="w-8 h-8" />
             </div>
             <h3 className="text-xl font-bold text-white">No Movies Found</h3>
-            <p className="text-xs text-gray-400 max-w-sm mx-auto">
+            <p className="text-xs text-[#9E9EA0] max-w-sm mx-auto">
               We couldn't find any titles matching your selected filters or search query. Try resetting your search.
             </p>
             <button
               onClick={() => { setSelectedCategory('All'); setFilterType('all'); }}
-              className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-md hover:bg-rose-500"
+              className="px-4 py-2 rounded-xl bg-[#FF0E25] text-white font-bold text-xs shadow-md hover:bg-[#C80016]"
             >
               Reset Filters
             </button>
@@ -191,7 +191,7 @@ export const HomePage: React.FC = () => {
         <section className="space-y-6 pt-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-4">
             <h2 className="text-2xl font-extrabold text-white tracking-tight flex items-center gap-2">
-              <TrendingUp className="w-6 h-6 text-rose-500" />
+              <TrendingUp className="w-6 h-6 text-[#FF0E25]" />
               {siteSettings.trendingSeriesTitle || 'Trending Sinhala Subbed TV Series'}
             </h2>
             <span className="text-xs text-rose-400 font-bold hover:underline cursor-pointer" onClick={() => setSelectedCategory('TV Series')}>

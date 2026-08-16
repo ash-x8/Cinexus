@@ -1,9 +1,12 @@
 export interface DownloadLink {
   id: string;
-  quality: '480p' | '720p' | '1080p' | '4K' | 'Telegram';
-  size: string;
+  quality: string; // e.g., '4K', '1080p', '720p', '480p', 'Telegram'
+  resolution?: string; // e.g., '3840x2160', '1920x1080', '1280x720', '854x480'
+  fileSize?: string; // e.g., '2.4 GB', '1.2 GB'
+  size?: string; // alias for fileSize
   url: string;
-  format: string;
+  serverType?: string; // e.g., 'Direct High-Speed', 'Telegram Link', 'Google Drive', 'Mega'
+  format?: string;
 }
 
 export interface ServerPlayer {
@@ -11,7 +14,7 @@ export interface ServerPlayer {
   name: string; // e.g., 'Server 1 (StreamHG)', 'Server 2 (Doodstream)', 'Server 3 (Streamtape)', 'Server 4 (Facebook Video)', 'Server 5 (YouTube Trailer)'
   url: string; // embed URL
   quality: string;
-  serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic';
+  serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic' | string;
 }
 
 export interface SubtitleAuthor {
@@ -45,7 +48,7 @@ export interface Movie {
   audioLanguage: string;
   subtitleAuthor: SubtitleAuthor;
 
-  // Video and downloads (5 servers: StreamHG, Doodstream, Streamtape, Facebook Embed, YouTube Trailer)
+  // Video and downloads
   servers: ServerPlayer[];
   downloadLinks: DownloadLink[];
 
@@ -89,10 +92,22 @@ export interface SiteSettings {
   latestMoviesTitle: string;
   trendingSeriesTitle: string;
 
-  // Social Media Links
+  // Social Media & Contact Links
   facebookUrl: string;
   telegramChannelUrl: string;
   whatsappGroupUrl: string;
+  instagramUrl: string;
+  twitterUrl: string;
+  youtubeUrl: string;
+  contactEmail: string;
+
+  // Dynamic Content & Legal Pages
+  aboutUsContent: string;
+  termsContent: string;
+  privacyContent: string;
+  contactUsContent: string;
+  faqContent: string;
+  requestMovieRules: string;
 }
 
 export interface Analytics {

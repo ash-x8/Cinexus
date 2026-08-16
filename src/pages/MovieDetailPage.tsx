@@ -13,7 +13,6 @@ import {
   Server,
   UserCheck,
   Send,
-  Sparkles,
   ArrowLeft,
   Film,
   Globe,
@@ -21,8 +20,7 @@ import {
   Eye,
   Info,
   Users,
-  Tv,
-  Share2
+  HardDrive
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
@@ -52,15 +50,15 @@ export const MovieDetailPage: React.FC = () => {
 
   if (!movie) {
     return (
-      <div className="text-center py-24 bg-slate-900/60 backdrop-blur-md rounded-3xl border border-white/10 space-y-4">
-        <Film className="w-16 h-16 text-cyan-400 mx-auto" />
+      <div className="text-center py-24 bg-[#11141f]/80 backdrop-blur-xl rounded-3xl border border-white/5 space-y-4">
+        <Film className="w-16 h-16 text-[#FF0E25] mx-auto" />
         <h2 className="text-2xl font-bold text-white">Movie Not Found</h2>
-        <p className="text-gray-400 text-sm">The movie you requested could not be located in our library.</p>
+        <p className="text-[#9E9EA0] text-sm">The movie you requested could not be located in our library.</p>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-purple-600 to-cyan-500 text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-bold rounded-xl text-sm hover:opacity-90 transition-opacity"
         >
-          <ArrowLeft className="w-4 h-4" /> Back to Home
+          <ArrowLeft className="w-4 h-4" /> Back to Homepage
         </Link>
       </div>
     );
@@ -71,7 +69,7 @@ export const MovieDetailPage: React.FC = () => {
 
   const handleDownloadClick = (quality: string, url: string) => {
     incrementDownloads(movie.id);
-    setDownloadSuccessMessage(`Starting download for ${movie.title} (${quality})...`);
+    setDownloadSuccessMessage(`Starting download trigger for ${movie.title} (${quality})...`);
     setTimeout(() => {
       setDownloadSuccessMessage('');
     }, 4000);
@@ -82,55 +80,55 @@ export const MovieDetailPage: React.FC = () => {
   };
 
   return (
-    <div className="space-y-10 pb-16">
+    <div className="space-y-10 pb-16 animate-in fade-in duration-300">
 
-      {/* Back Button */}
+      {/* Back Button Navigation */}
       <div>
         <Link
           to="/"
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/60 backdrop-blur-md border border-white/10 text-gray-300 hover:text-white hover:border-cyan-400 text-xs font-bold transition-all shadow-md"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-[#11141f]/80 backdrop-blur-md border border-white/5 text-gray-300 hover:text-white hover:border-[#FF0E25]/50 text-xs font-extrabold transition-all shadow-md"
         >
-          <ArrowLeft className="w-4 h-4 text-cyan-400" />
+          <ArrowLeft className="w-4 h-4 text-[#FF0E25]" />
           Back to Movies Catalog
         </Link>
       </div>
 
-      {/* Hero Backdrop Banner */}
-      <div className="relative rounded-3xl overflow-hidden bg-slate-900/60 backdrop-blur-md border border-white/10 shadow-2xl">
-        <div className="relative min-h-[320px] md:min-h-[400px] w-full flex items-end">
+      {/* Clean Hero Backdrop Banner */}
+      <div className="relative rounded-3xl overflow-hidden bg-[#11141f] border border-white/5 shadow-2xl">
+        <div className="relative min-h-[320px] md:min-h-[420px] w-full flex items-end">
           <img
             src={movie.backdropUrl || movie.posterUrl}
             alt={movie.title}
-            className="absolute inset-0 w-full h-full object-cover filter brightness-50"
+            className="absolute inset-0 w-full h-full object-cover filter brightness-[0.4]"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#08090c] via-[#08090c]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#090A0F] via-[#090A0F]/80 to-transparent" />
 
-          {/* Details Overlay */}
+          {/* Details Hero Overlay */}
           <div className="relative z-10 p-6 sm:p-10 w-full flex flex-col md:flex-row items-start md:items-end gap-6">
             <img
               src={movie.posterUrl}
               alt={movie.title}
-              className="w-36 sm:w-48 aspect-[2/3] object-cover rounded-2xl border-2 border-white/20 shadow-2xl flex-shrink-0"
+              className="w-36 sm:w-48 aspect-[2/3] object-cover rounded-2xl border border-white/10 shadow-2xl flex-shrink-0"
             />
 
             <div className="space-y-3 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="px-3 py-1 rounded-xl bg-cyan-500 text-black font-extrabold text-xs uppercase tracking-wider shadow-md">
+                <span className="px-3 py-1 rounded-xl bg-[#FF0E25] text-white font-extrabold text-xs uppercase tracking-wider shadow-md">
                   {movie.qualityBadge}
                 </span>
                 {movie.hasSinhalaSub && (
-                  <span className="px-3 py-1 rounded-xl bg-purple-600 border border-purple-400/40 text-white font-bold text-xs flex items-center gap-1 shadow-md">
+                  <span className="px-3 py-1 rounded-xl bg-purple-600/90 border border-purple-400/30 text-white font-bold text-xs flex items-center gap-1 shadow-md">
                     <Subtitles className="w-3.5 h-3.5 text-cyan-300" />
                     Sinhala Subbed (සිංහල උපසිරැසි)
                   </span>
                 )}
                 {movie.isDualAudio && (
-                  <span className="px-3 py-1 rounded-xl bg-indigo-600/80 text-cyan-200 font-bold text-xs shadow-md">
+                  <span className="px-3 py-1 rounded-xl bg-indigo-600/80 text-white font-bold text-xs shadow-md">
                     Dual Audio
                   </span>
                 )}
                 {movie.isTVSeries && (
-                  <span className="px-3 py-1 rounded-xl bg-rose-600/80 text-rose-100 font-bold text-xs shadow-md">
+                  <span className="px-3 py-1 rounded-xl bg-rose-600/80 text-white font-bold text-xs shadow-md">
                     TV Series
                   </span>
                 )}
@@ -139,22 +137,22 @@ export const MovieDetailPage: React.FC = () => {
               <h1 className="text-2xl sm:text-4xl font-black text-white tracking-tight leading-tight">
                 {movie.title}
               </h1>
-              <p className="text-lg sm:text-2xl font-black text-cyan-300 leading-snug">
+              <p className="text-lg sm:text-2xl font-black text-[#FF0E25] leading-snug">
                 {movie.sinhalaTitle}
               </p>
 
-              <div className="flex flex-wrap items-center gap-4 text-xs font-semibold text-gray-300 pt-1">
+              <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-gray-300 pt-1">
                 <span className="flex items-center gap-1 text-amber-400 bg-black/70 px-3 py-1 rounded-xl border border-amber-500/30 font-bold">
-                  <Star className="w-4 h-4 fill-amber-400" /> {movie.imdbRating} IMDb
+                  <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> {movie.imdbRating.toFixed(1)} IMDb
                 </span>
                 <span className="flex items-center gap-1 text-gray-300 bg-black/50 px-2.5 py-1 rounded-xl border border-white/10">
-                  <Calendar className="w-3.5 h-3.5 text-cyan-400" /> {movie.year}
+                  <Calendar className="w-3.5 h-3.5 text-[#FF0E25]" /> {movie.year}
                 </span>
                 <span className="flex items-center gap-1 text-gray-300 bg-black/50 px-2.5 py-1 rounded-xl border border-white/10">
-                  <Clock className="w-3.5 h-3.5 text-cyan-400" /> {movie.duration}
+                  <Clock className="w-3.5 h-3.5 text-[#FF0E25]" /> {movie.duration}
                 </span>
-                <span className="flex items-center gap-1 text-purple-300 bg-black/50 px-2.5 py-1 rounded-xl border border-white/10">
-                  <Eye className="w-3.5 h-3.5 text-purple-400" /> {movie.viewsCount.toLocaleString()} Views
+                <span className="flex items-center gap-1 text-rose-300 bg-black/50 px-2.5 py-1 rounded-xl border border-white/10">
+                  <Eye className="w-3.5 h-3.5 text-rose-400" /> {movie.viewsCount.toLocaleString()} Views
                 </span>
               </div>
             </div>
@@ -162,15 +160,15 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Embedded Multi-Server Video Player Section (5 Servers Supported) */}
-      <section className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-4">
+      {/* SECTION 1: Online Streaming / Watch Options */}
+      <section className="bg-[#11141f]/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
           <div>
             <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Play className="w-5 h-5 text-cyan-400 fill-cyan-400" />
-              Multi-Server Online Streaming Player (නරඹන්න)
+              <Play className="w-5 h-5 text-[#FF0E25] fill-[#FF0E25]" />
+              Online Streaming / Watch Options (නරඹන්න)
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">Stream tape, DooDrive, Facebook Video, or Youtube Trailer embeds.</p>
+            <p className="text-xs text-[#9E9EA0] mt-0.5">StreamHG, Doodstream, Streamtape, Facebook Free Data, or Youtube Trailer embeds.</p>
           </div>
 
           {/* Server Switcher Tabs */}
@@ -181,8 +179,8 @@ export const MovieDetailPage: React.FC = () => {
                 onClick={() => setActiveServer(server.id)}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
                   activeServer === server.id
-                    ? 'bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 text-white shadow-lg shadow-purple-600/30'
-                    : 'bg-[#121620] text-gray-300 hover:text-white border border-white/10'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#090A0F] text-gray-300 hover:text-white border border-white/10'
                 }`}
               >
                 <Server className="w-3.5 h-3.5" />
@@ -192,7 +190,7 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Player Container */}
+        {/* Video Player Container */}
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
           {currentServerObj ? (
             <iframe
@@ -203,83 +201,82 @@ export const MovieDetailPage: React.FC = () => {
               allowFullScreen
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-gray-400 text-sm">
+            <div className="flex items-center justify-center h-full text-[#9E9EA0] text-xs font-bold">
               No video server configured.
             </div>
           )}
         </div>
       </section>
 
-      {/* Multi-Quality Downloads Section */}
-      <section className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
-        <div className="flex items-center justify-between border-b border-white/10 pb-4">
+      {/* SECTION 2: Direct Download Links */}
+      <section className="bg-[#11141f]/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
+        <div className="flex items-center justify-between border-b border-white/5 pb-4">
           <div>
             <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Download className="w-5 h-5 text-cyan-400" />
-              Multi-Quality Direct Downloads & Telegram (බාගත කරගන්න)
+              <Download className="w-5 h-5 text-[#FF0E25]" />
+              Direct Download Links & Telegram (බාගත කරගන්න)
             </h2>
-            <p className="text-xs text-gray-400 mt-0.5">High-speed 480p, 720p, 1080p and direct Telegram file links</p>
+            <p className="text-xs text-[#9E9EA0] mt-0.5">High-speed 4K, 1080p, 720p, 480p and Telegram file downloads</p>
           </div>
         </div>
 
         {downloadSuccessMessage && (
-          <div className="p-4 rounded-xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
-            <CheckCircle className="w-4 h-4 text-cyan-400 flex-shrink-0" />
+          <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in duration-200">
+            <CheckCircle className="w-4 h-4 text-emerald-400 flex-shrink-0" />
             {downloadSuccessMessage}
           </div>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {(movie.downloadLinks && movie.downloadLinks.length > 0 ? movie.downloadLinks : [
-            { id: 'dl_480', quality: '480p', size: '600 MB', format: 'MP4', url: '#download-480p' },
-            { id: 'dl_720', quality: '720p', size: '1.2 GB', format: 'MP4', url: '#download-720p' },
-            { id: 'dl_1080', quality: '1080p', size: '2.5 GB', format: 'MKV', url: '#download-1080p' },
-            { id: 'dl_telegram', quality: 'Telegram', size: 'Fast Bot', format: 'Telegram File', url: 'https://t.me/cinexus_official' }
+            { id: 'dl_4k', quality: '4K', resolution: '3840x2160', fileSize: '5.2 GB', size: '5.2 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
+            { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', size: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
+            { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
+            { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Telegram File', size: 'Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
           ]).map((link) => {
-            const getButtonLabel = (quality: string) => {
-              if (quality.toLowerCase().includes('telegram')) return 'Download via Telegram';
-              if (quality.toLowerCase().includes('480')) return 'Download 480p';
-              if (quality.toLowerCase().includes('720')) return 'Download 720p';
-              if (quality.toLowerCase().includes('1080')) return 'Download 1080p';
-              return `Download ${quality}`;
-            };
-
             const isTelegram = link.quality.toLowerCase().includes('telegram');
+            const displaySize = link.fileSize || link.size || 'Direct File';
+            const displayRes = link.resolution || link.quality;
+            const displayServer = link.serverType || (isTelegram ? 'Telegram Channel' : 'Direct High-Speed CDN');
 
             return (
               <div
                 key={link.id}
-                className="bg-[#121620]/90 backdrop-blur-md p-4 rounded-2xl flex flex-col justify-between space-y-3 border border-white/10 hover:border-red-500/50 transition-all shadow-lg"
+                className="bg-[#090A0F] p-4 rounded-2xl flex flex-col justify-between space-y-4 border border-white/5 hover:border-[#FF0E25]/50 transition-all shadow-lg group"
               >
                 <div className="flex items-center justify-between">
                   <span className={`px-2.5 py-1 rounded-xl font-black text-xs ${
-                    isTelegram ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                    isTelegram ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30'
                   }`}>
                     {link.quality}
                   </span>
-                  <span className="text-xs text-gray-400 font-medium">{link.size}</span>
+                  <span className="text-xs text-[#9E9EA0] font-bold">{displaySize}</span>
                 </div>
-                <div>
-                  <p className="text-xs font-extrabold text-white">{link.format}</p>
-                  <p className="text-[11px] text-gray-400">Direct High Speed Server</p>
+
+                <div className="space-y-1">
+                  <p className="text-xs font-extrabold text-white flex items-center gap-1">
+                    <HardDrive className="w-3.5 h-3.5 text-[#FF0E25]" /> {link.format || 'Standard HD'}
+                  </p>
+                  <p className="text-[11px] text-[#9E9EA0]">{displayRes} • {displayServer}</p>
                 </div>
+
                 <button
                   onClick={() => handleDownloadClick(link.quality, link.url)}
                   className={`w-full py-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all ${
                     isTelegram
                       ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30'
-                      : 'bg-red-600 hover:bg-red-500 text-white shadow-red-600/30'
+                      : 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] hover:opacity-95 text-white shadow-[#FF0E25]/30'
                   }`}
                 >
                   {isTelegram ? (
                     <>
                       <Send className="w-4 h-4 text-white" />
-                      {getButtonLabel(link.quality)}
+                      Download via Telegram
                     </>
                   ) : (
                     <>
                       <Download className="w-4 h-4 text-white" />
-                      {getButtonLabel(link.quality)}
+                      Download {link.quality}
                     </>
                   )}
                 </button>
@@ -289,33 +286,33 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* Dual Language Plot, Cast & Crew, and Subtitle Meta */}
+      {/* SECTION 3: Plot Summary, Cast & Crew, Subtitle Meta */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Left Column: Plot Summary (Sinhala & English Tabs) & Cast Cards */}
+        {/* Left Column: Plot Summary (Sinhala & English Tabs with fixed line-height: 1.8) & Cast */}
         <div className="lg:col-span-2 space-y-8">
 
-          {/* Plot Summary */}
-          <div className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+          {/* Dynamic Plot Summary */}
+          <div className="bg-[#11141f]/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-white/5 pb-3">
               <h3 className="text-base font-extrabold text-white flex items-center gap-2">
-                <Info className="w-4 h-4 text-cyan-400" /> Plot Summary (කතාවේ සාරාංශය)
+                <Info className="w-4 h-4 text-[#FF0E25]" /> Plot Summary (කතාවේ සාරාංශය)
               </h3>
 
-              {/* Sinhala / English Tab Toggles */}
-              <div className="flex items-center bg-[#121620] p-1 rounded-xl border border-white/10">
+              {/* Sinhala / English Tab Switcher */}
+              <div className="flex items-center bg-[#090A0F] p-1 rounded-xl border border-white/10">
                 <button
                   onClick={() => setPlotTab('sinhala')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    plotTab === 'sinhala' ? 'bg-cyan-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all ${
+                    plotTab === 'sinhala' ? 'bg-[#FF0E25] text-white shadow-md' : 'text-[#9E9EA0] hover:text-white'
                   }`}
                 >
                   සිංහල
                 </button>
                 <button
                   onClick={() => setPlotTab('english')}
-                  className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                    plotTab === 'english' ? 'bg-cyan-500 text-black shadow-md' : 'text-gray-400 hover:text-white'
+                  className={`px-3 py-1 rounded-lg text-xs font-extrabold transition-all ${
+                    plotTab === 'english' ? 'bg-[#FF0E25] text-white shadow-md' : 'text-[#9E9EA0] hover:text-white'
                   }`}
                 >
                   English
@@ -323,33 +320,34 @@ export const MovieDetailPage: React.FC = () => {
               </div>
             </div>
 
-            <p className="text-sm text-gray-200 leading-relaxed font-normal">
+            {/* Clean Sinhala typography with fixed line-height: 1.8 */}
+            <p className="text-xs sm:text-sm text-gray-200 leading-[1.8] font-normal tracking-wide">
               {plotTab === 'sinhala' ? movie.sinhalaPlot : movie.englishPlot}
             </p>
           </div>
 
           {/* Cast & Crew Section */}
-          <div className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-4">
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/10 pb-3">
+          <div className="bg-[#11141f]/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-4">
+            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
               <Users className="w-4 h-4 text-purple-400" /> Cast & Crew (රංගන ශිල්පීන්)
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {movie.cast?.map((actor, idx) => (
-                <div key={idx} className="bg-[#121620]/80 p-3 rounded-2xl border border-white/5 flex items-center gap-3">
+                <div key={idx} className="bg-[#090A0F] p-3 rounded-2xl border border-white/5 flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-purple-600/30 text-purple-300 font-extrabold flex items-center justify-center text-xs shrink-0 border border-purple-500/20">
                     {actor[0]}
                   </div>
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white truncate">{actor}</p>
-                    <p className="text-[10px] text-gray-400">Main Cast</p>
+                    <p className="text-[10px] text-[#9E9EA0]">Lead Cast</p>
                   </div>
                 </div>
               ))}
             </div>
 
             <div className="pt-2 text-xs text-gray-300">
-              <span className="text-gray-400">Director: </span>
+              <span className="text-[#9E9EA0]">Director: </span>
               <span className="font-extrabold text-amber-300">{movie.director}</span>
             </div>
           </div>
@@ -357,34 +355,34 @@ export const MovieDetailPage: React.FC = () => {
         </div>
 
         {/* Right Column: Subtitle Author Info Card */}
-        <div className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6 flex flex-col justify-between">
+        <div className="bg-[#11141f]/80 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6 flex flex-col justify-between">
           <div>
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/10 pb-3">
-              <UserCheck className="w-4 h-4 text-cyan-400" /> Subtitle Translator (උපසිරැසිකරු)
+            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
+              <UserCheck className="w-4 h-4 text-[#FF0E25]" /> Subtitle Translator (උපසිරැසිකරු)
             </h3>
 
             <div className="mt-4 flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-600 to-cyan-500 p-[2px]">
-                <div className="w-full h-full bg-[#121620] rounded-[14px] flex items-center justify-center font-bold text-cyan-400 text-lg">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#FF0E25] to-[#C80016] p-[2px]">
+                <div className="w-full h-full bg-[#090A0F] rounded-[14px] flex items-center justify-center font-bold text-white text-lg">
                   {movie.subtitleAuthor?.name?.[0] || 'C'}
                 </div>
               </div>
               <div>
                 <h4 className="text-sm font-extrabold text-white">{movie.subtitleAuthor?.name || 'CINEXUS Official Subber'}</h4>
-                <p className="text-xs text-purple-300 font-semibold">Senior Sinhala Subtitle Creator</p>
+                <p className="text-xs text-rose-300 font-semibold">Senior Sinhala Subtitle Translator</p>
               </div>
             </div>
 
-            <div className="mt-5 space-y-2.5 text-xs bg-[#121620]/90 p-4 rounded-2xl border border-white/5">
-              <div className="flex justify-between text-gray-400">
+            <div className="mt-5 space-y-2.5 text-xs bg-[#090A0F] p-4 rounded-2xl border border-white/5">
+              <div className="flex justify-between text-[#9E9EA0]">
                 <span>Total Downloads:</span>
-                <span className="font-extrabold text-cyan-400">{movie.subtitleAuthor?.downloadsCount?.toLocaleString() || '12,500'}</span>
+                <span className="font-extrabold text-[#FF0E25]">{movie.subtitleAuthor?.downloadsCount?.toLocaleString() || '12,500'}</span>
               </div>
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-[#9E9EA0]">
                 <span>Release Date:</span>
                 <span className="font-extrabold text-white">{movie.subtitleAuthor?.releaseDate || 'Recently Added'}</span>
               </div>
-              <div className="flex justify-between text-gray-400">
+              <div className="flex justify-between text-[#9E9EA0]">
                 <span>Audio Language:</span>
                 <span className="font-extrabold text-white">{movie.audioLanguage}</span>
               </div>
@@ -395,7 +393,7 @@ export const MovieDetailPage: React.FC = () => {
             href="https://t.me/cinexus_official"
             target="_blank"
             rel="noreferrer"
-            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
+            className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg transition-all"
           >
             <Send className="w-4 h-4" /> Join Subtitle Telegram Group
           </a>
@@ -408,7 +406,7 @@ export const MovieDetailPage: React.FC = () => {
         <section className="space-y-5 pt-6">
           <div className="flex items-center justify-between border-b border-white/10 pb-3">
             <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Globe className="w-5 h-5 text-cyan-400" /> Related Recommended Movies
+              <Globe className="w-5 h-5 text-[#FF0E25]" /> Recommended Related Movies
             </h2>
           </div>
 
