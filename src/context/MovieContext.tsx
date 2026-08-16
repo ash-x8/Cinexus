@@ -4,7 +4,7 @@ import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
 
 // Supabase API credentials & CDN client initialization
 export const SUPABASE_URL = 'https://xyzcompany.supabase.co';
-export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emNvbXBhbnkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjU0MDgwMCwiZXhwIjoyMDA4MTE2ODAwfQ.example_signature_token';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emNvbXBhbnkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjU4MDgwMCwiZXhwIjoyMDA4MTE2ODAwfQ.example_signature_token';
 export const OMDB_API_KEY = '87cd62a9';
 
 interface MovieContextType {
@@ -39,19 +39,19 @@ interface MovieContextType {
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v1';
-const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v1';
-const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v1';
-const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v1';
-const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v1';
+const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v2';
+const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v2';
+const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v2';
+const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v2';
+const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v2';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: 'CINEXUS',
   sinhalaTitle: 'සිනෙක්ස්',
-  announcementText: '🔥 Welcome to CINEXUS! High-speed 1080p Sinhala Subtitled Movie Downloads & Streaming.',
+  announcementText: '🔥 Welcome to CINEXUS! High-speed 1080p & 4K Sinhala Subtitled Movie Downloads & Live Streaming.',
   showAnnouncement: true,
   heroHeading: 'Premium Sinhala Subtitled Cinema Experience',
-  heroSubheading: 'Watch and download the latest blockbuster movies and series with 1080p Web-DL quality.',
+  heroSubheading: 'Watch and download the latest blockbuster movies and TV series with ultra HD 1080p & 4K quality.',
   footerText: 'CINEXUS (සිනෙක්ස්) • Sri Lanka\'s premier Sinhala subtitled streaming and multi-quality direct download portal.',
 
   latestMoviesTitle: 'අලුත්ම සිංහල උපසිරැසි (Latest Sinhala Subbed Movies)',
@@ -60,6 +60,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
   facebookUrl: 'https://facebook.com/cinexus.official',
   telegramChannelUrl: 'https://t.me/cinexus_official',
   whatsappGroupUrl: 'https://chat.whatsapp.com/cinexus_official',
+  instagramUrl: 'https://instagram.com/cinexus.official',
+  twitterUrl: 'https://x.com/cinexus_official',
+  youtubeUrl: 'https://youtube.com/@cinexus_official',
+  contactEmail: 'contact@cinexus.site',
+
+  aboutUsContent: `CINEXUS (සිනෙක්ස්) is Sri Lanka's premier standalone entertainment portal dedicated to delivering high-quality movie streaming and direct multi-quality downloads paired with authentic, accurate Sinhala subtitles.\n\nOur mission is to offer a futuristic, ultra-fast cinematic experience with zero intrusive ads, multiple high-speed CDN fallback servers, and full dynamic controls.`,
+  termsContent: `Welcome to CINEXUS. By accessing and using our platform, you agree to adhere to the following Terms of Service:\n\n1. Content Use: All movie previews, trailers, streaming links, and download links are provided for personal, non-commercial entertainment purposes.\n2. User Conduct: Users must not attempt to scrape, disrupt, or overload our streaming CDN servers.\n3. Intellectual Property: Subtitles created by CINEXUS translators remain the copyright of their respective authors.\n4. Revisions: CINEXUS reserves the right to modify site features, server options, and terms at any time.`,
+  privacyContent: `At CINEXUS, user privacy and data security are paramount:\n\n1. Information Collection: We do not require personal registration or store personal identifier cookies.\n2. Analytics: Anonymous real-time view counters and download metrics are collected strictly to monitor server performance.\n3. Third-Party Links: External embed servers (StreamHG, Doodstream, Streamtape) maintain independent privacy policies.\n4. Security: All connection data is transmitted securely over encrypted TLS connections.`,
+  contactUsContent: `Have questions, technical inquiries, or partnership proposals? Connect with the CINEXUS core team:\n\n• Email Support: contact@cinexus.site\n• Official Telegram Channel: https://t.me/cinexus_official\n• Facebook Page: https://facebook.com/cinexus.official\n• WhatsApp Community: https://chat.whatsapp.com/cinexus_official\n\nOur support administrators respond within 24 hours.`,
+  faqContent: `Frequently Asked Questions (නිතර අසන පැන්න):\n\nQ1: How do I download movies with Sinhala subtitles on CINEXUS?\nA: Navigate to your chosen movie page, scroll down to the "Direct Download Links" section, select your preferred quality (4K, 1080p, 720p, 480p, or Telegram), and click the download button.\n\nQ2: Are streams and downloads free?\nA: Yes, CINEXUS is 100% free with no forced subscriptions or hidden fees.\n\nQ3: What video players are supported?\nA: We provide 5 multi-server backup players including StreamHG, Doodstream, Streamtape, Facebook Video, and YouTube Trailers.\n\nQ4: How can I request a new movie or TV series?\nA: Click the "Request Movie" link in the footer or join our Telegram group to submit your request!`,
+  requestMovieRules: `Movie Request Guidelines (චිත්‍රපට ඉල්ලීම් මාර්ගෝපදේශ):\n\n1. Check Catalog First: Always use our instant live search bar to verify the movie is not already published.\n2. Accurate Details: Include the official English title, release year, and IMDb link if available.\n3. Digital Release Availability: We can only fulfill requests for titles with an official digital WEB-DL or BluRay release.\n4. Subtitle Timeline: Movies requiring custom Sinhala subtitle translation take 24-48 hours after digital release.`,
 };
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -118,7 +129,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
 
-  // Initialize Supabase CDN Realtime Subscription Listener if window.supabase exists
+  // Initialize Supabase CDN Realtime Subscription Listener
   useEffect(() => {
     if (typeof (window as any).supabase !== 'undefined') {
       try {

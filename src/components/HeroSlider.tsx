@@ -41,21 +41,21 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
         <img
           src={currentMovie.backdropUrl || currentMovie.posterUrl}
           alt={currentMovie.title}
-          className="absolute inset-0 w-full h-full object-cover object-center filter brightness-75 transition-all duration-700 scale-105"
+          className="absolute inset-0 w-full h-full object-cover object-center filter brightness-[0.5] transition-all duration-700 scale-105"
         />
 
         {/* Ambient Dark Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#08090c] via-[#08090c]/85 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#08090c] via-transparent to-black/30" />
+        <div className="absolute inset-0 bg-gradient-to-r from-[#090A0F] via-[#090A0F]/85 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#090A0F] via-transparent to-black/40" />
 
         {/* Content Container */}
         <div className="relative z-10 p-6 sm:p-10 md:p-14 max-w-3xl space-y-4">
 
           {/* Top Badges */}
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-3 py-1 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-black font-extrabold text-xs uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-amber-500/20">
-              <Flame className="w-3.5 h-3.5 fill-black" />
-              Featured Trending
+            <span className="px-3 py-1 rounded-full bg-gradient-to-r from-[#FF0E25] to-amber-500 text-white font-extrabold text-xs uppercase tracking-wider flex items-center gap-1 shadow-lg shadow-[#FF0E25]/20">
+              <Flame className="w-3.5 h-3.5 fill-white text-white" />
+              Featured Release
             </span>
 
             {currentMovie.hasSinhalaSub && (
@@ -65,36 +65,36 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
               </span>
             )}
 
-            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-cyan-300 font-bold text-xs">
+            <span className="px-2.5 py-1 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-rose-300 font-bold text-xs">
               {currentMovie.qualityBadge}
             </span>
           </div>
 
-          {/* Title & Sinhala Subtitle Title */}
+          {/* Title & Sinhala Title */}
           <div>
             <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight drop-shadow-md leading-tight">
               {currentMovie.title}
             </h1>
-            <p className="text-lg sm:text-2xl font-bold text-cyan-300/90 mt-1 drop-shadow">
+            <p className="text-lg sm:text-2xl font-bold text-[#FF0E25] mt-1 drop-shadow">
               {currentMovie.sinhalaTitle}
             </p>
           </div>
 
           {/* Meta Bar */}
           <div className="flex flex-wrap items-center gap-4 text-xs sm:text-sm font-semibold text-gray-300">
-            <div className="flex items-center gap-1 text-amber-400 bg-black/50 px-2.5 py-1 rounded-lg border border-amber-500/30">
-              <Star className="w-4 h-4 fill-amber-400" />
-              <span className="font-bold text-white">{currentMovie.imdbRating}</span> / 10 IMDb
+            <div className="flex items-center gap-1 text-amber-400 bg-black/60 px-2.5 py-1 rounded-lg border border-amber-500/30">
+              <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+              <span className="font-bold text-white">{currentMovie.imdbRating.toFixed(1)}</span> / 10 IMDb
             </div>
             <span>{currentMovie.year}</span>
             <span>•</span>
             <span>{currentMovie.duration}</span>
             <span>•</span>
-            <span className="text-purple-300">{currentMovie.genres.join(', ')}</span>
+            <span className="text-rose-300">{currentMovie.genres.join(', ')}</span>
           </div>
 
           {/* Plot Summary */}
-          <p className="text-xs sm:text-sm text-gray-300/90 line-clamp-3 leading-relaxed max-w-2xl font-normal">
+          <p className="text-xs sm:text-sm text-gray-200/90 line-clamp-3 leading-[1.8] max-w-2xl font-normal">
             {currentMovie.sinhalaPlot || currentMovie.englishPlot}
           </p>
 
@@ -102,18 +102,18 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
           <div className="pt-2 flex flex-wrap items-center gap-4">
             <Link
               to={`/movie/${currentMovie.id}`}
-              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-400 via-teal-400 to-indigo-500 hover:from-cyan-300 hover:to-indigo-400 text-black font-black text-sm tracking-wide shadow-lg shadow-cyan-400/30 hover:shadow-cyan-400/50 flex items-center gap-2 transform hover:-translate-y-0.5 transition-all"
+              className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-95 text-white font-black text-sm tracking-wide shadow-lg shadow-[#FF0E25]/30 hover:shadow-[#FF0E25]/50 flex items-center gap-2 transform hover:-translate-y-0.5 transition-all"
             >
-              <Play className="w-5 h-5 fill-black ml-0.5" />
+              <Play className="w-5 h-5 fill-white ml-0.5" />
               Watch Now (නරඹන්න)
             </Link>
 
             {currentMovie.trailerUrl && (
               <button
                 onClick={() => onTrailerClick(currentMovie.trailerUrl, currentMovie.title)}
-                className="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white font-bold text-sm flex items-center gap-2 transition-all hover:border-cyan-400"
+                className="px-5 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-md text-white font-bold text-sm flex items-center gap-2 transition-all hover:border-[#FF0E25]"
               >
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <Sparkles className="w-4 h-4 text-[#FF0E25]" />
                 Trailer
               </button>
             )}
@@ -126,14 +126,14 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
       {/* Manual Navigation Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 hover:border-cyan-400 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-cyan-500 hover:text-black z-20"
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 hover:border-[#FF0E25] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-[#FF0E25] hover:text-white z-20"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
 
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 hover:border-cyan-400 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-cyan-500 hover:text-black z-20"
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/60 border border-white/10 hover:border-[#FF0E25] text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-[#FF0E25] hover:text-white z-20"
       >
         <ChevronRight className="w-6 h-6" />
       </button>
@@ -145,7 +145,7 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
             key={idx}
             onClick={() => setCurrentIndex(idx)}
             className={`h-2 rounded-full transition-all ${
-              idx === currentIndex ? 'w-8 bg-cyan-400' : 'w-2 bg-white/30 hover:bg-white/60'
+              idx === currentIndex ? 'w-8 bg-[#FF0E25]' : 'w-2 bg-white/30 hover:bg-white/60'
             }`}
           />
         ))}

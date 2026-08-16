@@ -36,15 +36,18 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2023-01-15'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (CINEXUS Ultra HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0?autoplay=1', quality: '1080p' },
-      { id: 's2', name: 'Server 2 (Fast Stream Tape)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p' },
-      { id: 's3', name: 'Google Drive Direct Embed', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p' }
+      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0?autoplay=1', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '2.8 GB', url: '#download-1080p', format: 'MKV / x264' },
-      { id: 'dl2', quality: '720p', size: '1.4 GB', url: '#download-720p', format: 'MP4 / x264' },
-      { id: 'dl3', quality: '480p', size: '650 MB', url: '#download-480p', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', size: 'Instant Link', url: 'https://t.me/cinexus_movies', format: 'Telegram Direct' }
+      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '6.5 GB', size: '6.5 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
+      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '2.8 GB', size: '2.8 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
+      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.4 GB', size: '1.4 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264' },
+      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '650 MB', size: '650 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl5', quality: 'Telegram', resolution: '1080p Web', fileSize: 'Instant Link', size: 'Instant Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Direct' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -79,14 +82,18 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-03-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (Full HD Player)', url: 'https://www.youtube.com/embed/Way9Dexny3w?autoplay=1', quality: '1080p' },
-      { id: 's2', name: 'Server 2 (StreamTape Fast)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p' }
+      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://www.youtube.com/embed/Way9Dexny3w?autoplay=1', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '3.1 GB', url: '#download-1080p', format: 'MKV x265' },
-      { id: 'dl2', quality: '720p', size: '1.2 GB', url: '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: '480p', size: '580 MB', url: '#download-480p', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', size: 'Direct Telegram File', url: 'https://t.me/cinexus_movies', format: 'Telegram' }
+      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '5.8 GB', size: '5.8 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
+      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '3.1 GB', size: '3.1 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV x265' },
+      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '580 MB', size: '580 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl5', quality: 'Telegram', resolution: 'Original File', fileSize: 'Direct Telegram File', size: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
     ],
     hasSinhalaSub: true,
     isDualAudio: true,
@@ -121,12 +128,13 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2022-04-10'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (CINEXUS Engine)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p' }
+      { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '2.5 GB', url: '#download-1080p', format: 'MKV' },
-      { id: 'dl2', quality: '720p', size: '1.1 GB', url: '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: 'Telegram', size: 'Channel Direct', url: 'https://t.me/cinexus_movies', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', size: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.1 GB', size: '1.1 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Full HD', fileSize: 'Channel Direct', size: 'Channel Direct', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -161,12 +169,13 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2022-07-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (All Episodes)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p' }
+      { id: 's1', name: 'Server 1 (StreamHG All Episodes)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '8.5 GB (Zip)', url: '#download-1080p', format: 'Full Season Zip' },
-      { id: 'dl2', quality: '720p', size: '4.2 GB (Zip)', url: '#download-720p', format: 'Full Season Zip' },
-      { id: 'dl3', quality: 'Telegram', size: 'Direct Channel Batch', url: 'https://t.me/cinexus_movies', format: 'Telegram Batch' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '8.5 GB (Zip)', size: '8.5 GB (Zip)', url: '#download-1080p', serverType: 'Direct Drive', format: 'Full Season Zip' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '4.2 GB (Zip)', size: '4.2 GB (Zip)', url: '#download-720p', serverType: 'Direct Drive', format: 'Full Season Zip' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Complete Batch', fileSize: 'Direct Channel Batch', size: 'Direct Channel Batch', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Batch' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -203,13 +212,14 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2021-08-12'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (CINEXUS 1080p)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p' }
+      { id: 's1', name: 'Server 1 (StreamHG 1080p)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '2.4 GB', url: '#download-1080p', format: 'MKV' },
-      { id: 'dl2', quality: '720p', size: '1.2 GB', url: '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: '480p', size: '500 MB', url: '#download-480p', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', size: 'Direct Link', url: 'https://t.me/cinexus_movies', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.4 GB', size: '2.4 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl3', quality: '480p', resolution: '854x480', fileSize: '500 MB', size: '500 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl4', quality: 'Telegram', resolution: '1080p WEB', fileSize: 'Direct Link', size: 'Direct Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
     ],
     hasSinhalaSub: true,
     isDualAudio: true,
@@ -244,12 +254,13 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-05-12'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (Anime HD)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p' }
+      { id: 's1', name: 'Server 1 (StreamHG Anime HD)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', size: '3.5 GB (Batch)', url: '#download-1080p', format: 'MKV' },
-      { id: 'dl2', quality: '720p', size: '1.8 GB (Batch)', url: '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: 'Telegram', size: 'Anime Channel Link', url: 'https://t.me/cinexus_movies', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.5 GB (Batch)', size: '3.5 GB (Batch)', url: '#download-1080p', serverType: 'Direct Drive', format: 'MKV' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.8 GB (Batch)', size: '1.8 GB (Batch)', url: '#download-720p', serverType: 'Direct Drive', format: 'MP4' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Anime Channel Link', size: 'Anime Channel Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,

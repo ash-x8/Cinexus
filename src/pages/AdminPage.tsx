@@ -28,7 +28,12 @@ import {
   Mail,
   Key,
   Server,
-  Loader2
+  Loader2,
+  FileText,
+  HelpCircle,
+  Video,
+  MessageSquare,
+  Send
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -56,7 +61,7 @@ export const AdminPage: React.FC = () => {
   const [authError, setAuthError] = useState('');
 
   // Admin Tab State
-  const [activeTab, setActiveTab] = useState<'movies' | 'branding' | 'social' | 'analytics' | 'categories'>('movies');
+  const [activeTab, setActiveTab] = useState<'movies' | 'branding' | 'social' | 'legal' | 'analytics' | 'categories'>('movies');
 
   // Site Settings Form State
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
@@ -123,11 +128,8 @@ export const AdminPage: React.FC = () => {
   const [server4Url, setServer4Url] = useState('');
   const [server5Url, setServer5Url] = useState('');
 
-  // Download inputs helper state
-  const [dl480Url, setDl480Url] = useState('');
-  const [dl720Url, setDl720Url] = useState('');
-  const [dl1080Url, setDl1080Url] = useState('');
-  const [dlTelegramUrl, setDlTelegramUrl] = useState('');
+  // Download links list state for dedicated Download Server Settings manager
+  const [downloadLinksList, setDownloadLinksList] = useState<DownloadLink[]>([]);
 
   // Category Form State
   const [newCatName, setNewCatName] = useState('');
@@ -174,13 +176,16 @@ export const AdminPage: React.FC = () => {
     setServer1Url('https://www.youtube.com/embed/d9MyW72ELq0');
     setServer2Url('https://www.youtube.com/embed/d9MyW72ELq0');
     setServer3Url('https://www.youtube.com/embed/d9MyW72ELq0');
-    setServer4Url('https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%-[#]');
+    setServer4Url('https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F');
     setServer5Url('https://www.youtube.com/embed/d9MyW72ELq0');
 
-    setDl480Url('#download-480p');
-    setDl720Url('#download-720p');
-    setDl1080Url('#download-1080p');
-    setDlTelegramUrl('https://t.me/cinexus_official');
+    setDownloadLinksList([
+      { id: 'dl_4k', quality: '4K', resolution: '3840x2160', fileSize: '5.2 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
+      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
+      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264' },
+      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+    ]);
 
     setFormData({
       title: '',
@@ -195,7 +200,7 @@ export const AdminPage: React.FC = () => {
       sinhalaPlot: '',
       englishPlot: '',
       genres: ['Action', 'Sci-Fi'],
-      cast: ['Actor 1', 'Actor 2'],
+      cast: ['Lead Actor 1', 'Lead Actor 2'],
       director: 'Director Name',
       audioLanguage: 'English (Sinhala Sub)',
       subtitleAuthor: {
@@ -223,17 +228,35 @@ export const AdminPage: React.FC = () => {
     setServer4Url(movie.servers?.[3]?.url || '');
     setServer5Url(movie.servers?.[4]?.url || movie.trailerUrl || '');
 
-    const d480 = movie.downloadLinks?.find(d => d.quality === '480p')?.url || '';
-    const d720 = movie.downloadLinks?.find(d => d.quality === '720p')?.url || '';
-    const d1080 = movie.downloadLinks?.find(d => d.quality === '1080p')?.url || '';
-    const dTelegram = movie.downloadLinks?.find(d => d.quality === 'Telegram')?.url || '';
-
-    setDl480Url(d480);
-    setDl720Url(d720);
-    setDl1080Url(d1080);
-    setDlTelegramUrl(dTelegram);
+    setDownloadLinksList(movie.downloadLinks && movie.downloadLinks.length > 0 ? movie.downloadLinks : [
+      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
+      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
+      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+    ]);
 
     setIsMovieModalOpen(true);
+  };
+
+  const handleAddDownloadLinkRow = () => {
+    const newDl: DownloadLink = {
+      id: `dl_${Date.now()}`,
+      quality: '1080p',
+      resolution: '1920x1080',
+      fileSize: '2.0 GB',
+      url: 'https://',
+      serverType: 'Direct High-Speed',
+      format: 'MKV'
+    };
+    setDownloadLinksList(prev => [...prev, newDl]);
+  };
+
+  const handleRemoveDownloadLinkRow = (id: string) => {
+    setDownloadLinksList(prev => prev.filter(dl => dl.id !== id));
+  };
+
+  const handleUpdateDownloadLinkRow = (id: string, key: keyof DownloadLink, val: string) => {
+    setDownloadLinksList(prev => prev.map(dl => dl.id === id ? { ...dl, [key]: val, ...(key === 'fileSize' ? { size: val } : {}) } : dl));
   };
 
   const handleSaveMovie = (e: React.FormEvent) => {
@@ -252,18 +275,10 @@ export const AdminPage: React.FC = () => {
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ];
 
-    // Build download links array
-    const updatedDownloads: DownloadLink[] = [
-      { id: 'dl1', quality: '1080p', size: '2.5 GB', url: dl1080Url || '#download-1080p', format: 'MKV / x264' },
-      { id: 'dl2', quality: '720p', size: '1.2 GB', url: dl720Url || '#download-720p', format: 'MP4' },
-      { id: 'dl3', quality: '480p', size: '600 MB', url: dl480Url || '#download-480p', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', size: 'Direct Telegram', url: dlTelegramUrl || 'https://t.me/cinexus_official', format: 'Telegram' }
-    ];
-
     const movieToSave = {
       ...formData,
       servers: updatedServers,
-      downloadLinks: updatedDownloads,
+      downloadLinks: downloadLinksList,
     };
 
     if (editingMovieId) {
@@ -295,32 +310,32 @@ export const AdminPage: React.FC = () => {
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md bg-slate-900/80 backdrop-blur-md p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-purple-600 via-rose-600 to-amber-500 p-0.5 mx-auto shadow-lg shadow-purple-600/30 flex items-center justify-center">
-            <div className="w-full h-full bg-[#121620] rounded-2xl flex items-center justify-center text-cyan-400">
-              <Lock className="w-8 h-8 text-rose-500" />
+        <div className="w-full max-w-md bg-[#11141f]/90 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#FF0E25] via-[#C80016] to-amber-500 p-0.5 mx-auto shadow-lg shadow-[#FF0E25]/30 flex items-center justify-center">
+            <div className="w-full h-full bg-[#090A0F] rounded-2xl flex items-center justify-center text-white">
+              <Lock className="w-8 h-8 text-[#FF0E25]" />
             </div>
           </div>
 
           <div>
-            <span className="px-3 py-1 rounded-full bg-rose-500/20 text-rose-400 font-extrabold text-[10px] uppercase tracking-wider border border-rose-500/30">
+            <span className="px-3 py-1 rounded-full bg-[#FF0E25]/20 text-[#FF0E25] font-extrabold text-[10px] uppercase tracking-wider border border-[#FF0E25]/30">
               Restricted Portal
             </span>
-            <h2 className="text-2xl font-black text-white mt-2">CINEXUS Admin Access</h2>
-            <p className="text-xs text-gray-400 mt-1">Please enter administrator credentials to gain access.</p>
+            <h2 className="text-2xl font-black text-white mt-2">CINEXUS Admin Command</h2>
+            <p className="text-xs text-[#9E9EA0] mt-1">Please enter administrator credentials to gain access.</p>
           </div>
 
           <form onSubmit={handleLoginSubmit} className="space-y-4 text-left">
             <div>
               <label className="text-xs font-semibold text-gray-300 block mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3.5 h-3.5 text-cyan-400" /> Admin Email
+                <Mail className="w-3.5 h-3.5 text-[#FF0E25]" /> Admin Email
               </label>
               <input
                 type="email"
                 placeholder="admin@cinexus.site"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                className="w-full bg-[#090A0F] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
                 autoFocus
                 required
               />
@@ -328,35 +343,35 @@ export const AdminPage: React.FC = () => {
 
             <div>
               <label className="text-xs font-semibold text-gray-300 block mb-1.5 flex items-center gap-1.5">
-                <Key className="w-3.5 h-3.5 text-cyan-400" /> Admin Password
+                <Key className="w-3.5 h-3.5 text-[#FF0E25]" /> Admin Password
               </label>
               <input
                 type="password"
                 placeholder="Enter password (cinexus2025)"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full bg-[#08090c] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-cyan-400 transition-colors"
+                className="w-full bg-[#090A0F] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
                 required
               />
             </div>
 
             {authError && (
-              <p className="text-xs text-rose-400 font-semibold bg-rose-500/10 p-2.5 rounded-xl border border-rose-500/20">
+              <p className="text-xs text-[#FF0E25] font-semibold bg-[#FF0E25]/10 p-2.5 rounded-xl border border-[#FF0E25]/20">
                 {authError}
               </p>
             )}
 
             <button
               type="submit"
-              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs shadow-lg shadow-purple-600/30 flex items-center justify-center gap-2 transition-all"
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs shadow-lg shadow-[#FF0E25]/30 flex items-center justify-center gap-2 transition-all"
             >
               <ShieldCheck className="w-4 h-4" /> Authenticate Administrator
             </button>
           </form>
 
-          <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-[11px] text-gray-400 text-left space-y-1">
+          <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-[11px] text-[#9E9EA0] text-left space-y-1">
             <p className="font-bold text-gray-300">Default Access Credentials:</p>
-            <p>Email: <code className="text-cyan-300">admin@cinexus.site</code></p>
+            <p>Email: <code className="text-[#FF0E25]">admin@cinexus.site</code></p>
             <p>Password: <code className="text-amber-300">cinexus2025</code></p>
           </div>
         </div>
@@ -368,23 +383,23 @@ export const AdminPage: React.FC = () => {
     <div className="space-y-8 pb-16">
 
       {/* Top Control Panel Header */}
-      <div className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-extrabold text-xs uppercase tracking-wider border border-rose-500/30">
+            <span className="px-2.5 py-1 rounded-lg bg-[#FF0E25]/20 text-[#FF0E25] font-extrabold text-xs uppercase tracking-wider border border-[#FF0E25]/30">
               Admin Portal
             </span>
-            <span className="text-xs text-purple-300 font-bold">CINEXUS System Control v3.0</span>
+            <span className="text-xs text-rose-300 font-bold">CINEXUS Enterprise Command v4.0</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
-            Site Control Panel (පාලන පුවරුව)
+            Enterprise Admin Control Panel (පාලන පුවරුව)
           </h1>
         </div>
 
         <div className="flex items-center gap-3">
           <button
             onClick={resetToDefaultData}
-            className="px-3.5 py-2 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 hover:bg-rose-500/20 text-xs font-bold flex items-center gap-1.5 transition-colors"
+            className="px-3.5 py-2 rounded-xl bg-[#FF0E25]/10 border border-[#FF0E25]/30 text-rose-300 hover:bg-[#FF0E25]/20 text-xs font-bold flex items-center gap-1.5 transition-colors"
             title="Reset dataset to default"
           >
             <RotateCcw className="w-3.5 h-3.5" /> Reset Default Data
@@ -392,7 +407,7 @@ export const AdminPage: React.FC = () => {
 
           <button
             onClick={handleOpenAddModal}
-            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-95 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all"
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-95 text-white font-black text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30 transition-all"
           >
             <Plus className="w-4 h-4" /> Add New Movie / Series
           </button>
@@ -402,7 +417,7 @@ export const AdminPage: React.FC = () => {
             className="p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white transition-colors"
             title="Lock & Exit Admin"
           >
-            <LogOut className="w-4 h-4 text-rose-400" />
+            <LogOut className="w-4 h-4 text-[#FF0E25]" />
           </button>
         </div>
       </div>
@@ -413,87 +428,98 @@ export const AdminPage: React.FC = () => {
           onClick={() => setActiveTab('movies')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'movies'
-              ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Film className="w-4 h-4" /> Movie CRUD ({movies.length})
+          <Film className="w-4 h-4" /> Movie Catalog ({movies.length})
         </button>
 
         <button
           onClick={() => setActiveTab('branding')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'branding'
-              ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Settings className="w-4 h-4" /> General Content Customizer
+          <Settings className="w-4 h-4" /> General Content & Notice Banner
         </button>
 
         <button
           onClick={() => setActiveTab('social')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'social'
-              ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Share2 className="w-4 h-4" /> Social Media Links Controller
+          <Share2 className="w-4 h-4" /> Social Media & Contact CMS
+        </button>
+
+        <button
+          onClick={() => setActiveTab('legal')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+            activeTab === 'legal'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <FileText className="w-4 h-4" /> Dynamic Pages & Legal Editor
         </button>
 
         <button
           onClick={() => setActiveTab('analytics')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'analytics'
-              ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Activity className="w-4 h-4" /> Analytics & Traffic
+          <Activity className="w-4 h-4" /> Realtime Metrics
         </button>
 
         <button
           onClick={() => setActiveTab('categories')}
           className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
             activeTab === 'categories'
-              ? 'bg-gradient-to-r from-purple-600 to-rose-600 text-white shadow-md'
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Tag className="w-4 h-4" /> Genre Manager
+          <Tag className="w-4 h-4" /> Genres & Categories
         </button>
       </div>
 
-      {/* TAB 1: MOVIE MANAGEMENT (CRUD) */}
+      {/* TAB 1: MOVIE MANAGEMENT (CRUD & DOWNLOAD SERVER MANAGER) */}
       {activeTab === 'movies' && (
         <div className="space-y-6 animate-in fade-in duration-300">
 
           {/* Search Table Toolbar */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#121620] p-4 rounded-2xl border border-white/10">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#11141f] p-4 rounded-2xl border border-white/10">
             <div className="relative w-full sm:w-80">
-              <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-[#9E9EA0] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 placeholder="Search catalog by title..."
                 value={searchAdmin}
                 onChange={(e) => setSearchAdmin(e.target.value)}
-                className="w-full bg-[#0a0b0e] text-xs text-white pl-9 pr-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-rose-500"
+                className="w-full bg-[#090A0F] text-xs text-white pl-9 pr-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-[#FF0E25]"
               />
             </div>
-            <span className="text-xs text-gray-400">Showing {filteredAdminMovies.length} of {movies.length} entries</span>
+            <span className="text-xs text-[#9E9EA0]">Showing {filteredAdminMovies.length} of {movies.length} titles</span>
           </div>
 
           {/* Movies List Table */}
-          <div className="bg-slate-900/60 backdrop-blur-md rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+          <div className="bg-[#11141f]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-gray-300">
-                <thead className="bg-[#0c0e15] text-gray-400 font-bold uppercase tracking-wider border-b border-white/10">
+                <thead className="bg-[#090A0F] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
                   <tr>
                     <th className="p-4">Movie / Series</th>
                     <th className="p-4">IMDb Score</th>
                     <th className="p-4">Quality</th>
-                    <th className="p-4">Badges</th>
+                    <th className="p-4">Download Links</th>
                     <th className="p-4">Views / Downloads</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
@@ -510,8 +536,8 @@ export const AdminPage: React.FC = () => {
                           />
                           <div>
                             <p className="font-bold text-white text-sm">{movie.title}</p>
-                            <p className="text-purple-300 text-xs">{movie.sinhalaTitle}</p>
-                            <span className="text-[10px] text-gray-500">{movie.year} • {movie.genres.join(', ')}</span>
+                            <p className="text-rose-300 text-xs">{movie.sinhalaTitle}</p>
+                            <span className="text-[10px] text-[#9E9EA0]">{movie.year} • {movie.genres.join(', ')}</span>
                           </div>
                         </div>
                       </td>
@@ -521,25 +547,18 @@ export const AdminPage: React.FC = () => {
                       </td>
 
                       <td className="p-4">
-                        <span className="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">
+                        <span className="px-2 py-0.5 rounded bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30 font-bold">
                           {movie.qualityBadge}
                         </span>
                       </td>
 
-                      <td className="p-4 space-x-1">
-                        {movie.hasSinhalaSub && (
-                          <span className="px-1.5 py-0.5 rounded bg-purple-500/20 text-purple-300 font-semibold text-[10px]">
-                            Sinhala Sub
-                          </span>
-                        )}
-                        {movie.isTrending && (
-                          <span className="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-semibold text-[10px]">
-                            Trending
-                          </span>
-                        )}
+                      <td className="p-4">
+                        <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30">
+                          {movie.downloadLinks?.length || 0} Servers Configured
+                        </span>
                       </td>
 
-                      <td className="p-4 text-gray-400">
+                      <td className="p-4 text-[#9E9EA0]">
                         {movie.viewsCount.toLocaleString()} / {movie.downloadsCount.toLocaleString()}
                       </td>
 
@@ -547,8 +566,8 @@ export const AdminPage: React.FC = () => {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleOpenEditModal(movie)}
-                            className="p-2 rounded-lg bg-indigo-600/30 text-indigo-300 hover:bg-indigo-600 hover:text-white transition-colors"
-                            title="Edit Movie"
+                            className="p-2 rounded-lg bg-[#FF0E25]/20 text-rose-300 hover:bg-[#FF0E25] hover:text-white transition-colors"
+                            title="Edit Movie & Download Servers"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
@@ -575,23 +594,23 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 2: GENERAL SITE CONTENT CUSTOMIZER */}
+      {/* TAB 2: GENERAL SITE CONTENT & NOTICE BANNER */}
       {activeTab === 'branding' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Globe className="w-5 h-5 text-cyan-400" /> General Site Content Customizer
+                  <Globe className="w-5 h-5 text-[#FF0E25]" /> General Site Content Customizer
                 </h3>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-[#9E9EA0] mt-1">
                   Change site notices, dynamic announcements, home section titles, and footer copyright text.
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
               >
                 <Save className="w-4 h-4" /> Save Content Changes
               </button>
@@ -610,7 +629,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.siteTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -621,7 +640,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.sinhalaTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, sinhalaTitle: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -632,7 +651,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.latestMoviesTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, latestMoviesTitle: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -643,24 +662,24 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.trendingSeriesTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, trendingSeriesTitle: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-2">
+              <div className="md:col-span-2 space-y-2 p-4 rounded-2xl bg-[#090A0F] border border-[#FF0E25]/30">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-gray-300 flex items-center gap-2">
-                    <Megaphone className="w-4 h-4 text-amber-400" /> Dynamic Top Notice / Announcement
+                  <label className="font-bold text-white flex items-center gap-2 text-sm">
+                    <Megaphone className="w-4 h-4 text-[#FF0E25] animate-pulse" /> Header Banner & Announcement Control
                   </label>
-                  <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-gray-400">
+                  <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-emerald-400">
                     <input
                       type="checkbox"
                       checked={settingsForm.showAnnouncement}
                       onChange={(e) => setSettingsForm({ ...settingsForm, showAnnouncement: e.target.checked })}
-                      className="accent-rose-500 w-4 h-4"
+                      className="accent-[#FF0E25] w-4 h-4"
                     />
-                    Enable Notice Banner
+                    Live Enable Banner
                   </label>
                 </div>
                 <input
@@ -668,7 +687,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.announcementText}
                   onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
                   placeholder="Enter notice text shown at the top of every page..."
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#11141f] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -678,7 +697,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.heroHeading}
                   onChange={(e) => setSettingsForm({ ...settingsForm, heroHeading: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -688,7 +707,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.heroSubheading}
                   onChange={(e) => setSettingsForm({ ...settingsForm, heroSubheading: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -698,7 +717,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.footerText}
                   onChange={(e) => setSettingsForm({ ...settingsForm, footerText: e.target.value })}
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
             </div>
@@ -706,65 +725,123 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 3: SOCIAL MEDIA LINKS CONTROLLER */}
+      {/* TAB 3: SOCIAL MEDIA & CONTACT CMS */}
       {activeTab === 'social' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="bg-slate-900/60 backdrop-blur-md p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                  <Share2 className="w-5 h-5 text-rose-500" /> Social Media Links Controller
+                  <Share2 className="w-5 h-5 text-[#FF0E25]" /> Social Media & Contact CMS
                 </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  Manage Facebook, Telegram, and WhatsApp community links. Changes dynamically update the footer social buttons.
+                <p className="text-xs text-[#9E9EA0] mt-1">
+                  Manage Telegram, Facebook, Instagram, X/Twitter, YouTube channels, and support email.
                 </p>
               </div>
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-purple-600/30"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
               >
-                <Save className="w-4 h-4" /> Save Social Links
+                <Save className="w-4 h-4" /> Save Social & Contact Links
               </button>
             </div>
 
             {settingsSavedMsg && (
               <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" /> Social media community links saved successfully!
+                <Check className="w-4 h-4 text-emerald-400" /> Social media community links and email saved successfully!
               </div>
             )}
 
-            <div className="space-y-4 text-xs">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
               <div>
-                <label className="font-bold text-gray-300 block mb-1.5">Telegram Channel URL</label>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Send className="w-4 h-4 text-sky-400" /> Telegram Channel / Group URL
+                </label>
                 <input
                   type="url"
                   value={settingsForm.telegramChannelUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, telegramChannelUrl: e.target.value })}
                   placeholder="https://t.me/cinexus_official"
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-gray-300 block mb-1.5">Facebook Page URL</label>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Share2 className="w-4 h-4 text-blue-500" /> Facebook Page URL
+                </label>
                 <input
                   type="url"
                   value={settingsForm.facebookUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
                   placeholder="https://facebook.com/cinexus.official"
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-gray-300 block mb-1.5">WhatsApp Group URL</label>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-pink-500" /> Instagram Profile URL
+                </label>
+                <input
+                  type="url"
+                  value={settingsForm.instagramUrl || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
+                  placeholder="https://instagram.com/cinexus.official"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-sky-300" /> X / Twitter URL
+                </label>
+                <input
+                  type="url"
+                  value={settingsForm.twitterUrl || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, twitterUrl: e.target.value })}
+                  placeholder="https://x.com/cinexus_official"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Video className="w-4 h-4 text-red-500" /> YouTube Channel URL
+                </label>
+                <input
+                  type="url"
+                  value={settingsForm.youtubeUrl || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, youtubeUrl: e.target.value })}
+                  placeholder="https://youtube.com/@cinexus_official"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-amber-400" /> Official Support Contact Email
+                </label>
+                <input
+                  type="email"
+                  value={settingsForm.contactEmail || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })}
+                  placeholder="contact@cinexus.site"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="font-bold text-gray-300 block mb-1.5 flex items-center gap-1.5">
+                  <MessageSquare className="w-4 h-4 text-emerald-400" /> WhatsApp Group Link
+                </label>
                 <input
                   type="url"
                   value={settingsForm.whatsappGroupUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGroupUrl: e.target.value })}
                   placeholder="https://chat.whatsapp.com/cinexus_official"
-                  className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
             </div>
@@ -772,34 +849,139 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 4: ANALYTICS OVERVIEW */}
+      {/* TAB 4: DYNAMIC CONTENT & LEGAL PAGES EDITOR */}
+      {activeTab === 'legal' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-[#FF0E25]" /> Dynamic Content & Legal Pages Editor
+                </h3>
+                <p className="text-xs text-[#9E9EA0] mt-1">
+                  Full control over site legal content: About Us, Terms of Service, Privacy Policy, Contact Us, FAQ, and Request Movie rules.
+                </p>
+              </div>
+
+              <button
+                type="submit"
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
+              >
+                <Save className="w-4 h-4" /> Save Legal & Info Pages
+              </button>
+            </div>
+
+            {settingsSavedMsg && (
+              <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
+                <Check className="w-4 h-4 text-emerald-400" /> Dynamic legal pages content updated and live across footer links!
+              </div>
+            )}
+
+            <div className="space-y-6 text-xs">
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#FF0E25]" /> About Us Page Content
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.aboutUsContent}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, aboutUsContent: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#FF0E25]" /> Terms of Service Page Content
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.termsContent}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, termsContent: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <FileText className="w-4 h-4 text-[#FF0E25]" /> Privacy Policy Page Content
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.privacyContent}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, privacyContent: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-[#FF0E25]" /> Contact Us Details & Rules
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.contactUsContent}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, contactUsContent: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4 text-amber-400" /> FAQ (Frequently Asked Questions) Content
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.faqContent}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, faqContent: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+
+              <div>
+                <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
+                  <Film className="w-4 h-4 text-rose-400" /> Request Movie Rules & Instructions
+                </label>
+                <textarea
+                  rows={4}
+                  value={settingsForm.requestMovieRules}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, requestMovieRules: e.target.value })}
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* TAB 5: ANALYTICS OVERVIEW */}
       {activeTab === 'analytics' && (
         <div className="space-y-8 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase">Total Catalog Movies</p>
+                <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Total Catalog Movies</p>
                 <h3 className="text-2xl font-black text-white mt-1">{analytics.totalMovies}</h3>
               </div>
-              <div className="p-3 rounded-2xl bg-purple-600/20 text-purple-400">
+              <div className="p-3 rounded-2xl bg-[#FF0E25]/20 text-[#FF0E25]">
                 <Film className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase">Active Live Streams</p>
-                <h3 className="text-2xl font-black text-cyan-400 mt-1">{analytics.activeStreams.toLocaleString()}</h3>
+                <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Active Live Streams</p>
+                <h3 className="text-2xl font-black text-rose-400 mt-1">{analytics.activeStreams.toLocaleString()}</h3>
               </div>
-              <div className="p-3 rounded-2xl bg-cyan-500/20 text-cyan-400">
+              <div className="p-3 rounded-2xl bg-rose-500/20 text-rose-400">
                 <TrendingUp className="w-6 h-6" />
               </div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase">Total Downloads</p>
+                <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Total Downloads</p>
                 <h3 className="text-2xl font-black text-amber-400 mt-1">{analytics.totalDownloads.toLocaleString()}</h3>
               </div>
               <div className="p-3 rounded-2xl bg-amber-500/20 text-amber-400">
@@ -807,9 +989,9 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-slate-900/60 backdrop-blur-md p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
-                <p className="text-xs text-gray-400 font-semibold uppercase">User Traffic Today</p>
+                <p className="text-xs text-[#9E9EA0] font-semibold uppercase">User Traffic Today</p>
                 <h3 className="text-2xl font-black text-emerald-400 mt-1">{analytics.userTrafficToday.toLocaleString()}</h3>
               </div>
               <div className="p-3 rounded-2xl bg-emerald-500/20 text-emerald-400">
@@ -819,13 +1001,13 @@ export const AdminPage: React.FC = () => {
 
           </div>
 
-          <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" /> Recent Search Queries Log
+              <Sparkles className="w-4 h-4 text-[#FF0E25]" /> Recent Search Queries Log
             </h3>
             <div className="flex flex-wrap gap-2 text-xs">
               {analytics.recentSearches?.map((query, index) => (
-                <span key={index} className="px-3 py-1.5 rounded-xl bg-[#121620] border border-white/10 text-cyan-300 font-bold">
+                <span key={index} className="px-3 py-1.5 rounded-xl bg-[#090A0F] border border-white/10 text-rose-300 font-bold">
                   🔍 {query}
                 </span>
               ))}
@@ -834,14 +1016,14 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* TAB 5: CATEGORY & TAG MANAGER */}
+      {/* TAB 6: CATEGORY & TAG MANAGER */}
       {activeTab === 'categories' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
 
           {/* Add Category Form */}
-          <div className="bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
-              <Plus className="w-4 h-4 text-rose-500" /> Add New Genre Category
+              <Plus className="w-4 h-4 text-[#FF0E25]" /> Add New Genre Category
             </h3>
 
             <form onSubmit={handleAddCategorySubmit} className="space-y-4">
@@ -852,7 +1034,7 @@ export const AdminPage: React.FC = () => {
                   placeholder="e.g. Thriller"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full bg-[#121620] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -864,14 +1046,14 @@ export const AdminPage: React.FC = () => {
                   placeholder="e.g. කුතුහලාත්මක"
                   value={newCatSinhala}
                   onChange={(e) => setNewCatSinhala(e.target.value)}
-                  className="w-full bg-[#121620] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-rose-500"
+                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
 
               <button
                 type="submit"
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-rose-600 text-white font-bold text-xs"
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-bold text-xs"
               >
                 Add Category
               </button>
@@ -879,18 +1061,18 @@ export const AdminPage: React.FC = () => {
           </div>
 
           {/* Categories List */}
-          <div className="md:col-span-2 bg-slate-900/60 backdrop-blur-md p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="md:col-span-2 bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white">Active Categories ({categories.length})</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {categories.map((cat) => (
-                <div key={cat.id} className="p-3.5 rounded-xl bg-[#121620] border border-white/5 flex items-center justify-between">
+                <div key={cat.id} className="p-3.5 rounded-xl bg-[#090A0F] border border-white/5 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-white text-sm block">{cat.name}</span>
-                    <span className="text-xs text-purple-300">{cat.sinhalaName}</span>
+                    <span className="text-xs text-rose-300">{cat.sinhalaName}</span>
                   </div>
                   <button
                     onClick={() => deleteCategory(cat.id)}
-                    className="p-1.5 rounded-lg text-gray-500 hover:text-rose-400 hover:bg-rose-500/10 transition-colors"
+                    className="p-1.5 rounded-lg text-gray-500 hover:text-[#FF0E25] hover:bg-[#FF0E25]/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -902,17 +1084,17 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ADD / EDIT MOVIE MODAL FORM (5 STREAMING SERVERS & DOWNLOADS) */}
+      {/* ADD / EDIT MOVIE MODAL FORM (5 STREAMING SERVERS & DYNAMIC DOWNLOAD SERVER SETTINGS MANAGER) */}
       {isMovieModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
-          <div className="relative w-full max-w-3xl bg-[#121620] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
+          <div className="relative w-full max-w-4xl bg-[#11141f] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0c0e15]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#090A0F]">
               <div className="flex items-center gap-2">
-                <Film className="w-5 h-5 text-rose-500" />
+                <Film className="w-5 h-5 text-[#FF0E25]" />
                 <h3 className="text-base font-bold text-white">
-                  {editingMovieId ? 'Edit Movie Details & Embed Links' : 'Add New Movie / Series'}
+                  {editingMovieId ? 'Edit Movie Details & Download Server Settings' : 'Add New Movie / TV Series'}
                 </h3>
               </div>
               <button
@@ -927,26 +1109,26 @@ export const AdminPage: React.FC = () => {
             <form onSubmit={handleSaveMovie} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
 
               {/* OMDb Auto Fetch Assistant (API Key: 87cd62a9) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-900/40 via-rose-900/30 to-indigo-900/40 border border-purple-500/30 flex items-center justify-between gap-4">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FF0E25]/20 via-[#C80016]/20 to-rose-950/40 border border-[#FF0E25]/30 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-cyan-400" />
+                  <Bot className="w-5 h-5 text-[#FF0E25]" />
                   <div>
                     <p className="text-xs font-bold text-white">OMDb API Auto-Fetcher (Key: 87cd62a9)</p>
-                    <p className="text-[11px] text-gray-400">Enter title or IMDb ID (e.g., Avatar or tt1630029) and click Fetch.</p>
+                    <p className="text-[11px] text-[#9E9EA0]">Enter title or IMDb ID (e.g., Avatar or tt1630029) and click Fetch.</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleOMDbFetch}
                   disabled={isOmdbLoading}
-                  className="px-3.5 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold text-xs whitespace-nowrap shadow-md flex items-center gap-1.5"
+                  className="px-3.5 py-2 rounded-xl bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs whitespace-nowrap shadow-md flex items-center gap-1.5"
                 >
                   {isOmdbLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
                   OMDb Auto-Fetch
                 </button>
               </div>
 
-              {/* Form Grid */}
+              {/* Basic Movie Information */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                 <div>
                   <label className="font-semibold text-gray-300 block mb-1">Movie Title (English)*</label>
@@ -954,7 +1136,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                     required
                   />
                 </div>
@@ -965,7 +1147,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.sinhalaTitle}
                     onChange={(e) => setFormData({ ...formData, sinhalaTitle: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -974,8 +1156,8 @@ export const AdminPage: React.FC = () => {
                   <input
                     type="number"
                     value={formData.year}
-                    onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 2024 })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 2025 })}
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -985,8 +1167,8 @@ export const AdminPage: React.FC = () => {
                     type="number"
                     step="0.1"
                     value={formData.imdbRating}
-                    onChange={(e) => setFormData({ ...formData, imdbRating: parseFloat(e.target.value) || 7.0 })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    onChange={(e) => setFormData({ ...formData, imdbRating: parseFloat(e.target.value) || 7.5 })}
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -996,7 +1178,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.posterUrl}
                     onChange={(e) => setFormData({ ...formData, posterUrl: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                     required
                   />
                 </div>
@@ -1007,7 +1189,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.backdropUrl}
                     onChange={(e) => setFormData({ ...formData, backdropUrl: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1017,7 +1199,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.trailerUrl}
                     onChange={(e) => setFormData({ ...formData, trailerUrl: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1027,115 +1209,174 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.qualityBadge}
                     onChange={(e) => setFormData({ ...formData, qualityBadge: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
                 {/* 5-Server Embedded Player URLs Manager */}
-                <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#0a0b0e] border border-white/10">
+                <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#090A0F] border border-white/10">
                   <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
-                    <Server className="w-3.5 h-3.5 text-rose-500" /> Multi-Server Embedded Player URLs (Servers 1 - 5)
+                    <Server className="w-3.5 h-3.5 text-[#FF0E25]" /> Multi-Server Streaming Players (Servers 1 - 5)
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 1 (StreamHG Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 1 (StreamHG Embed Link)</label>
                       <input
                         type="text"
                         value={server1Url}
                         onChange={(e) => setServer1Url(e.target.value)}
                         placeholder="https://streamhg.com/e/..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 2 (Doodstream Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 2 (Doodstream Embed Link)</label>
                       <input
                         type="text"
                         value={server2Url}
                         onChange={(e) => setServer2Url(e.target.value)}
                         placeholder="https://doodstream.com/e/..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 3 (Streamtape Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 3 (Streamtape Embed Link)</label>
                       <input
                         type="text"
                         value={server3Url}
                         onChange={(e) => setServer3Url(e.target.value)}
                         placeholder="https://streamtape.com/e/..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 4 (Facebook Embed Link - Free Data)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 4 (Facebook Video Embed Link)</label>
                       <input
                         type="text"
                         value={server4Url}
                         onChange={(e) => setServer4Url(e.target.value)}
                         placeholder="https://www.facebook.com/plugins/video.php?href=..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div className="sm:col-span-2">
-                      <label className="text-[11px] text-gray-400 block mb-1">Server 5 (Official YouTube Trailer Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 5 (Official YouTube Trailer Embed Link)</label>
                       <input
                         type="text"
                         value={server5Url}
                         onChange={(e) => setServer5Url(e.target.value)}
                         placeholder="https://www.youtube.com/embed/..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
+                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Multi-Quality Download Links */}
-                <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#0a0b0e] border border-white/10">
-                  <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
-                    <Download className="w-3.5 h-3.5 text-amber-400" /> Multi-Quality Download & Telegram Links
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* DEDICATED "Download Server Settings" MANAGER (CRITICAL REQUIREMENT) */}
+                <div className="md:col-span-2 space-y-4 p-5 rounded-2xl bg-[#090A0F] border border-[#FF0E25]/30">
+                  <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">480p Download Link</label>
-                      <input
-                        type="text"
-                        value={dl480Url}
-                        onChange={(e) => setDl480Url(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
-                      />
+                      <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
+                        <Download className="w-4 h-4 text-[#FF0E25]" /> Download Server Settings
+                      </h4>
+                      <p className="text-[11px] text-[#9E9EA0]">
+                        Manage customizable download options (Quality: 4K / 1080p / 720p / 480p, File Size, Resolution, Direct Link, Telegram / Drive Server).
+                      </p>
                     </div>
-                    <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">720p Download Link</label>
-                      <input
-                        type="text"
-                        value={dl720Url}
-                        onChange={(e) => setDl720Url(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">1080p Download Link</label>
-                      <input
-                        type="text"
-                        value={dl1080Url}
-                        onChange={(e) => setDl1080Url(e.target.value)}
-                        placeholder="https://..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-[11px] text-gray-400 block mb-1">Telegram Direct Link</label>
-                      <input
-                        type="text"
-                        value={dlTelegramUrl}
-                        onChange={(e) => setDlTelegramUrl(e.target.value)}
-                        placeholder="https://t.me/..."
-                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-rose-500"
-                      />
-                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddDownloadLinkRow}
+                      className="px-3 py-1.5 rounded-xl bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs flex items-center gap-1 shadow-md transition-all"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Download Option
+                    </button>
+                  </div>
+
+                  <div className="space-y-3">
+                    {downloadLinksList.map((dlRow, idx) => (
+                      <div key={dlRow.id || idx} className="p-3.5 rounded-2xl bg-[#11141f] border border-white/10 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-extrabold text-rose-300">Option #{idx + 1} ({dlRow.quality})</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveDownloadLinkRow(dlRow.id)}
+                            className="p-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white text-[10px]"
+                            title="Remove row"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 text-[11px]">
+                          <div>
+                            <label className="text-[#9E9EA0] block mb-0.5">Quality Label</label>
+                            <input
+                              type="text"
+                              value={dlRow.quality}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'quality', e.target.value)}
+                              placeholder="4K / 1080p"
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[#9E9EA0] block mb-0.5">Resolution</label>
+                            <input
+                              type="text"
+                              value={dlRow.resolution || ''}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'resolution', e.target.value)}
+                              placeholder="1920x1080"
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[#9E9EA0] block mb-0.5">File Size</label>
+                            <input
+                              type="text"
+                              value={dlRow.fileSize || dlRow.size || ''}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'fileSize', e.target.value)}
+                              placeholder="2.4 GB"
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[#9E9EA0] block mb-0.5">Server Type</label>
+                            <input
+                              type="text"
+                              value={dlRow.serverType || ''}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'serverType', e.target.value)}
+                              placeholder="Direct High-Speed"
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-[#9E9EA0] block mb-0.5">Format</label>
+                            <input
+                              type="text"
+                              value={dlRow.format || ''}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'format', e.target.value)}
+                              placeholder="MKV / MP4"
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+
+                          <div className="col-span-2 sm:col-span-1 md:col-span-1">
+                            <label className="text-[#9E9EA0] block mb-0.5">Download URL</label>
+                            <input
+                              type="text"
+                              value={dlRow.url}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'url', e.target.value)}
+                              placeholder="https://..."
+                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
 
@@ -1145,7 +1386,7 @@ export const AdminPage: React.FC = () => {
                     rows={3}
                     value={formData.sinhalaPlot}
                     onChange={(e) => setFormData({ ...formData, sinhalaPlot: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1155,19 +1396,19 @@ export const AdminPage: React.FC = () => {
                     rows={2}
                     value={formData.englishPlot}
                     onChange={(e) => setFormData({ ...formData, englishPlot: e.target.value })}
-                    className="w-full bg-[#0a0b0e] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-rose-500"
+                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
               </div>
 
               {/* Toggles and Badges */}
-              <div className="p-4 rounded-2xl bg-[#0a0b0e] border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold">
+              <div className="p-4 rounded-2xl bg-[#090A0F] border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold">
                 <label className="flex items-center gap-2 cursor-pointer text-gray-300">
                   <input
                     type="checkbox"
                     checked={formData.hasSinhalaSub}
                     onChange={(e) => setFormData({ ...formData, hasSinhalaSub: e.target.checked })}
-                    className="accent-rose-500 w-4 h-4"
+                    className="accent-[#FF0E25] w-4 h-4"
                   />
                   Sinhala Subtitle
                 </label>
@@ -1177,7 +1418,7 @@ export const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={formData.isDualAudio}
                     onChange={(e) => setFormData({ ...formData, isDualAudio: e.target.checked })}
-                    className="accent-rose-500 w-4 h-4"
+                    className="accent-[#FF0E25] w-4 h-4"
                   />
                   Dual Audio
                 </label>
@@ -1187,7 +1428,7 @@ export const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={formData.isTrending}
                     onChange={(e) => setFormData({ ...formData, isTrending: e.target.checked })}
-                    className="accent-rose-500 w-4 h-4"
+                    className="accent-[#FF0E25] w-4 h-4"
                   />
                   Trending
                 </label>
@@ -1197,7 +1438,7 @@ export const AdminPage: React.FC = () => {
                     type="checkbox"
                     checked={formData.isTVSeries}
                     onChange={(e) => setFormData({ ...formData, isTVSeries: e.target.checked })}
-                    className="accent-rose-500 w-4 h-4"
+                    className="accent-[#FF0E25] w-4 h-4"
                   />
                   TV Series
                 </label>
@@ -1214,9 +1455,9 @@ export const AdminPage: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md"
                 >
-                  <Check className="w-4 h-4" /> {editingMovieId ? 'Update Movie' : 'Save Movie'}
+                  <Check className="w-4 h-4" /> {editingMovieId ? 'Update Movie & Download Servers' : 'Save Movie'}
                 </button>
               </div>
 
