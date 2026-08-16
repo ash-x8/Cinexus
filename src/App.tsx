@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
+import { LanguageProvider } from './context/LanguageContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
@@ -53,10 +54,12 @@ export const AppContent: React.FC = () => {
 export const App: React.FC = () => {
   return (
     <MovieProvider>
-      <Router>
-        <AppContent />
-        <Analytics />
-      </Router>
+      <LanguageProvider>
+        <Router>
+          <AppContent />
+          <Analytics />
+        </Router>
+      </LanguageProvider>
     </MovieProvider>
   );
 };

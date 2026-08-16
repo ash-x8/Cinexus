@@ -7,6 +7,7 @@ export interface DownloadLink {
   url: string;
   serverType?: string; // e.g., 'Direct High-Speed', 'Telegram Link', 'Google Drive', 'Mega'
   format?: string;
+  audioSubAttribute?: string; // e.g., 'Tamil [Sinhala Sub]', 'Hindi [Original Audio]'
 }
 
 export interface ServerPlayer {
@@ -41,8 +42,11 @@ export interface Movie {
   sinhalaPlot: string;
   englishPlot: string;
 
-  // Metadata
+  // Metadata & Categorization
   genres: string[];
+  languages: string[]; // e.g., ['Tamil', 'Hindi', 'English', 'Sinhala', 'Malayalam', 'Telugu', 'Kannada', 'Japanese', 'Chinese', 'Korean']
+  language: string; // Primary language e.g. 'Tamil'
+  contentType: 'Sinhala Sub' | 'Without Sub / English' | 'Sinhala Dubbed' | string;
   cast: string[];
   director: string;
   audioLanguage: string;

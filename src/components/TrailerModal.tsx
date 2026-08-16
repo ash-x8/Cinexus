@@ -16,20 +16,23 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Format trailer URL for embed if youtube link
+  // Format trailer URL for embed if youtube link - remove autoplay to ensure strict manual video playback
   let embedUrl = trailerUrl;
   if (trailerUrl.includes('watch?v=')) {
     embedUrl = trailerUrl.replace('watch?v=', 'embed/');
   }
 
+  // Strip autoplay params if any
+  embedUrl = embedUrl.replace(/[?&]autoplay=1/, '');
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-[#12151e] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-[#121620] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0d0f17]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0A0A0E]">
           <div className="flex items-center gap-2">
-            <Film className="w-5 h-5 text-cyan-400" />
+            <Film className="w-5 h-5 text-[#FF0E25]" />
             <h3 className="text-sm font-bold text-white truncate max-w-md">
               {title} - Official Trailer
             </h3>
@@ -42,13 +45,13 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
           </button>
         </div>
 
-        {/* Video Frame */}
+        {/* Video Frame: Manual playback enabled (zero autoplay) */}
         <div className="relative aspect-video w-full bg-black">
           <iframe
-            src={`${embedUrl}?autoplay=1`}
+            src={embedUrl}
             title={`${title} Trailer`}
             className="w-full h-full border-0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           />
         </div>

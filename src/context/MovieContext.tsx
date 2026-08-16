@@ -21,6 +21,13 @@ interface MovieContextType {
   setSearchQuery: (query: string) => void;
   selectedCategory: string;
   setSelectedCategory: (cat: string) => void;
+  selectedContentType: string;
+  setSelectedContentType: (type: string) => void;
+  selectedLanguage: string;
+  setSelectedLanguage: (lang: string) => void;
+  selectedGenre: string;
+  setSelectedGenre: (genre: string) => void;
+  resetAllFilters: () => void;
   sortBy: string;
   setSortBy: (sort: string) => void;
 
@@ -127,7 +134,18 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedContentType, setSelectedContentType] = useState('All');
+  const [selectedLanguage, setSelectedLanguage] = useState('All');
+  const [selectedGenre, setSelectedGenre] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
+
+  const resetAllFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+    setSelectedContentType('All');
+    setSelectedLanguage('All');
+    setSelectedGenre('All');
+  };
 
   // Initialize Supabase CDN Realtime Subscription Listener
   useEffect(() => {
@@ -289,6 +307,13 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setSearchQuery,
       selectedCategory,
       setSelectedCategory,
+      selectedContentType,
+      setSelectedContentType,
+      selectedLanguage,
+      setSelectedLanguage,
+      selectedGenre,
+      setSelectedGenre,
+      resetAllFilters,
       sortBy,
       setSortBy,
       addMovie,

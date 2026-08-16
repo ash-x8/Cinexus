@@ -2,32 +2,46 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowUp, Share2, Send, MessageSquare, Video, Globe, Mail } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
+import { useLanguage } from '../context/LanguageContext';
 import { ContentModal, type ContentModalType } from './ContentModal';
 
 export const Footer: React.FC = () => {
-  const { siteSettings, setSelectedCategory } = useMovies();
+  const { siteSettings, setSelectedCategory, setSelectedGenre, setSelectedLanguage, setSelectedContentType } = useMovies();
+  const { t } = useLanguage();
   const [activeModal, setActiveModal] = useState<ContentModalType>(null);
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  const handleCategoryClick = (cat: string) => {
+    if (['Action', 'Sci-Fi', 'Romance', 'Horror', 'TV Series', 'Anime', 'Dual Audio'].includes(cat)) {
+      setSelectedCategory(cat);
+    } else if (['Tamil', 'Hindi', 'Malayalam', 'Telugu', 'Sinhala', 'English', 'Korean'].includes(cat)) {
+      setSelectedLanguage(cat);
+    } else {
+      setSelectedGenre(cat);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const exploreCategories = [
     'Action', 'Sci-Fi', 'Romance',
-    'Horror', 'Sinhala Subbed', 'TV Series',
-    'Anime', 'Dual Audio', '4K UHD'
+    'Horror', 'Tamil', 'Hindi',
+    'TV Series', 'Anime', 'Sinhala Subbed'
   ];
 
   return (
-    <footer className="mt-20 border-t border-white/10 bg-[#06070a] relative overflow-hidden text-xs">
-      {/* Background glowing red gradient accent */}
+    <footer className="mt-16 border-t border-white/10 bg-[#06070a] relative overflow-hidden text-xs">
+      {/* Background soft red gradient accent */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-32 bg-gradient-to-b from-[#FF0E25]/15 via-[#C80016]/5 to-transparent blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 relative z-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
 
-          {/* Column 1: Branding & Socials */}
+          {/* Column 1: Branding & Community Socials */}
           <div className="space-y-4">
+            {/* Single Logo Policy: Strictly ONE logo in the footer */}
             <Link
               to="/"
               onClick={() => { setSelectedCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
@@ -109,7 +123,7 @@ export const Footer: React.FC = () => {
                   target="_blank"
                   rel="noreferrer"
                   className="w-9 h-9 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#FF0E25]/30 hover:border-[#FF0E25]/50 transition-all"
-                  title="YouTube"
+                  title="YouTube Channel"
                 >
                   <Video className="w-4 h-4 text-red-500" />
                 </a>
@@ -136,10 +150,7 @@ export const Footer: React.FC = () => {
               {exploreCategories.map((cat) => (
                 <button
                   key={cat}
-                  onClick={() => {
-                    setSelectedCategory(cat);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
+                  onClick={() => handleCategoryClick(cat)}
                   className="text-left hover:text-[#FF0E25] transition-colors py-1 font-medium"
                 >
                   {cat}
@@ -148,7 +159,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Column 3: Account & Quick Actions Column */}
+          {/* Column 3: Account & Request Links */}
           <div>
             <h4 className="text-xs font-black text-[#FF0E25] tracking-wider uppercase mb-4">
               Account & Requests
@@ -159,7 +170,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('watchlist')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  My Watchlist
+                  {t('watchlist')}
                 </button>
               </li>
               <li>
@@ -167,7 +178,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('favorites')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  Favorites
+                  {t('favorites')}
                 </button>
               </li>
               <li>
@@ -175,7 +186,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('account')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  My Account
+                  {t('myAccount')}
                 </button>
               </li>
               <li>
@@ -183,14 +194,14 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('request')}
                   className="hover:text-[#FF0E25] transition-colors text-left font-bold text-rose-300 flex items-center gap-1"
                 >
-                  <span>Request Movie / Series</span>
+                  <span>{t('requestMovie')}</span>
                   <span className="px-1.5 py-0.2 rounded bg-[#FF0E25]/20 text-[#FF0E25] text-[9px] uppercase">New</span>
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 4: Company & Legal Column */}
+          {/* Column 4: Dynamic Company & Legal Column */}
           <div>
             <h4 className="text-xs font-black text-[#FF0E25] tracking-wider uppercase mb-4">
               Company & Legal
@@ -201,7 +212,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('about')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  About Us
+                  {t('aboutUs')}
                 </button>
               </li>
               <li>
@@ -209,7 +220,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('terms')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  Terms of Service
+                  {t('termsOfService')}
                 </button>
               </li>
               <li>
@@ -217,7 +228,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('privacy')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  Privacy Policy
+                  {t('privacyPolicy')}
                 </button>
               </li>
               <li>
@@ -225,7 +236,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('contact')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  Contact Us
+                  {t('contactUs')}
                 </button>
               </li>
               <li>
@@ -233,7 +244,7 @@ export const Footer: React.FC = () => {
                   onClick={() => setActiveModal('faq')}
                   className="hover:text-[#FF0E25] transition-colors text-left"
                 >
-                  FAQ
+                  {t('faq')}
                 </button>
               </li>
             </ul>
@@ -241,7 +252,7 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* Bottom Bar: Copyright + Floating Back to Top Button */}
+        {/* Bottom Bar: Copyright + Back to Top Button */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-[#9E9EA0] gap-4">
           <p>© 2026 CINEXUS (සිනෙක්ස්). All rights reserved.</p>
 
@@ -250,7 +261,7 @@ export const Footer: React.FC = () => {
             className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300 hover:text-white hover:bg-[#FF0E25]/30 hover:border-[#FF0E25]/50 transition-all font-bold"
           >
             <ArrowUp className="w-3.5 h-3.5 text-[#FF0E25]" />
-            Back to Top
+            {t('backToTop')}
           </button>
         </div>
       </div>
