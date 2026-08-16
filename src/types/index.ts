@@ -22,6 +22,7 @@ export interface CastMember {
   name: string;
   character?: string;
   profileUrl?: string;
+  image?: string;
 }
 
 export interface Movie {

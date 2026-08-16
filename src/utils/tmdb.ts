@@ -10,8 +10,9 @@ export const TMDB_READ_ACCESS_TOKEN =
 
 export interface TMCastMember {
   name: string;
-  character?: string;
-  profileUrl?: string;
+  character: string;
+  profileUrl: string;
+  image: string;
 }
 
 export interface TMDBMovieDetail {
@@ -31,16 +32,19 @@ export interface TMDBMovieDetail {
   language: string;
 }
 
+export const DEFAULT_ACTOR_PLACEHOLDER = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+
 export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
 
   try {
-    let movieId: number | string | null = null;
+    let mediaType: 'movie' | 'tv' = 'movie';
+    let mediaId: number | string | null = null;
 
     // Check if query is numeric ID or IMDb ID (tt...)
     if (/^\d+$/.test(trimmed)) {
-      movieId = trimmed;
+      mediaId = trimmed;
     } else if (/^tt\d+$/i.test(trimmed)) {
       // Find by IMDb ID
       const findRes = await fetch(
@@ -48,31 +52,45 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       );
       const findData = await findRes.json();
       if (findData.movie_results && findData.movie_results.length > 0) {
-        movieId = findData.movie_results[0].id;
+        mediaId = findData.movie_results[0].id;
+        mediaType = 'movie';
       } else if (findData.tv_results && findData.tv_results.length > 0) {
-        movieId = findData.tv_results[0].id;
+        mediaId = findData.tv_results[0].id;
+        mediaType = 'tv';
       }
     }
 
-    if (!movieId) {
+    if (!mediaId) {
       // Search by movie name
       const searchRes = await fetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(trimmed)}`
       );
       const searchData = await searchRes.json();
       if (searchData.results && searchData.results.length > 0) {
-        movieId = searchData.results[0].id;
+        mediaId = searchData.results[0].id;
+        mediaType = 'movie';
+      } else {
+        // Search TV as fallback
+        const tvSearchRes = await fetch(
+          `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(trimmed)}`
+        );
+        const tvSearchData = await tvSearchRes.json();
+        if (tvSearchData.results && tvSearchData.results.length > 0) {
+          mediaId = tvSearchData.results[0].id;
+          mediaType = 'tv';
+        }
       }
     }
 
-    if (!movieId) {
+    if (!mediaId) {
       return null;
     }
 
-    // Fetch full details + credits
+    // Step 1: Endpoint Integration
+    // Query details and credits endpoint
     const [detailRes, creditsRes] = await Promise.all([
-      fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${TMDB_API_KEY}`),
-      fetch(`https://api.themoviedb.org/3/movie/${movieId}/credits?api_key=${TMDB_API_KEY}`)
+      fetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}`),
+      fetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}/credits?api_key=${TMDB_API_KEY}`)
     ]);
 
     if (!detailRes.ok) return null;
@@ -83,18 +101,32 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
     // Extract Directors & Crew
     const directors = credits.crew
       ? credits.crew
-          .filter((c: any) => c.job === 'Director')
+          .filter((c: any) => c.job === 'Director' || c.job === 'Creator' || c.job === 'Executive Producer')
+          .slice(0, 3)
           .map((c: any) => c.name)
       : [];
     const directorName = directors.length > 0 ? directors.join(', ') : 'Unknown Director';
 
-    // Extract Lead Cast (Top 10 with name, character, profileUrl)
+    // Step 2: Data Mapping Logic
+    // Iterate through the `cast` array from the API response and map fields for EVERY cast member:
+    // - Actor Name: Map from original_name (fallback name)
+    // - Character Name: Map from character
+    // - Actor Photo: If profile_path exists: https://image.tmdb.org/t/p/w200/[profile_path], else default placeholder URL
     const castMembers: TMCastMember[] = credits.cast
-      ? credits.cast.slice(0, 10).map((c: any) => ({
-          name: c.name,
-          character: c.character || 'Lead Cast',
-          profileUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : ''
-        }))
+      ? credits.cast.slice(0, 12).map((c: any) => {
+          const actorName = c.original_name || c.name || 'Unknown Actor';
+          const characterName = c.character || 'Cast Member';
+          const actorPhoto = c.profile_path
+            ? `https://image.tmdb.org/t/p/w200${c.profile_path}`
+            : DEFAULT_ACTOR_PLACEHOLDER;
+
+          return {
+            name: actorName,
+            character: characterName,
+            profileUrl: actorPhoto,
+            image: actorPhoto
+          };
+        })
       : [];
 
     // Extract Crew
