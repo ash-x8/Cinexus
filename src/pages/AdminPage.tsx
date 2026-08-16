@@ -162,8 +162,8 @@ export const AdminPage: React.FC = () => {
   const [newCatName, setNewCatName] = useState('');
   const [newCatSinhala, setNewCatSinhala] = useState('');
 
-  // TMDB API Auto-Fetch Helper
-  const handleTMDBFetch = async () => {
+  // TMDB API Auto-Fetch Helper for Cast, Crew, and Movie Metadata
+  const fetchMovieDetails = async () => {
     if (!formData.title) {
       alert('Please enter a movie title or TMDB/IMDb ID first.');
       return;
@@ -190,7 +190,14 @@ export const AdminPage: React.FC = () => {
         }));
 
         if (data.cast && data.cast.length > 0) {
-          setCastList(data.cast);
+          // Map cast list ensuring name, character, image, and profileUrl are populated
+          const mappedCastList: CastMember[] = data.cast.map(c => ({
+            name: c.name,
+            character: c.character || 'Cast Role',
+            image: c.image || c.profileUrl || '',
+            profileUrl: c.profileUrl || c.image || ''
+          }));
+          setCastList(mappedCastList);
         }
       } else {
         alert('TMDB Fetch Notice: Movie details not found. Please verify title or ID.');
@@ -202,6 +209,8 @@ export const AdminPage: React.FC = () => {
       setIsTmdbLoading(false);
     }
   };
+
+  const handleTMDBFetch = fetchMovieDetails;
 
   // Cloudinary Poster File Upload Handler (using cinexus_preset)
   const handlePosterFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -318,7 +327,13 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleUpdateCastRow = (index: number, key: keyof CastMember, value: string) => {
-    setCastList(prev => prev.map((item, idx) => idx === index ? { ...item, [key]: value } : item));
+    setCastList(prev => prev.map((item, idx) => {
+      if (idx !== index) return item;
+      const updated = { ...item, [key]: value };
+      if (key === 'image') updated.profileUrl = value;
+      if (key === 'profileUrl') updated.image = value;
+      return updated;
+    }));
   };
 
   const handleAddDownloadLinkRow = () => {
@@ -371,7 +386,7 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleSaveMovie = (e: React.FormEvent) => {
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title || !formData.posterUrl) {
       alert('Please fill in required fields (Title & Poster URL).');
@@ -386,9 +401,19 @@ export const AdminPage: React.FC = () => {
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ];
 
+    // Ensure database schema stores cast as [{ name: string, character: string, image: string }]
+    const formattedCastArray = castList
+      .filter(c => c.name.trim() !== '')
+      .map(c => ({
+        name: c.name,
+        character: c.character || 'Role Name',
+        image: c.image || c.profileUrl || '',
+        profileUrl: c.profileUrl || c.image || ''
+      }));
+
     const movieToSave = {
       ...formData,
-      cast: castList.filter(c => c.name.trim() !== ''),
+      cast: formattedCastArray,
       hasSinhalaSub: formData.contentType === 'Sinhala Sub',
       language: formData.language || formData.languages?.[0] || 'English',
       languages: formData.languages && formData.languages.length > 0 ? formData.languages : [formData.language || 'English'],
@@ -403,6 +428,8 @@ export const AdminPage: React.FC = () => {
     }
     setIsMovieModalOpen(false);
   };
+
+  const handleSaveMovie = handleSave;
 
   const handleAddCategorySubmit = (e: React.FormEvent) => {
     e.preventDefault();
