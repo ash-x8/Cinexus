@@ -27,6 +27,9 @@ export const INITIAL_MOVIES: Movie[] = [
     sinhalaPlot: 'ජේක් සුලි සහ නෙයිටිරි පණ්‌ඩෝරා ග්‍රහලෝකයේ ඔවුන්ගේ පවුල සමඟ එකතු වී ජීවත් වේ. නව තර්ජනයක් පැමිණි විට, ඔවුන් සාගර ආශ්‍රිත මෙට්කායිනා ගෝත්‍රය වෙත රැකවරණය පතා යන අතර එහිදී දැවැන්ත සටනකට මුහුණ දීමට සිදු වේ.',
     englishPlot: 'Jake Sully lives with his newfound family formed on the extrasolar moon Pandora. Once a familiar threat returns to finish what was previously started, Jake must work with Neytiri and the army of the Na\'vi race to protect their home.',
     genres: ['Action', 'Sci-Fi', 'Adventure'],
+    languages: ['English'],
+    language: 'English',
+    contentType: 'Sinhala Sub',
     cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver', 'Kate Winslet'],
     director: 'James Cameron',
     audioLanguage: 'English / English (Sinhala Sub)',
@@ -36,18 +39,18 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2023-01-15'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0?autoplay=1', quality: '1080p', serverType: 'streamhg' },
+      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
       { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '6.5 GB', size: '6.5 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
-      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '2.8 GB', size: '2.8 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
-      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.4 GB', size: '1.4 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264' },
-      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '650 MB', size: '650 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl5', quality: 'Telegram', resolution: '1080p Web', fileSize: 'Instant Link', size: 'Instant Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Direct' }
+      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '6.5 GB', size: '6.5 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '2.8 GB', size: '2.8 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.4 GB', size: '1.4 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '650 MB', size: '650 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl5', quality: 'Telegram', resolution: '1080p Web', fileSize: 'Instant Link', size: 'Instant Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Direct', audioSubAttribute: 'English [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -73,6 +76,9 @@ export const INITIAL_MOVIES: Movie[] = [
     sinhalaPlot: 'පෝල් අට්‍රෙයිඩීස්, චානි සහ ෆ්‍රෙමෙන් සමඟ එක්ව සිය පවුල විනාශ කළ කුමන්ත්‍රණකරුවන්ට එරෙහිව පළිගැනීමේ ගමන ආරම්භ කරයි. විශ්වයේ අනාගතය සහ ඔහුගේ ජීවිතයේ ආදරය අතර තේරීමක් කිරීමට ඔහුට සිදුවේ.',
     englishPlot: 'Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family. Facing a choice between the love of his life and the fate of the universe, he endeavors to prevent a terrible future.',
     genres: ['Sci-Fi', 'Action', 'Adventure'],
+    languages: ['English'],
+    language: 'English',
+    contentType: 'Sinhala Sub',
     cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Javier Bardem'],
     director: 'Denis Villeneuve',
     audioLanguage: 'English (Sinhala Subtitled)',
@@ -82,18 +88,18 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-03-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://www.youtube.com/embed/Way9Dexny3w?autoplay=1', quality: '1080p', serverType: 'streamhg' },
+      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
       { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '5.8 GB', size: '5.8 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
-      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '3.1 GB', size: '3.1 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV x265' },
-      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '580 MB', size: '580 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl5', quality: 'Telegram', resolution: 'Original File', fileSize: 'Direct Telegram File', size: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl1', quality: '4K', resolution: '3840x2160', fileSize: '5.8 GB', size: '5.8 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl2', quality: '1080p', resolution: '1920x1080', fileSize: '3.1 GB', size: '3.1 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV x265', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl3', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl4', quality: '480p', resolution: '854x480', fileSize: '580 MB', size: '580 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl5', quality: 'Telegram', resolution: 'Original File', fileSize: 'Direct Telegram File', size: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'English [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: true,
@@ -106,39 +112,42 @@ export const INITIAL_MOVIES: Movie[] = [
   },
   {
     id: 'm3',
-    title: 'The Batman',
-    sinhalaTitle: 'ද බෑට්මෑන්',
-    originalTitle: 'The Batman',
-    year: 2022,
-    imdbRating: 7.8,
-    duration: '2h 56m',
-    qualityBadge: '1080p BluRay',
+    title: 'Leo',
+    sinhalaTitle: 'ලියෝ',
+    originalTitle: 'Leo',
+    year: 2023,
+    imdbRating: 7.2,
+    duration: '2h 44m',
+    qualityBadge: '1080p WEB-DL',
     posterUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=800&auto=format&fit=crop',
     backdropUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1600&auto=format&fit=crop',
     trailerUrl: 'https://www.youtube.com/embed/mqqft2x_Aa4',
-    sinhalaPlot: 'ගෝතම් නගරයේ දූෂිත දේශපාලඥයින් සහ ප්‍රභූන් ඉලක්ක කරගනිමින් ඝාතන සිදුකරන රිඩ්ලර් නැමැති අභිරහස් ඝාතකයා සොයා බැට්මෑන් පරීක්ෂණ පවත්වයි.',
-    englishPlot: 'When a sadistic serial killer begins murdering key political figures in Gotham, Batman is forced to investigate the city\'s hidden corruption and question his family\'s involvement.',
-    genres: ['Action', 'Crime', 'Drama'],
-    cast: ['Robert Pattinson', 'Zoë Kravitz', 'Paul Dano', 'Colin Farrell'],
-    director: 'Matt Reeves',
-    audioLanguage: 'English / Sinhala Subtitle',
+    sinhalaPlot: 'හිමාචල් ප්‍රදේශයේ කෝපි හලක් පවත්වාගෙන යන පාර්තිබන් නැමැති පුද්ගලයා වටා ගෙතුනු ත්‍රාසජනක ක්‍රියාදාම චිත්‍රපටයකි.',
+    englishPlot: 'Parthiban is a mild-mannered cafe owner in Theog, who becomes a local hero through an act of rescue. However, his peaceful existence is shattered when dangerous gangsters mistake him for Leo Das.',
+    genres: ['Action', 'Crime', 'Thriller'],
+    languages: ['Tamil'],
+    language: 'Tamil',
+    contentType: 'Sinhala Sub',
+    cast: ['Vijay', 'Sanjay Dutt', 'Trisha Krishnan', 'Arjun Sarja'],
+    director: 'Lokesh Kanagaraj',
+    audioLanguage: 'Tamil (Sinhala Sub)',
     subtitleAuthor: {
       name: 'ධනුෂ්ක අබේසිංහ',
       downloadsCount: 18400,
-      releaseDate: '2022-04-10'
+      releaseDate: '2023-11-20'
     },
     servers: [
       { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', size: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV' },
-      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.1 GB', size: '1.1 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl3', quality: 'Telegram', resolution: 'Full HD', fileSize: 'Channel Direct', size: 'Channel Direct', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', size: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Tamil [Sinhala Sub]' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.1 GB', size: '1.1 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'Tamil [Sinhala Sub]' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Full HD', fileSize: 'Channel Direct', size: 'Channel Direct', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'Tamil [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
-    isTrending: false,
+    isTrending: true,
     isFeatured: true,
     isTVSeries: false,
     viewsCount: 38900,
@@ -160,6 +169,9 @@ export const INITIAL_MOVIES: Movie[] = [
     sinhalaPlot: 'හොකින්ස් නගරයට බලපාන නව අද්භූත අඳුරු බලවේගයක් වන වෙක්නා සමඟ ඉලෙවන් සහ ඇගේ යහළුවන් කරන සටන.',
     englishPlot: 'When a new horror manifests in Hawkins, Indiana, a group of friends must unravel an ominous supernatural threat known as Vecna.',
     genres: ['TV Series', 'Sci-Fi', 'Horror'],
+    languages: ['English'],
+    language: 'English',
+    contentType: 'Sinhala Sub',
     cast: ['Millie Bobby Brown', 'Finn Wolfhard', 'Winona Ryder', 'David Harbour'],
     director: 'The Duffer Brothers',
     audioLanguage: 'English (Complete Sinhala Sub Pack)',
@@ -173,9 +185,9 @@ export const INITIAL_MOVIES: Movie[] = [
       { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '8.5 GB (Zip)', size: '8.5 GB (Zip)', url: '#download-1080p', serverType: 'Direct Drive', format: 'Full Season Zip' },
-      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '4.2 GB (Zip)', size: '4.2 GB (Zip)', url: '#download-720p', serverType: 'Direct Drive', format: 'Full Season Zip' },
-      { id: 'dl3', quality: 'Telegram', resolution: 'Complete Batch', fileSize: 'Direct Channel Batch', size: 'Direct Channel Batch', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Batch' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '8.5 GB (Zip)', size: '8.5 GB (Zip)', url: '#download-1080p', serverType: 'Direct Drive', format: 'Full Season Zip', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '4.2 GB (Zip)', size: '4.2 GB (Zip)', url: '#download-720p', serverType: 'Direct Drive', format: 'Full Season Zip', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Complete Batch', fileSize: 'Direct Channel Batch', size: 'Direct Channel Batch', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram Batch', audioSubAttribute: 'English [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -203,6 +215,9 @@ export const INITIAL_MOVIES: Movie[] = [
     sinhalaPlot: 'පෘථිවියේ මානව වර්ගයා විනාශ වීමේ අවදානමට ලක්ව ඇති විට, මිනිසාට ජීවත්වීමට සුදුසු අලුත් ග්‍රහලෝකයක් සෙවීම සඳහා විශ්වයේ කළු කුහරයක් ඔස්සේ යන අභ්‍යවකාශගාමීන් පිරිසකගේ වික්‍රමය.',
     englishPlot: 'When Earth becomes uninhabitable in the future, a farmer and ex-NASA pilot, Joseph Cooper, is tasked to pilot a spacecraft, along with a team of researchers, to find a new planet for humans.',
     genres: ['Sci-Fi', 'Drama', 'Adventure'],
+    languages: ['English'],
+    language: 'English',
+    contentType: 'Sinhala Sub',
     cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain', 'Michael Caine'],
     director: 'Christopher Nolan',
     audioLanguage: 'English / Dual Audio Sinhala',
@@ -216,10 +231,10 @@ export const INITIAL_MOVIES: Movie[] = [
       { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.4 GB', size: '2.4 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV' },
-      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl3', quality: '480p', resolution: '854x480', fileSize: '500 MB', size: '500 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl4', quality: 'Telegram', resolution: '1080p WEB', fileSize: 'Direct Link', size: 'Direct Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.4 GB', size: '2.4 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', size: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl3', quality: '480p', resolution: '854x480', fileSize: '500 MB', size: '500 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl4', quality: 'Telegram', resolution: '1080p WEB', fileSize: 'Direct Link', size: 'Direct Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'English [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: true,
@@ -245,6 +260,9 @@ export const INITIAL_MOVIES: Movie[] = [
     sinhalaPlot: 'තන්ජිරෝ සහ සසුරුවන්නන් හෂිරා බලකායේ ප්‍රබල නායකයින්ගෙන් දැඩි පුහුණුවක් ලබා ගනිමින් අවසාන මහා යක්ෂ සටන සඳහා සුදානම් වෙති.',
     englishPlot: 'Tanjiro undergoes rigorous training with the Stone Hashira, Gyomei Himejima, in his quest to become a Hashira and prepare for the upcoming battle against Muzan Kibutsuji.',
     genres: ['Anime', 'Action', 'Fantasy'],
+    languages: ['Japanese'],
+    language: 'Japanese',
+    contentType: 'Sinhala Sub',
     cast: ['Natsuki Hanae', 'Akari Kitō', 'Hiro Shimono', 'Yoshitsugu Matsuoka'],
     director: 'Haruo Sotozaki',
     audioLanguage: 'Japanese (Sinhala Subbed)',
@@ -258,9 +276,9 @@ export const INITIAL_MOVIES: Movie[] = [
       { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
-      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.5 GB (Batch)', size: '3.5 GB (Batch)', url: '#download-1080p', serverType: 'Direct Drive', format: 'MKV' },
-      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.8 GB (Batch)', size: '1.8 GB (Batch)', url: '#download-720p', serverType: 'Direct Drive', format: 'MP4' },
-      { id: 'dl3', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Anime Channel Link', size: 'Anime Channel Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.5 GB (Batch)', size: '3.5 GB (Batch)', url: '#download-1080p', serverType: 'Direct Drive', format: 'MKV', audioSubAttribute: 'Japanese [Sinhala Sub]' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.8 GB (Batch)', size: '1.8 GB (Batch)', url: '#download-720p', serverType: 'Direct Drive', format: 'MP4', audioSubAttribute: 'Japanese [Sinhala Sub]' },
+      { id: 'dl3', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Anime Channel Link', size: 'Anime Channel Link', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'Japanese [Sinhala Sub]' }
     ],
     hasSinhalaSub: true,
     isDualAudio: false,
@@ -270,5 +288,91 @@ export const INITIAL_MOVIES: Movie[] = [
     viewsCount: 31000,
     downloadsCount: 16500,
     addedAt: '2024-05-20'
+  },
+  {
+    id: 'm7',
+    title: 'Manjummel Boys',
+    sinhalaTitle: 'මංජුමෙල් බෝයිස්',
+    originalTitle: 'Manjummel Boys',
+    year: 2024,
+    imdbRating: 8.5,
+    duration: '2h 15m',
+    qualityBadge: '1080p WEB-DL',
+    posterUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop',
+    backdropUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1600&auto=format&fit=crop',
+    trailerUrl: 'https://www.youtube.com/embed/d9MyW72ELq0',
+    sinhalaPlot: 'කේරලයේ මංජුමෙල් ප්‍රදේශයේ යහළුවන් පිරිසක් කොඩෙයිකානාල් හි ගුණා ගුහාව නැරඹීමට යන අතර එහිදී එක් යහළුවෙකු ගුහාවට වැටීමෙන් පසු සිදුවන සංවේදී හා ත්‍රාසජනක බේරාගැනීමේ මෙහෙයුම.',
+    englishPlot: 'A group of friends from a small town named Manjummel decide to have a vacation in Kodaikanal. Their trip takes a perilous turn when one of them falls into the Guna Caves.',
+    genres: ['Adventure', 'Drama', 'Thriller'],
+    languages: ['Malayalam'],
+    language: 'Malayalam',
+    contentType: 'Sinhala Sub',
+    cast: ['Soubin Shahir', 'Sreenath Bhasi', 'Balu Varghese', 'Ganapathi'],
+    director: 'Chidambaram',
+    audioLanguage: 'Malayalam (Sinhala Sub)',
+    subtitleAuthor: {
+      name: 'ලසිත් පතිරණ',
+      downloadsCount: 25400,
+      releaseDate: '2024-03-25'
+    },
+    servers: [
+      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' }
+    ],
+    downloadLinks: [
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.2 GB', size: '2.2 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Malayalam [Sinhala Sub]' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.1 GB', size: '1.1 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'Malayalam [Sinhala Sub]' }
+    ],
+    hasSinhalaSub: true,
+    isDualAudio: false,
+    isTrending: true,
+    isFeatured: true,
+    isTVSeries: false,
+    viewsCount: 41200,
+    downloadsCount: 21000,
+    addedAt: '2024-04-01'
+  },
+  {
+    id: 'm8',
+    title: 'Kalki 2898 AD',
+    sinhalaTitle: 'කල්කි 2898 AD',
+    originalTitle: 'Kalki 2898 AD',
+    year: 2024,
+    imdbRating: 7.7,
+    duration: '3h 0m',
+    qualityBadge: '4K WEB-DL',
+    posterUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=800&auto=format&fit=crop',
+    backdropUrl: 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1600&auto=format&fit=crop',
+    trailerUrl: 'https://www.youtube.com/embed/Way9Dexny3w',
+    sinhalaPlot: 'අනාගතයේ 2898 වසරේ කාශී නගරයේ සිදුවන මහා විද්‍යා ප්‍රබන්ධ සහ පුරාණ ඉන්දියානු කථා සංකලනය වූ දැවැන්ත සිනමා පටය.',
+    englishPlot: 'A modern avatar of Vishnu, a Hindu god, who is believed to have descended to earth to protect the world from evil forces in a post-apocalyptic world.',
+    genres: ['Action', 'Sci-Fi', 'Fantasy'],
+    languages: ['Telugu', 'Hindi'],
+    language: 'Telugu',
+    contentType: 'Sinhala Dubbed',
+    cast: ['Prabhas', 'Amitabh Bachchan', 'Kamal Haasan', 'Deepika Padukone'],
+    director: 'Nag Ashwin',
+    audioLanguage: 'Sinhala Dubbed / Telugu',
+    subtitleAuthor: {
+      name: 'සිනෙක්ස් ඩබ් කණ්ඩායම',
+      downloadsCount: 38900,
+      releaseDate: '2024-07-05'
+    },
+    servers: [
+      { id: 's1', name: 'Server 1 (StreamHG Sinhala Dub)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'doodstream' }
+    ],
+    downloadLinks: [
+      { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.2 GB', size: '3.2 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Sinhala Dubbed' },
+      { id: 'dl2', quality: '720p', resolution: '1280x720', fileSize: '1.6 GB', size: '1.6 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'Sinhala Dubbed' }
+    ],
+    hasSinhalaSub: true,
+    isDualAudio: true,
+    isTrending: true,
+    isFeatured: true,
+    isTVSeries: false,
+    viewsCount: 78000,
+    downloadsCount: 35000,
+    addedAt: '2024-07-10'
   }
 ];

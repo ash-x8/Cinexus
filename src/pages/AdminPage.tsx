@@ -33,7 +33,9 @@ import {
   HelpCircle,
   Video,
   MessageSquare,
-  Send
+  Send,
+  Layers,
+  Volume2
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -92,6 +94,19 @@ export const AdminPage: React.FC = () => {
   const [isMovieModalOpen, setIsMovieModalOpen] = useState(false);
   const [editingMovieId, setEditingMovieId] = useState<string | null>(null);
 
+  // Available option lists for tagging
+  const availableLanguages = [
+    'Sinhala', 'Tamil', 'Telugu', 'Hindi', 'Malayalam', 'Kannada', 'English', 'Japanese', 'Chinese', 'Korean'
+  ];
+
+  const availableGenres = [
+    'Action', 'Adventure', 'Animation', 'Comedy', 'Crime', 'Documentary', 'Drama', 'Fantasy', 'Horror', 'Mystery', 'Romance', 'Sci-Fi', 'Thriller', 'War', 'Western'
+  ];
+
+  const availableContentTypes = [
+    'Sinhala Sub', 'Without Sub / English', 'Sinhala Dubbed'
+  ];
+
   // Movie Form State
   const [formData, setFormData] = useState<Partial<Movie>>({
     title: '',
@@ -106,6 +121,9 @@ export const AdminPage: React.FC = () => {
     sinhalaPlot: '',
     englishPlot: '',
     genres: ['Action', 'Sci-Fi'],
+    language: 'English',
+    languages: ['English'],
+    contentType: 'Sinhala Sub',
     cast: ['Lead Actor 1', 'Lead Actor 2'],
     director: 'Director Name',
     audioLanguage: 'English (Sinhala Sub)',
@@ -145,6 +163,10 @@ export const AdminPage: React.FC = () => {
     try {
       const data = await fetchOMDbMetadata(formData.title);
       if (data && data.Response !== 'False') {
+        const fetchedGenres = data.Genre ? data.Genre.split(', ') : formData.genres;
+        const fetchedLanguage = data.Language ? data.Language.split(', ')[0] : (formData.language || 'English');
+        const fetchedLanguages = data.Language ? data.Language.split(', ') : [fetchedLanguage];
+
         setFormData(prev => ({
           ...prev,
           title: data.Title || prev.title,
@@ -157,7 +179,9 @@ export const AdminPage: React.FC = () => {
           sinhalaPlot: prev.sinhalaPlot || `${data.Title} සඳහා සියලුම සිංහල උපසිරැසි සමඟින් උසස්ම ගුණාත්මක භාවයෙන් යුතුව සිනෙක්ස් අඩවියෙන් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
           director: data.Director || prev.director,
           cast: data.Actors ? data.Actors.split(', ') : prev.cast,
-          genres: data.Genre ? data.Genre.split(', ') : prev.genres,
+          genres: fetchedGenres,
+          language: fetchedLanguage,
+          languages: fetchedLanguages,
           duration: data.Runtime || prev.duration,
         }));
       } else {
@@ -180,11 +204,11 @@ export const AdminPage: React.FC = () => {
     setServer5Url('https://www.youtube.com/embed/d9MyW72ELq0');
 
     setDownloadLinksList([
-      { id: 'dl_4k', quality: '4K', resolution: '3840x2160', fileSize: '5.2 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265' },
-      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
-      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264' },
-      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl_4k', quality: '4K', resolution: '3840x2160', fileSize: '5.2 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
+      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'English [Sinhala Sub]' }
     ]);
 
     setFormData({
@@ -200,6 +224,9 @@ export const AdminPage: React.FC = () => {
       sinhalaPlot: '',
       englishPlot: '',
       genres: ['Action', 'Sci-Fi'],
+      language: 'English',
+      languages: ['English'],
+      contentType: 'Sinhala Sub',
       cast: ['Lead Actor 1', 'Lead Actor 2'],
       director: 'Director Name',
       audioLanguage: 'English (Sinhala Sub)',
@@ -229,10 +256,9 @@ export const AdminPage: React.FC = () => {
     setServer5Url(movie.servers?.[4]?.url || movie.trailerUrl || '');
 
     setDownloadLinksList(movie.downloadLinks && movie.downloadLinks.length > 0 ? movie.downloadLinks : [
-      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264' },
-      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4' },
-      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram' }
+      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264', audioSubAttribute: `${movie.language || 'English'} [${movie.contentType || 'Sinhala Sub'}]` },
+      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: `${movie.language || 'English'} [${movie.contentType || 'Sinhala Sub'}]` },
+      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: `${movie.language || 'English'} [${movie.contentType || 'Sinhala Sub'}]` }
     ]);
 
     setIsMovieModalOpen(true);
@@ -246,7 +272,8 @@ export const AdminPage: React.FC = () => {
       fileSize: '2.0 GB',
       url: 'https://',
       serverType: 'Direct High-Speed',
-      format: 'MKV'
+      format: 'MKV',
+      audioSubAttribute: `${formData.language || 'English'} [${formData.contentType || 'Sinhala Sub'}]`
     };
     setDownloadLinksList(prev => [...prev, newDl]);
   };
@@ -257,6 +284,34 @@ export const AdminPage: React.FC = () => {
 
   const handleUpdateDownloadLinkRow = (id: string, key: keyof DownloadLink, val: string) => {
     setDownloadLinksList(prev => prev.map(dl => dl.id === id ? { ...dl, [key]: val, ...(key === 'fileSize' ? { size: val } : {}) } : dl));
+  };
+
+  const handleToggleGenreTag = (genreName: string) => {
+    const current = formData.genres || [];
+    if (current.includes(genreName)) {
+      setFormData({ ...formData, genres: current.filter(g => g !== genreName) });
+    } else {
+      setFormData({ ...formData, genres: [...current, genreName] });
+    }
+  };
+
+  const handleToggleLanguageTag = (langName: string) => {
+    const current = formData.languages || [];
+    if (current.includes(langName)) {
+      const updated = current.filter(l => l !== langName);
+      setFormData({
+        ...formData,
+        languages: updated,
+        language: updated[0] || 'English'
+      });
+    } else {
+      const updated = [...current, langName];
+      setFormData({
+        ...formData,
+        languages: updated,
+        language: updated[0] || langName
+      });
+    }
   };
 
   const handleSaveMovie = (e: React.FormEvent) => {
@@ -277,6 +332,9 @@ export const AdminPage: React.FC = () => {
 
     const movieToSave = {
       ...formData,
+      hasSinhalaSub: formData.contentType === 'Sinhala Sub',
+      language: formData.language || formData.languages?.[0] || 'English',
+      languages: formData.languages && formData.languages.length > 0 ? formData.languages : [formData.language || 'English'],
       servers: updatedServers,
       downloadLinks: downloadLinksList,
     };
@@ -306,13 +364,13 @@ export const AdminPage: React.FC = () => {
     m.sinhalaTitle.toLowerCase().includes(searchAdmin.toLowerCase())
   );
 
-  // Security Authentication Check (Require Email & Password)
+  // Security Authentication Check
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-[75vh] flex items-center justify-center py-12 px-4">
-        <div className="w-full max-w-md bg-[#11141f]/90 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
+        <div className="w-full max-w-md bg-[#121620]/90 backdrop-blur-xl p-8 rounded-3xl border border-white/10 shadow-2xl text-center space-y-6 animate-in zoom-in-95 duration-200">
           <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-[#FF0E25] via-[#C80016] to-amber-500 p-0.5 mx-auto shadow-lg shadow-[#FF0E25]/30 flex items-center justify-center">
-            <div className="w-full h-full bg-[#090A0F] rounded-2xl flex items-center justify-center text-white">
+            <div className="w-full h-full bg-[#0A0A0E] rounded-2xl flex items-center justify-center text-white">
               <Lock className="w-8 h-8 text-[#FF0E25]" />
             </div>
           </div>
@@ -335,7 +393,7 @@ export const AdminPage: React.FC = () => {
                 placeholder="admin@cinexus.site"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
-                className="w-full bg-[#090A0F] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
+                className="w-full bg-[#0A0A0E] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
                 autoFocus
                 required
               />
@@ -350,7 +408,7 @@ export const AdminPage: React.FC = () => {
                 placeholder="Enter password (cinexus2025)"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
-                className="w-full bg-[#090A0F] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
+                className="w-full bg-[#0A0A0E] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
                 required
               />
             </div>
@@ -383,7 +441,7 @@ export const AdminPage: React.FC = () => {
     <div className="space-y-8 pb-16">
 
       {/* Top Control Panel Header */}
-      <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-[#FF0E25]/20 text-[#FF0E25] font-extrabold text-xs uppercase tracking-wider border border-[#FF0E25]/30">
@@ -491,12 +549,11 @@ export const AdminPage: React.FC = () => {
         </button>
       </div>
 
-      {/* TAB 1: MOVIE MANAGEMENT (CRUD & DOWNLOAD SERVER MANAGER) */}
+      {/* TAB 1: MOVIE MANAGEMENT */}
       {activeTab === 'movies' && (
         <div className="space-y-6 animate-in fade-in duration-300">
 
-          {/* Search Table Toolbar */}
-          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#11141f] p-4 rounded-2xl border border-white/10">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-[#121620] p-4 rounded-2xl border border-white/10">
             <div className="relative w-full sm:w-80">
               <Search className="w-4 h-4 text-[#9E9EA0] absolute left-3 top-1/2 -translate-y-1/2" />
               <input
@@ -504,23 +561,22 @@ export const AdminPage: React.FC = () => {
                 placeholder="Search catalog by title..."
                 value={searchAdmin}
                 onChange={(e) => setSearchAdmin(e.target.value)}
-                className="w-full bg-[#090A0F] text-xs text-white pl-9 pr-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-[#FF0E25]"
+                className="w-full bg-[#0A0A0E] text-xs text-white pl-9 pr-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-[#FF0E25]"
               />
             </div>
             <span className="text-xs text-[#9E9EA0]">Showing {filteredAdminMovies.length} of {movies.length} titles</span>
           </div>
 
-          {/* Movies List Table */}
-          <div className="bg-[#11141f]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
+          <div className="bg-[#121620]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-gray-300">
-                <thead className="bg-[#090A0F] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
+                <thead className="bg-[#0A0A0E] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
                   <tr>
                     <th className="p-4">Movie / Series</th>
+                    <th className="p-4">Language & Type</th>
                     <th className="p-4">IMDb Score</th>
                     <th className="p-4">Quality</th>
                     <th className="p-4">Download Links</th>
-                    <th className="p-4">Views / Downloads</th>
                     <th className="p-4 text-right">Actions</th>
                   </tr>
                 </thead>
@@ -542,6 +598,11 @@ export const AdminPage: React.FC = () => {
                         </div>
                       </td>
 
+                      <td className="p-4 font-bold text-sky-300">
+                        <p>{movie.language || 'English'}</p>
+                        <span className="text-[10px] text-[#9E9EA0]">{movie.contentType || 'Sinhala Sub'}</span>
+                      </td>
+
                       <td className="p-4 font-bold text-amber-400">
                         ★ {movie.imdbRating}
                       </td>
@@ -554,12 +615,8 @@ export const AdminPage: React.FC = () => {
 
                       <td className="p-4">
                         <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30">
-                          {movie.downloadLinks?.length || 0} Servers Configured
+                          {movie.downloadLinks?.length || 0} Tagged Links
                         </span>
-                      </td>
-
-                      <td className="p-4 text-[#9E9EA0]">
-                        {movie.viewsCount.toLocaleString()} / {movie.downloadsCount.toLocaleString()}
                       </td>
 
                       <td className="p-4 text-right">
@@ -567,7 +624,7 @@ export const AdminPage: React.FC = () => {
                           <button
                             onClick={() => handleOpenEditModal(movie)}
                             className="p-2 rounded-lg bg-[#FF0E25]/20 text-rose-300 hover:bg-[#FF0E25] hover:text-white transition-colors"
-                            title="Edit Movie & Download Servers"
+                            title="Edit Movie & Tagging Options"
                           >
                             <Edit2 className="w-4 h-4" />
                           </button>
@@ -597,7 +654,7 @@ export const AdminPage: React.FC = () => {
       {/* TAB 2: GENERAL SITE CONTENT & NOTICE BANNER */}
       {activeTab === 'branding' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -618,7 +675,7 @@ export const AdminPage: React.FC = () => {
 
             {settingsSavedMsg && (
               <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" /> General site content and dynamic section titles saved successfully!
+                <Check className="w-4 h-4 text-emerald-400" /> General site content saved successfully!
               </div>
             )}
 
@@ -629,7 +686,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.siteTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, siteTitle: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -640,7 +697,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.sinhalaTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, sinhalaTitle: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -651,7 +708,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.latestMoviesTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, latestMoviesTitle: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -662,12 +719,12 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.trendingSeriesTitle}
                   onChange={(e) => setSettingsForm({ ...settingsForm, trendingSeriesTitle: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
 
-              <div className="md:col-span-2 space-y-2 p-4 rounded-2xl bg-[#090A0F] border border-[#FF0E25]/30">
+              <div className="md:col-span-2 space-y-2 p-4 rounded-2xl bg-[#0A0A0E] border border-[#FF0E25]/30">
                 <div className="flex items-center justify-between">
                   <label className="font-bold text-white flex items-center gap-2 text-sm">
                     <Megaphone className="w-4 h-4 text-[#FF0E25] animate-pulse" /> Header Banner & Announcement Control
@@ -687,7 +744,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.announcementText}
                   onChange={(e) => setSettingsForm({ ...settingsForm, announcementText: e.target.value })}
                   placeholder="Enter notice text shown at the top of every page..."
-                  className="w-full bg-[#11141f] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -697,7 +754,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.heroHeading}
                   onChange={(e) => setSettingsForm({ ...settingsForm, heroHeading: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -707,7 +764,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.heroSubheading}
                   onChange={(e) => setSettingsForm({ ...settingsForm, heroSubheading: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -717,7 +774,7 @@ export const AdminPage: React.FC = () => {
                   type="text"
                   value={settingsForm.footerText}
                   onChange={(e) => setSettingsForm({ ...settingsForm, footerText: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
             </div>
@@ -728,7 +785,7 @@ export const AdminPage: React.FC = () => {
       {/* TAB 3: SOCIAL MEDIA & CONTACT CMS */}
       {activeTab === 'social' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -749,7 +806,7 @@ export const AdminPage: React.FC = () => {
 
             {settingsSavedMsg && (
               <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl text-emerald-300 text-xs font-bold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-400" /> Social media community links and email saved successfully!
+                <Check className="w-4 h-4 text-emerald-400" /> Social media links saved successfully!
               </div>
             )}
 
@@ -763,7 +820,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.telegramChannelUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, telegramChannelUrl: e.target.value })}
                   placeholder="https://t.me/cinexus_official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -776,7 +833,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.facebookUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, facebookUrl: e.target.value })}
                   placeholder="https://facebook.com/cinexus.official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -789,7 +846,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.instagramUrl || ''}
                   onChange={(e) => setSettingsForm({ ...settingsForm, instagramUrl: e.target.value })}
                   placeholder="https://instagram.com/cinexus.official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -802,7 +859,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.twitterUrl || ''}
                   onChange={(e) => setSettingsForm({ ...settingsForm, twitterUrl: e.target.value })}
                   placeholder="https://x.com/cinexus_official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -815,7 +872,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.youtubeUrl || ''}
                   onChange={(e) => setSettingsForm({ ...settingsForm, youtubeUrl: e.target.value })}
                   placeholder="https://youtube.com/@cinexus_official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -828,7 +885,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.contactEmail || ''}
                   onChange={(e) => setSettingsForm({ ...settingsForm, contactEmail: e.target.value })}
                   placeholder="contact@cinexus.site"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -841,7 +898,7 @@ export const AdminPage: React.FC = () => {
                   value={settingsForm.whatsappGroupUrl}
                   onChange={(e) => setSettingsForm({ ...settingsForm, whatsappGroupUrl: e.target.value })}
                   placeholder="https://chat.whatsapp.com/cinexus_official"
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
             </div>
@@ -852,7 +909,7 @@ export const AdminPage: React.FC = () => {
       {/* TAB 4: DYNAMIC CONTENT & LEGAL PAGES EDITOR */}
       {activeTab === 'legal' && (
         <div className="space-y-6 animate-in fade-in duration-300">
-          <form onSubmit={handleSaveSettings} className="bg-[#11141f]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
+          <form onSubmit={handleSaveSettings} className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 space-y-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div>
                 <h3 className="text-lg font-bold text-white flex items-center gap-2">
@@ -886,7 +943,7 @@ export const AdminPage: React.FC = () => {
                   rows={4}
                   value={settingsForm.aboutUsContent}
                   onChange={(e) => setSettingsForm({ ...settingsForm, aboutUsContent: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -898,7 +955,7 @@ export const AdminPage: React.FC = () => {
                   rows={4}
                   value={settingsForm.termsContent}
                   onChange={(e) => setSettingsForm({ ...settingsForm, termsContent: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -910,7 +967,7 @@ export const AdminPage: React.FC = () => {
                   rows={4}
                   value={settingsForm.privacyContent}
                   onChange={(e) => setSettingsForm({ ...settingsForm, privacyContent: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -922,19 +979,19 @@ export const AdminPage: React.FC = () => {
                   rows={4}
                   value={settingsForm.contactUsContent}
                   onChange={(e) => setSettingsForm({ ...settingsForm, contactUsContent: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
               <div>
                 <label className="font-bold text-white block mb-1.5 flex items-center gap-1.5">
-                  <HelpCircle className="w-4 h-4 text-amber-400" /> FAQ (Frequently Asked Questions) Content
+                  <HelpCircle className="w-4 h-4 text-amber-400" /> FAQ Content
                 </label>
                 <textarea
                   rows={4}
                   value={settingsForm.faqContent}
                   onChange={(e) => setSettingsForm({ ...settingsForm, faqContent: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
 
@@ -946,7 +1003,7 @@ export const AdminPage: React.FC = () => {
                   rows={4}
                   value={settingsForm.requestMovieRules}
                   onChange={(e) => setSettingsForm({ ...settingsForm, requestMovieRules: e.target.value })}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
             </div>
@@ -959,7 +1016,7 @@ export const AdminPage: React.FC = () => {
         <div className="space-y-8 animate-in fade-in duration-300">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
-            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#121620]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Total Catalog Movies</p>
                 <h3 className="text-2xl font-black text-white mt-1">{analytics.totalMovies}</h3>
@@ -969,7 +1026,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#121620]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Active Live Streams</p>
                 <h3 className="text-2xl font-black text-rose-400 mt-1">{analytics.activeStreams.toLocaleString()}</h3>
@@ -979,7 +1036,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#121620]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-[#9E9EA0] font-semibold uppercase">Total Downloads</p>
                 <h3 className="text-2xl font-black text-amber-400 mt-1">{analytics.totalDownloads.toLocaleString()}</h3>
@@ -989,7 +1046,7 @@ export const AdminPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-[#11141f]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
+            <div className="bg-[#121620]/90 backdrop-blur-xl p-5 rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-xs text-[#9E9EA0] font-semibold uppercase">User Traffic Today</p>
                 <h3 className="text-2xl font-black text-emerald-400 mt-1">{analytics.userTrafficToday.toLocaleString()}</h3>
@@ -1001,13 +1058,13 @@ export const AdminPage: React.FC = () => {
 
           </div>
 
-          <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-[#121620]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <Sparkles className="w-4 h-4 text-[#FF0E25]" /> Recent Search Queries Log
             </h3>
             <div className="flex flex-wrap gap-2 text-xs">
               {analytics.recentSearches?.map((query, index) => (
-                <span key={index} className="px-3 py-1.5 rounded-xl bg-[#090A0F] border border-white/10 text-rose-300 font-bold">
+                <span key={index} className="px-3 py-1.5 rounded-xl bg-[#0A0A0E] border border-white/10 text-rose-300 font-bold">
                   🔍 {query}
                 </span>
               ))}
@@ -1020,8 +1077,7 @@ export const AdminPage: React.FC = () => {
       {activeTab === 'categories' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-300">
 
-          {/* Add Category Form */}
-          <div className="bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="bg-[#121620]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white flex items-center gap-2">
               <Plus className="w-4 h-4 text-[#FF0E25]" /> Add New Genre Category
             </h3>
@@ -1034,7 +1090,7 @@ export const AdminPage: React.FC = () => {
                   placeholder="e.g. Thriller"
                   value={newCatName}
                   onChange={(e) => setNewCatName(e.target.value)}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -1046,7 +1102,7 @@ export const AdminPage: React.FC = () => {
                   placeholder="e.g. කුතුහලාත්මක"
                   value={newCatSinhala}
                   onChange={(e) => setNewCatSinhala(e.target.value)}
-                  className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
+                  className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-[#FF0E25]"
                   required
                 />
               </div>
@@ -1060,12 +1116,11 @@ export const AdminPage: React.FC = () => {
             </form>
           </div>
 
-          {/* Categories List */}
-          <div className="md:col-span-2 bg-[#11141f]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
+          <div className="md:col-span-2 bg-[#121620]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 space-y-4">
             <h3 className="text-base font-bold text-white">Active Categories ({categories.length})</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {categories.map((cat) => (
-                <div key={cat.id} className="p-3.5 rounded-xl bg-[#090A0F] border border-white/5 flex items-center justify-between">
+                <div key={cat.id} className="p-3.5 rounded-xl bg-[#0A0A0E] border border-white/5 flex items-center justify-between">
                   <div>
                     <span className="font-bold text-white text-sm block">{cat.name}</span>
                     <span className="text-xs text-rose-300">{cat.sinhalaName}</span>
@@ -1084,17 +1139,17 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ADD / EDIT MOVIE MODAL FORM (5 STREAMING SERVERS & DYNAMIC DOWNLOAD SERVER SETTINGS MANAGER) */}
+      {/* ADD / EDIT MOVIE MODAL FORM WITH MULTI-TAGGING (LANGUAGES, GENRES, CONTENT TYPES, TAGGED DOWNLOAD LINKS) */}
       {isMovieModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-[#11141f] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="relative w-full max-w-4xl bg-[#121620] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
 
             {/* Modal Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#090A0F]">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-[#0A0A0E]">
               <div className="flex items-center gap-2">
                 <Film className="w-5 h-5 text-[#FF0E25]" />
                 <h3 className="text-base font-bold text-white">
-                  {editingMovieId ? 'Edit Movie Details & Download Server Settings' : 'Add New Movie / TV Series'}
+                  {editingMovieId ? 'Edit Movie Details & Tagging Options' : 'Add New Movie / TV Series'}
                 </h3>
               </div>
               <button
@@ -1106,7 +1161,7 @@ export const AdminPage: React.FC = () => {
             </div>
 
             {/* Modal Body Form */}
-            <form onSubmit={handleSaveMovie} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
+            <form onSubmit={handleSaveMovie} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs">
 
               {/* OMDb Auto Fetch Assistant (API Key: 87cd62a9) */}
               <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FF0E25]/20 via-[#C80016]/20 to-rose-950/40 border border-[#FF0E25]/30 flex items-center justify-between gap-4">
@@ -1114,7 +1169,7 @@ export const AdminPage: React.FC = () => {
                   <Bot className="w-5 h-5 text-[#FF0E25]" />
                   <div>
                     <p className="text-xs font-bold text-white">OMDb API Auto-Fetcher (Key: 87cd62a9)</p>
-                    <p className="text-[11px] text-[#9E9EA0]">Enter title or IMDb ID (e.g., Avatar or tt1630029) and click Fetch.</p>
+                    <p className="text-[11px] text-[#9E9EA0]">Enter title or IMDb ID (e.g., Leo or Avatar) and click Fetch.</p>
                   </div>
                 </div>
                 <button
@@ -1129,14 +1184,14 @@ export const AdminPage: React.FC = () => {
               </div>
 
               {/* Basic Movie Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="font-semibold text-gray-300 block mb-1">Movie Title (English)*</label>
                   <input
                     type="text"
                     value={formData.title}
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                     required
                   />
                 </div>
@@ -1147,7 +1202,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.sinhalaTitle}
                     onChange={(e) => setFormData({ ...formData, sinhalaTitle: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1157,7 +1212,7 @@ export const AdminPage: React.FC = () => {
                     type="number"
                     value={formData.year}
                     onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 2025 })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1168,8 +1223,83 @@ export const AdminPage: React.FC = () => {
                     step="0.1"
                     value={formData.imdbRating}
                     onChange={(e) => setFormData({ ...formData, imdbRating: parseFloat(e.target.value) || 7.5 })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
+                </div>
+
+                {/* CONTENT TYPE SELECTOR (CRITICAL REQUIREMENT) */}
+                <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
+                  <label className="font-extrabold text-white block flex items-center gap-1.5">
+                    <Layers className="w-4 h-4 text-[#FF0E25]" /> Content Type Selector*
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableContentTypes.map((typeVal) => (
+                      <button
+                        key={typeVal}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, contentType: typeVal, hasSinhalaSub: typeVal === 'Sinhala Sub' })}
+                        className={`px-3.5 py-1.5 rounded-xl font-extrabold text-xs transition-all ${
+                          formData.contentType === typeVal
+                            ? 'bg-[#FF0E25] text-white shadow-md'
+                            : 'bg-[#121620] text-gray-300 border border-white/10 hover:text-white'
+                        }`}
+                      >
+                        {typeVal}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* LANGUAGES MULTI-TAG SELECTOR (CRITICAL REQUIREMENT) */}
+                <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
+                  <label className="font-extrabold text-white block flex items-center gap-1.5">
+                    <Globe className="w-4 h-4 text-sky-400" /> Language / Industry Tagging Options*
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableLanguages.map((langVal) => {
+                      const isSelected = formData.languages?.includes(langVal) || formData.language === langVal;
+                      return (
+                        <button
+                          key={langVal}
+                          type="button"
+                          onClick={() => handleToggleLanguageTag(langVal)}
+                          className={`px-3 py-1 rounded-xl font-bold text-[11px] transition-all ${
+                            isSelected
+                              ? 'bg-sky-600 text-white shadow-sm'
+                              : 'bg-[#121620] text-gray-400 border border-white/10 hover:text-white'
+                          }`}
+                        >
+                          {isSelected ? `✓ ${langVal}` : `+ ${langVal}`}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* GENRES MULTI-TAG SELECTOR (CRITICAL REQUIREMENT) */}
+                <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
+                  <label className="font-extrabold text-white block flex items-center gap-1.5">
+                    <Tag className="w-4 h-4 text-amber-400" /> Genre Tagging Options*
+                  </label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {availableGenres.map((genreVal) => {
+                      const isSelected = formData.genres?.includes(genreVal);
+                      return (
+                        <button
+                          key={genreVal}
+                          type="button"
+                          onClick={() => handleToggleGenreTag(genreVal)}
+                          className={`px-2.5 py-1 rounded-xl font-bold text-[11px] transition-all ${
+                            isSelected
+                              ? 'bg-amber-600 text-white shadow-sm'
+                              : 'bg-[#121620] text-gray-400 border border-white/10 hover:text-white'
+                          }`}
+                        >
+                          {isSelected ? `✓ ${genreVal}` : `+ ${genreVal}`}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div>
@@ -1178,7 +1308,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.posterUrl}
                     onChange={(e) => setFormData({ ...formData, posterUrl: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                     required
                   />
                 </div>
@@ -1189,7 +1319,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.backdropUrl}
                     onChange={(e) => setFormData({ ...formData, backdropUrl: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1199,7 +1329,7 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.trailerUrl}
                     onChange={(e) => setFormData({ ...formData, trailerUrl: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1209,12 +1339,12 @@ export const AdminPage: React.FC = () => {
                     type="text"
                     value={formData.qualityBadge}
                     onChange={(e) => setFormData({ ...formData, qualityBadge: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
                 {/* 5-Server Embedded Player URLs Manager */}
-                <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#090A0F] border border-white/10">
+                <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#0A0A0E] border border-white/10">
                   <h4 className="font-bold text-white text-xs flex items-center gap-1.5">
                     <Server className="w-3.5 h-3.5 text-[#FF0E25]" /> Multi-Server Streaming Players (Servers 1 - 5)
                   </h4>
@@ -1226,7 +1356,7 @@ export const AdminPage: React.FC = () => {
                         value={server1Url}
                         onChange={(e) => setServer1Url(e.target.value)}
                         placeholder="https://streamhg.com/e/..."
-                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
@@ -1236,7 +1366,7 @@ export const AdminPage: React.FC = () => {
                         value={server2Url}
                         onChange={(e) => setServer2Url(e.target.value)}
                         placeholder="https://doodstream.com/e/..."
-                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
@@ -1246,7 +1376,7 @@ export const AdminPage: React.FC = () => {
                         value={server3Url}
                         onChange={(e) => setServer3Url(e.target.value)}
                         placeholder="https://streamtape.com/e/..."
-                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
@@ -1256,7 +1386,7 @@ export const AdminPage: React.FC = () => {
                         value={server4Url}
                         onChange={(e) => setServer4Url(e.target.value)}
                         placeholder="https://www.facebook.com/plugins/video.php?href=..."
-                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div className="sm:col-span-2">
@@ -1266,21 +1396,21 @@ export const AdminPage: React.FC = () => {
                         value={server5Url}
                         onChange={(e) => setServer5Url(e.target.value)}
                         placeholder="https://www.youtube.com/embed/..."
-                        className="w-full bg-[#11141f] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
+                        className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* DEDICATED "Download Server Settings" MANAGER (CRITICAL REQUIREMENT) */}
-                <div className="md:col-span-2 space-y-4 p-5 rounded-2xl bg-[#090A0F] border border-[#FF0E25]/30">
+                {/* CATEGORIZED DOWNLOAD LINKS & TAGS MANAGER (CRITICAL REQUIREMENT) */}
+                <div className="md:col-span-2 space-y-4 p-5 rounded-2xl bg-[#0A0A0E] border border-[#FF0E25]/30">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div>
                       <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
-                        <Download className="w-4 h-4 text-[#FF0E25]" /> Download Server Settings
+                        <Download className="w-4 h-4 text-[#FF0E25]" /> Categorized Download Links Tagging Manager
                       </h4>
                       <p className="text-[11px] text-[#9E9EA0]">
-                        Manage customizable download options (Quality: 4K / 1080p / 720p / 480p, File Size, Resolution, Direct Link, Telegram / Drive Server).
+                        Tag download buttons with audio/sub attributes (e.g. Tamil [Sinhala Sub], Hindi [Original Audio]).
                       </p>
                     </div>
 
@@ -1289,13 +1419,13 @@ export const AdminPage: React.FC = () => {
                       onClick={handleAddDownloadLinkRow}
                       className="px-3 py-1.5 rounded-xl bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs flex items-center gap-1 shadow-md transition-all"
                     >
-                      <Plus className="w-3.5 h-3.5" /> Add Download Option
+                      <Plus className="w-3.5 h-3.5" /> Add Tagged Download Link
                     </button>
                   </div>
 
                   <div className="space-y-3">
                     {downloadLinksList.map((dlRow, idx) => (
-                      <div key={dlRow.id || idx} className="p-3.5 rounded-2xl bg-[#11141f] border border-white/10 space-y-2">
+                      <div key={dlRow.id || idx} className="p-3.5 rounded-2xl bg-[#121620] border border-white/10 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-extrabold text-rose-300">Option #{idx + 1} ({dlRow.quality})</span>
                           <button
@@ -1316,18 +1446,18 @@ export const AdminPage: React.FC = () => {
                               value={dlRow.quality}
                               onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'quality', e.target.value)}
                               placeholder="4K / 1080p"
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
 
                           <div>
-                            <label className="text-[#9E9EA0] block mb-0.5">Resolution</label>
+                            <label className="text-[#9E9EA0] block mb-0.5">Audio/Sub Attribute</label>
                             <input
                               type="text"
-                              value={dlRow.resolution || ''}
-                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'resolution', e.target.value)}
-                              placeholder="1920x1080"
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              value={dlRow.audioSubAttribute || ''}
+                              onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'audioSubAttribute', e.target.value)}
+                              placeholder="Tamil [Sinhala Sub]"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-amber-300 font-bold focus:outline-none"
                             />
                           </div>
 
@@ -1338,7 +1468,7 @@ export const AdminPage: React.FC = () => {
                               value={dlRow.fileSize || dlRow.size || ''}
                               onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'fileSize', e.target.value)}
                               placeholder="2.4 GB"
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
 
@@ -1349,7 +1479,7 @@ export const AdminPage: React.FC = () => {
                               value={dlRow.serverType || ''}
                               onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'serverType', e.target.value)}
                               placeholder="Direct High-Speed"
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
 
@@ -1360,18 +1490,18 @@ export const AdminPage: React.FC = () => {
                               value={dlRow.format || ''}
                               onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'format', e.target.value)}
                               placeholder="MKV / MP4"
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
 
-                          <div className="col-span-2 sm:col-span-1 md:col-span-1">
+                          <div>
                             <label className="text-[#9E9EA0] block mb-0.5">Download URL</label>
                             <input
                               type="text"
                               value={dlRow.url}
                               onChange={(e) => handleUpdateDownloadLinkRow(dlRow.id, 'url', e.target.value)}
                               placeholder="https://..."
-                              className="w-full bg-[#090A0F] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
                         </div>
@@ -1386,7 +1516,7 @@ export const AdminPage: React.FC = () => {
                     rows={3}
                     value={formData.sinhalaPlot}
                     onChange={(e) => setFormData({ ...formData, sinhalaPlot: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
 
@@ -1396,13 +1526,13 @@ export const AdminPage: React.FC = () => {
                     rows={2}
                     value={formData.englishPlot}
                     onChange={(e) => setFormData({ ...formData, englishPlot: e.target.value })}
-                    className="w-full bg-[#090A0F] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
                 </div>
               </div>
 
-              {/* Toggles and Badges */}
-              <div className="p-4 rounded-2xl bg-[#090A0F] border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-semibold">
+              {/* Toggles */}
+              <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-white/10 grid grid-cols-2 sm:grid-cols-4 gap-4 font-semibold">
                 <label className="flex items-center gap-2 cursor-pointer text-gray-300">
                   <input
                     type="checkbox"
@@ -1457,7 +1587,7 @@ export const AdminPage: React.FC = () => {
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md"
                 >
-                  <Check className="w-4 h-4" /> {editingMovieId ? 'Update Movie & Download Servers' : 'Save Movie'}
+                  <Check className="w-4 h-4" /> {editingMovieId ? 'Update Movie & Tagging' : 'Save Movie'}
                 </button>
               </div>
 
