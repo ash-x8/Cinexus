@@ -1,0 +1,112 @@
+/**
+ * Automatic URL Sanitizer & Iframe Formatter Engine
+ * Converts raw streaming video URLs into clean, responsive embedded iframe URLs
+ * supporting StreamHG, Doodstream, Streamtape, Facebook Free Data, and YouTube.
+ */
+
+export function sanitizeEmbedUrl(url: string, serverType?: string): string {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
+  const lowerUrl = trimmed.toLowerCase();
+
+  // 1. YouTube Trailer / Embed
+  if (
+    serverType === 'youtube' ||
+    lowerUrl.includes('youtube.com') ||
+    lowerUrl.includes('youtu.be')
+  ) {
+    let videoId = '';
+    if (trimmed.includes('youtu.be/')) {
+      videoId = trimmed.split('youtu.be/')[1]?.split('?')[0]?.split('#')[0] || '';
+    } else if (trimmed.includes('youtube.com/embed/')) {
+      videoId = trimmed.split('youtube.com/embed/')[1]?.split('?')[0]?.split('#')[0] || '';
+    } else if (trimmed.includes('v=')) {
+      const match = trimmed.match(/[?&]v=([^&]+)/);
+      if (match) videoId = match[1];
+    }
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+  }
+
+  // 2. StreamHG Engine
+  if (
+    serverType === 'streamhg' ||
+    lowerUrl.includes('streamhg') ||
+    lowerUrl.includes('hglink')
+  ) {
+    let id = '';
+    const hgMatch = trimmed.match(/(?:streamhg\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9_-]+)/i);
+    if (hgMatch && hgMatch[1]) {
+      id = hgMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && id !== 'streamhg.com') {
+      return `https://streamhg.com/e/${id}`;
+    }
+  }
+
+  // 3. Doodstream Engine
+  if (
+    serverType === 'doodstream' ||
+    lowerUrl.includes('dood')
+  ) {
+    let id = '';
+    const doodMatch = trimmed.match(/(?:dood\.(?:so|to|watch|wf|la)|doodstream\.com)\/(?:v|e|d)\/([a-zA-Z0-9_-]+)/i);
+    if (doodMatch && doodMatch[1]) {
+      id = doodMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id) {
+      return `https://dood.so/e/${id}`;
+    }
+  }
+
+  // 4. Streamtape Engine
+  if (
+    serverType === 'streamtape' ||
+    lowerUrl.includes('streamtape')
+  ) {
+    let id = '';
+    const stMatch = trimmed.match(/streamtape\.com\/(?:v|e)\/([a-zA-Z0-9_-]+)/i);
+    if (stMatch && stMatch[1]) {
+      id = stMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id) {
+      return `https://streamtape.com/e/${id}`;
+    }
+  }
+
+  // 5. Facebook Video Player
+  if (
+    serverType === 'facebook' ||
+    lowerUrl.includes('facebook.com') ||
+    lowerUrl.includes('fb.watch')
+  ) {
+    if (trimmed.includes('facebook.com/plugins/video.php')) {
+      return trimmed;
+    }
+    return `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(trimmed)}&show_text=false&width=560`;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Standard Iframe Props Helper to ensure monetization sync across StreamHG, Doodstream, etc.
+ */
+export const MONETIZATION_IFRAME_PROPS = {
+  allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; cross-origin-isolated',
+  allowFullScreen: true,
+  frameBorder: '0',
+  referrerPolicy: 'origin-when-cross-origin' as const,
+};
