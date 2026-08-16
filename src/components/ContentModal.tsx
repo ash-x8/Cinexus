@@ -97,7 +97,7 @@ export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => 
     },
     {
       q: 'What video players are supported for online watching?',
-      a: 'We provide 5 multi-server backup players including StreamHG, Doodstream, Streamtape, Facebook Free Data Video, and YouTube Trailers.'
+      a: 'We provide 5 multi-server backup players including StreamHG, EarnVids, FileMoon, Facebook Free Data Video, and YouTube Trailers.'
     },
     {
       q: 'How can I request a new movie or TV series?',

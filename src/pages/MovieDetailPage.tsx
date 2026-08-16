@@ -267,26 +267,41 @@ export const MovieDetailPage: React.FC = () => {
               In-Site Multi-Server Player Engine (නරඹන්න)
             </h2>
             <p className="text-xs text-[#9E9EA0] mt-0.5">
-              100% In-Site Playback • StreamHG, Doodstream, Streamtape, Facebook Data & YouTube.
+              100% In-Site Playback • StreamHG, EarnVids, FileMoon, Facebook Data & YouTube.
             </p>
           </div>
 
           {/* Server Switcher Tabs */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
-            {movie.servers?.map((server, index) => (
-              <button
-                key={server.id}
-                onClick={() => handlePlayActiveServer(server.id)}
-                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                  activeServer === server.id
-                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
-                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
-                }`}
-              >
-                <Server className="w-3.5 h-3.5" />
-                {server.name || `Server ${index + 1}`}
-              </button>
-            ))}
+            {movie.servers?.map((server, index) => {
+              let displayName = server.name;
+              if (server.id === 's1' || server.serverType === 'streamhg' || index === 0) {
+                displayName = 'Server 1: StreamHG';
+              } else if (server.id === 's2' || server.serverType === 'earnvids' || index === 1) {
+                displayName = 'Server 2: EarnVids';
+              } else if (server.id === 's3' || server.serverType === 'filemoon' || index === 2) {
+                displayName = 'Server 3: FileMoon';
+              } else if (server.id === 's4' || server.serverType === 'facebook' || index === 3) {
+                displayName = server.name?.includes('Facebook') ? server.name : 'Server 4: Facebook';
+              } else if (server.id === 's5' || server.serverType === 'youtube' || index === 4) {
+                displayName = server.name?.includes('YouTube') ? server.name : 'Server 5: YouTube Trailer';
+              }
+
+              return (
+                <button
+                  key={server.id}
+                  onClick={() => handlePlayActiveServer(server.id)}
+                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                    activeServer === server.id
+                      ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                      : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                  }`}
+                >
+                  <Server className="w-3.5 h-3.5" />
+                  {displayName}
+                </button>
+              );
+            })}
           </div>
         </div>
 
