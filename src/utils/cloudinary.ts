@@ -9,13 +9,13 @@ export const CLOUDINARY_API_KEY =
   '428348967296846';
 
 /**
- * Uploads an image file to Cloudinary CDN and returns the secure public image URL.
- * Falls back to unsigned upload preset or signed REST API call if necessary.
+ * Uploads an image file to Cloudinary CDN using unsigned mode preset `cinexus_preset`.
+ * Returns the secure public CDN image URL.
  */
 export async function uploadToCloudinary(file: File | Blob): Promise<string> {
   const formData = new FormData();
   formData.append('file', file);
-  formData.append('upload_preset', 'ml_default');
+  formData.append('upload_preset', 'cinexus_preset');
 
   const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
 
@@ -26,10 +26,10 @@ export async function uploadToCloudinary(file: File | Blob): Promise<string> {
     });
 
     if (!res.ok) {
-      // Retry with unsigned fallback preset
+      // Fallback preset try if cinexus_preset is pending setup
       const retryData = new FormData();
       retryData.append('file', file);
-      retryData.append('upload_preset', 'unsigned');
+      retryData.append('upload_preset', 'ml_default');
 
       res = await fetch(endpoint, {
         method: 'POST',

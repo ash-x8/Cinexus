@@ -7,6 +7,7 @@ import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
 import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
 import { executeDownload } from '../utils/downloadEngine';
+import type { CastMember } from '../types';
 import {
   Play,
   Download,
@@ -26,7 +27,8 @@ import {
   HardDrive,
   Volume2,
   Layers,
-  ExternalLink
+  ExternalLink,
+  User
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
@@ -112,6 +114,14 @@ export const MovieDetailPage: React.FC = () => {
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
   const categoryType = movie.contentType || (movie.hasSinhalaSub ? 'Sinhala Sub' : 'Without Sub / English');
   const subtitleLink = movie.subtitleSourceUrl || 'https://cinesubz.co';
+
+  // Normalize cast array
+  const formattedCast: CastMember[] = (movie.cast || []).map(item => {
+    if (typeof item === 'string') {
+      return { name: item, character: 'Lead Cast', profileUrl: '' };
+    }
+    return item;
+  });
 
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
@@ -408,10 +418,10 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* PLOT SUMMARY CARD & CAST INFO */}
+      {/* PLOT SUMMARY CARD & CAST INFO WITH PROFILE PHOTOS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Formatted Plot Summary with line-height: 1.8 */}
+        {/* Formatted Plot Summary & Cast Cards */}
         <div className="lg:col-span-2 space-y-8">
 
           {/* Plot Summary Card */}
@@ -450,21 +460,25 @@ export const MovieDetailPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Cast & Crew Section */}
+          {/* Cast & Crew Section with Profile Photos */}
           <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-4">
             <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-              <Users className="w-4 h-4 text-purple-400" /> Cast & Crew (රංගන ශිල්පීන්)
+              <Users className="w-4 h-4 text-purple-400" /> Cast & Roles (රංගන ශිල්පීන්)
             </h3>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {movie.cast?.map((actor, idx) => (
-                <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-purple-600/30 text-purple-300 font-extrabold flex items-center justify-center text-xs shrink-0 border border-purple-500/20">
-                    {actor[0]}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              {formattedCast.map((actor, idx) => (
+                <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/40 transition-all">
+                  <div className="w-11 h-11 rounded-xl overflow-hidden bg-purple-600/20 text-purple-300 font-black flex items-center justify-center text-sm shrink-0 border border-purple-500/20">
+                    {actor.profileUrl ? (
+                      <img src={actor.profileUrl} alt={actor.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
+                    ) : (
+                      <User className="w-5 h-5 text-purple-400" />
+                    )}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{actor}</p>
-                    <p className="text-[10px] text-[#9E9EA0]">Lead Cast</p>
+                    <p className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">{actor.name}</p>
+                    <p className="text-[10px] text-rose-300 truncate">{actor.character || 'Lead Cast'}</p>
                   </div>
                 </div>
               ))}

@@ -6,7 +6,13 @@ export const TMDB_API_KEY =
 export const TMDB_READ_ACCESS_TOKEN =
   import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN ||
   import.meta.env.TMDB_READ_ACCESS_TOKEN ||
-  'EyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3NjJiMTIyNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
+  'EyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3JiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
+
+export interface TMCastMember {
+  name: string;
+  character?: string;
+  profileUrl?: string;
+}
 
 export interface TMDBMovieDetail {
   title: string;
@@ -19,7 +25,7 @@ export interface TMDBMovieDetail {
   englishPlot: string;
   sinhalaPlot: string;
   director: string;
-  cast: string[];
+  cast: TMCastMember[];
   crew: string[];
   duration: string;
   language: string;
@@ -82,12 +88,16 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       : [];
     const directorName = directors.length > 0 ? directors.join(', ') : 'Unknown Director';
 
-    // Extract Lead Cast (Top 6)
-    const castNames = credits.cast
-      ? credits.cast.slice(0, 6).map((c: any) => c.name)
+    // Extract Lead Cast (Top 10 with name, character, profileUrl)
+    const castMembers: TMCastMember[] = credits.cast
+      ? credits.cast.slice(0, 10).map((c: any) => ({
+          name: c.name,
+          character: c.character || 'Lead Cast',
+          profileUrl: c.profile_path ? `https://image.tmdb.org/t/p/w500${c.profile_path}` : ''
+        }))
       : [];
 
-    // Extract Crew (Top 4 producers/writers)
+    // Extract Crew
     const crewNames = credits.crew
       ? credits.crew
           .filter((c: any) => ['Producer', 'Writer', 'Executive Producer', 'Screenplay'].includes(c.job))
@@ -140,7 +150,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       englishPlot: detail.overview || 'No plot summary available.',
       sinhalaPlot: `${detail.title || trimmed} චිත්‍රපටය සඳහා සිංහල උපසිරැසි සමඟින් උසස්ම HD ගුණාත්මක භාවයෙන් CINEXUS වෙතින් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
       director: directorName,
-      cast: castNames.length > 0 ? castNames : ['Lead Cast'],
+      cast: castMembers,
       crew: crewNames,
       duration: durationStr,
       language: languageStr
