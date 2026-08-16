@@ -4,6 +4,8 @@ import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
+import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
+import { executeDownload } from '../utils/downloadEngine';
 import {
   Play,
   Download,
@@ -23,8 +25,8 @@ import {
   Users,
   HardDrive,
   Volume2,
-  Tag,
-  Layers
+  Layers,
+  ExternalLink
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
@@ -69,23 +71,25 @@ export const MovieDetailPage: React.FC = () => {
     );
   }
 
-  // Current selected streaming player server (Strip autoplay for strict manual video playback)
+  // Active server player selection with dynamic URL Sanitizer
   const rawServer = movie.servers?.find(s => s.id === activeServer) || movie.servers?.[0];
-  const currentServerUrl = rawServer?.url ? rawServer.url.replace(/[?&]autoplay=1/, '') : '';
+  const sanitizedPlayerUrl = rawServer ? sanitizeEmbedUrl(rawServer.url, rawServer.serverType) : '';
 
   const relatedMovies = movies.filter(m => m.id !== movie.id && m.genres.some(g => movie.genres.includes(g))).slice(0, 6);
 
-  const handleDownloadClick = (quality: string, url: string, audioSubAttr?: string) => {
-    incrementDownloads(movie.id);
+  const handleDownloadTrigger = (quality: string, url: string, audioSubAttr?: string) => {
+    const result = executeDownload({
+      url,
+      title: movie.title,
+      quality,
+      onMetricsIncrement: () => incrementDownloads(movie.id)
+    });
+
     const tagLabel = audioSubAttr ? ` (${audioSubAttr})` : '';
-    setDownloadSuccessMessage(`Starting download trigger for ${movie.title} - ${quality}${tagLabel}...`);
+    setDownloadSuccessMessage(`${result.message}${tagLabel}`);
     setTimeout(() => {
       setDownloadSuccessMessage('');
-    }, 4000);
-
-    if (url && url.startsWith('http')) {
-      window.open(url, '_blank');
-    }
+    }, 4500);
   };
 
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
@@ -105,7 +109,7 @@ export const MovieDetailPage: React.FC = () => {
         </Link>
       </div>
 
-      {/* Cinesub Style Hero Banner */}
+      {/* Hero Banner */}
       <div className="relative rounded-3xl overflow-hidden bg-[#121620] border border-white/5 shadow-2xl">
         <div className="relative min-h-[320px] md:min-h-[400px] w-full flex items-end">
           <img
@@ -182,7 +186,7 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* CINESUB STRUCTURED META GRID */}
+      {/* Meta Grid */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-5 sm:p-6 rounded-3xl border border-white/5 shadow-2xl">
         <h3 className="text-xs font-black text-[#FF0E25] tracking-wider uppercase mb-4 flex items-center gap-1.5">
           <Layers className="w-4 h-4" /> Cinesub Meta Grid Overview
@@ -221,15 +225,17 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* ONLINE STREAMING PLAYER (STRICT MANUAL PLAYBACK - NO AUTOPLAY) */}
+      {/* ONLINE STREAMING PLAYER (100% IN-SITE STREAMING ENGINE WITH ZERO EXTERNAL REDIRECTION) */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
           <div>
             <h2 className="text-lg font-black text-white flex items-center gap-2">
               <Play className="w-5 h-5 text-[#FF0E25] fill-[#FF0E25]" />
-              Online Player & Mirror Servers (නරඹන්න)
+              In-Site Multi-Server Player Engine (නරඹන්න)
             </h2>
-            <p className="text-xs text-[#9E9EA0] mt-0.5">Strict manual start players (StreamHG, Doodstream, Streamtape, Facebook Embed, YouTube Trailer).</p>
+            <p className="text-xs text-[#9E9EA0] mt-0.5">
+              100% In-Site Playback • StreamHG, Doodstream, Streamtape, Facebook Data & YouTube.
+            </p>
           </div>
 
           {/* Server Switcher Tabs */}
@@ -251,33 +257,34 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Video Player Frame with zero autoplay */}
+        {/* Dynamic Video Player Frame with Monetization Sync & Zero External Redirection */}
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
-          {currentServerUrl ? (
+          {sanitizedPlayerUrl ? (
             <iframe
-              src={currentServerUrl}
-              title={`${movie.title} Streaming Player`}
+              src={sanitizedPlayerUrl}
+              title={`${movie.title} CINEXUS Player`}
               className="w-full h-full border-0"
-              allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
+              {...MONETIZATION_IFRAME_PROPS}
             />
           ) : (
             <div className="flex items-center justify-center h-full text-[#9E9EA0] text-xs font-bold">
-              No video server configured.
+              Video stream for selected server is currently unavailable.
             </div>
           )}
         </div>
       </section>
 
-      {/* CATEGORIZED DOWNLOAD LINKS */}
+      {/* DIRECT BROWSER DOWNLOAD ENGINE & CATEGORIZED DOWNLOAD LINKS */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
         <div className="flex items-center justify-between border-b border-white/5 pb-4">
           <div>
             <h2 className="text-lg font-black text-white flex items-center gap-2">
               <Download className="w-5 h-5 text-[#FF0E25]" />
-              Categorized Download Links & Telegram (බාගත කරගන්න)
+              Direct Browser Download Engine & Telegram (බාගත කරගන්න)
             </h2>
-            <p className="text-xs text-[#9E9EA0] mt-0.5">High-speed tagged downloads with explicit audio/sub attributes</p>
+            <p className="text-xs text-[#9E9EA0] mt-0.5">
+              Instant HTML5 dynamic downloads for Telegram/MP4/MKV files without blank tabs.
+            </p>
           </div>
         </div>
 
@@ -327,7 +334,7 @@ export const MovieDetailPage: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => handleDownloadClick(link.quality, link.url, attrTag)}
+                  onClick={() => handleDownloadTrigger(link.quality, link.url, attrTag)}
                   className={`w-full py-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all ${
                     isTelegram
                       ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30'
@@ -337,12 +344,12 @@ export const MovieDetailPage: React.FC = () => {
                   {isTelegram ? (
                     <>
                       <Send className="w-4 h-4 text-white" />
-                      Telegram Link
+                      Telegram Direct File
                     </>
                   ) : (
                     <>
                       <Download className="w-4 h-4 text-white" />
-                      Download {link.quality} - {attrTag}
+                      Download {link.quality}
                     </>
                   )}
                 </button>
@@ -352,7 +359,7 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
-      {/* PLOT SUMMARY CARD (line-height: 1.8 typography) & CAST INFO */}
+      {/* PLOT SUMMARY CARD & CAST INFO */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
         {/* Left Column: Formatted Plot Summary & Cast */}

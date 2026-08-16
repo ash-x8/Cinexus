@@ -39,9 +39,9 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2023-01-15'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
@@ -88,9 +88,9 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-03-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
@@ -137,8 +137,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2023-11-20'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://streamhg.com/e/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/mqqft2x_Aa4', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/mqqft2x_Aa4', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', size: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Tamil [Sinhala Sub]' },
@@ -181,8 +184,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2022-07-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG All Episodes)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1 (StreamHG All Episodes)', url: 'https://streamhg.com/e/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/yQEondeGvKo', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/yQEondeGvKo', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '8.5 GB (Zip)', size: '8.5 GB (Zip)', url: '#download-1080p', serverType: 'Direct Drive', format: 'Full Season Zip', audioSubAttribute: 'English [Sinhala Sub]' },
@@ -227,8 +233,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2021-08-12'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG 1080p)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1 (StreamHG 1080p)', url: 'https://streamhg.com/e/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/zSWdZVtXT7E', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/zSWdZVtXT7E', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.4 GB', size: '2.4 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'English [Sinhala Sub]' },
@@ -272,8 +281,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-05-12'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Anime HD)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (YouTube Trailer)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1 (StreamHG Anime HD)', url: 'https://streamhg.com/e/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/a9tq0aS5Zu8', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/a9tq0aS5Zu8', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.5 GB (Batch)', size: '3.5 GB (Batch)', url: '#download-1080p', serverType: 'Direct Drive', format: 'MKV', audioSubAttribute: 'Japanese [Sinhala Sub]' },
@@ -316,8 +328,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-03-25'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' }
+      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '2.2 GB', size: '2.2 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Malayalam [Sinhala Sub]' },
@@ -359,8 +374,11 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-07-05'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Sinhala Dub)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '720p', serverType: 'doodstream' }
+      { id: 's1', name: 'Server 1 (StreamHG Sinhala Dub)', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
+      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
+      { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
     downloadLinks: [
       { id: 'dl1', quality: '1080p', resolution: '1920x1080', fileSize: '3.2 GB', size: '3.2 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV', audioSubAttribute: 'Sinhala Dubbed' },

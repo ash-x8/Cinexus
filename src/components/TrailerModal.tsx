@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Film } from 'lucide-react';
+import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
 
 interface TrailerModalProps {
   isOpen: boolean;
@@ -16,14 +17,8 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
 }) => {
   if (!isOpen) return null;
 
-  // Format trailer URL for embed if youtube link - remove autoplay to ensure strict manual video playback
-  let embedUrl = trailerUrl;
-  if (trailerUrl.includes('watch?v=')) {
-    embedUrl = trailerUrl.replace('watch?v=', 'embed/');
-  }
-
-  // Strip autoplay params if any
-  embedUrl = embedUrl.replace(/[?&]autoplay=1/, '');
+  // Sanitize trailer URL for standard YouTube/Player embed
+  const sanitizedUrl = sanitizeEmbedUrl(trailerUrl, 'youtube');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
@@ -34,7 +29,7 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
           <div className="flex items-center gap-2">
             <Film className="w-5 h-5 text-[#FF0E25]" />
             <h3 className="text-sm font-bold text-white truncate max-w-md">
-              {title} - Official Trailer
+              {title} - Official Player / Trailer
             </h3>
           </div>
           <button
@@ -45,15 +40,20 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
           </button>
         </div>
 
-        {/* Video Frame: Manual playback enabled (zero autoplay) */}
+        {/* Dynamic Video Frame: 100% In-Site Streaming with zero external redirection */}
         <div className="relative aspect-video w-full bg-black">
-          <iframe
-            src={embedUrl}
-            title={`${title} Trailer`}
-            className="w-full h-full border-0"
-            allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          {sanitizedUrl ? (
+            <iframe
+              src={sanitizedUrl}
+              title={`${title} In-Site Player`}
+              className="w-full h-full border-0"
+              {...MONETIZATION_IFRAME_PROPS}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-400 text-xs font-bold">
+              Video player stream unavailable.
+            </div>
+          )}
         </div>
 
       </div>
