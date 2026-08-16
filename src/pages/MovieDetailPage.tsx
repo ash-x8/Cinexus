@@ -51,7 +51,22 @@ export const MovieDetailPage: React.FC = () => {
   useEffect(() => {
     if (movie) {
       incrementViews(movie.id);
-      if (movie.servers && movie.servers.length > 0) {
+
+      // Determine default server if activeServer is empty
+      const s1Url = movie.streamServer1Url || movie.servers?.find(s => s.id === 's1' || s.serverType === 'streamhg')?.url;
+      const s2Url = movie.streamServer2Url || movie.servers?.find(s => s.id === 's2' || s.serverType === 'earnvids')?.url;
+      const s3Url = movie.streamServer3Url || movie.servers?.find(s => s.id === 's3' || s.serverType === 'filemoon')?.url;
+      const trailer = movie.trailerEmbedUrl || movie.trailerUrl;
+
+      if (s1Url) {
+        setActiveServer('s1');
+      } else if (s2Url) {
+        setActiveServer('s2');
+      } else if (s3Url) {
+        setActiveServer('s3');
+      } else if (trailer) {
+        setActiveServer('trailer');
+      } else if (movie.servers && movie.servers.length > 0) {
         setActiveServer(movie.servers[0].id);
       }
     }
@@ -74,22 +89,56 @@ export const MovieDetailPage: React.FC = () => {
     );
   }
 
+  // Determine available server URLs directly
+  const s1Url = (movie.streamServer1Url || movie.servers?.find(s => s.id === 's1' || s.serverType === 'streamhg')?.url || '').trim();
+  const s2Url = (movie.streamServer2Url || movie.servers?.find(s => s.id === 's2' || s.serverType === 'earnvids')?.url || '').trim();
+  const s3Url = (movie.streamServer3Url || movie.servers?.find(s => s.id === 's3' || s.serverType === 'filemoon')?.url || '').trim();
+  const trailerUrl = (movie.trailerEmbedUrl || movie.trailerUrl || '').trim();
+
   // Active server player selection with dynamic URL Sanitizer
-  const rawServer = movie.servers?.find(s => s.id === activeServer) || movie.servers?.[0];
-  const sanitizedPlayerUrl = rawServer ? sanitizeEmbedUrl(rawServer.url, rawServer.serverType) : '';
+  let activeUrl = '';
+  let activeServerName = '';
+  let activeServerType = 'generic';
+
+  if (activeServer === 's1' && s1Url) {
+    activeUrl = s1Url;
+    activeServerName = 'Server 1: StreamHG';
+    activeServerType = 'streamhg';
+  } else if (activeServer === 's2' && s2Url) {
+    activeUrl = s2Url;
+    activeServerName = 'Server 2: EarnVids';
+    activeServerType = 'earnvids';
+  } else if (activeServer === 's3' && s3Url) {
+    activeUrl = s3Url;
+    activeServerName = 'Server 3: FileMoon';
+    activeServerType = 'filemoon';
+  } else if (activeServer === 'trailer' && trailerUrl) {
+    activeUrl = trailerUrl;
+    activeServerName = 'Trailer';
+    activeServerType = 'youtube';
+  } else {
+    // Fallback to searching servers list
+    const foundServer = movie.servers?.find(s => s.id === activeServer && s.url && s.url.trim() !== '') || movie.servers?.find(s => s.url && s.url.trim() !== '');
+    if (foundServer) {
+      activeUrl = foundServer.url;
+      activeServerName = foundServer.name;
+      activeServerType = foundServer.serverType || 'generic';
+    }
+  }
+
+  const sanitizedPlayerUrl = activeUrl ? sanitizeEmbedUrl(activeUrl, activeServerType) : '';
   const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
   // Sync current video stream to global PlayerContext for background floating mini-player persistence
-  const handlePlayActiveServer = (serverId: string) => {
+  const handlePlayActiveServer = (serverId: string, url: string, name: string) => {
     setActiveServer(serverId);
-    const selected = movie.servers?.find(s => s.id === serverId);
-    if (selected) {
+    if (url) {
       playStream({
         movieId: movie.id,
         title: movie.title,
         posterUrl: movie.posterUrl,
-        streamUrl: selected.url,
-        serverName: selected.name || 'CINEXUS Stream',
+        streamUrl: url,
+        serverName: name,
       });
     }
   };
@@ -113,7 +162,7 @@ export const MovieDetailPage: React.FC = () => {
 
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
   const categoryType = movie.contentType || (movie.hasSinhalaSub ? 'Sinhala Sub' : 'Without Sub / English');
-  const subtitleLink = movie.subtitleSourceUrl || 'https://cinesubz.co';
+  const subtitleLink = movie.subtitleSourceUrl ? movie.subtitleSourceUrl.trim() : '';
 
   // Normalize cast array
   const formattedCast: CastMember[] = (movie.cast || []).map(item => {
@@ -121,6 +170,7 @@ export const MovieDetailPage: React.FC = () => {
       return { name: item, character: 'Lead Cast', profileUrl: '', image: '' };
     }
     return {
+      tmdb_id: item.tmdb_id,
       name: item.name,
       character: item.character || 'Lead Cast',
       profileUrl: item.profileUrl || item.image || '',
@@ -271,42 +321,63 @@ export const MovieDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Server Switcher Tabs */}
+          {/* Server Switcher Tabs - Strict Conditional Rendering */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
-            {movie.servers?.map((server, index) => {
-              let displayName = server.name;
-              const serverTypeLower = (server.serverType || '').toLowerCase();
-              const serverUrlLower = (server.url || '').toLowerCase();
+            {s1Url && (
+              <button
+                onClick={() => handlePlayActiveServer('s1', s1Url, 'Server 1: StreamHG')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's1'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 1: StreamHG
+              </button>
+            )}
 
-              if (server.id === 's1' || serverTypeLower === 'streamhg' || serverUrlLower.includes('streamhg') || serverUrlLower.includes('hgcloud') || index === 0) {
-                displayName = server.name || 'Server 1: StreamHG';
-              } else if (server.id === 's2' || serverTypeLower === 'earnvids' || serverUrlLower.includes('earnvids') || index === 1) {
-                displayName = server.name || 'Server 2: EarnVids';
-              } else if (server.id === 's3' || serverTypeLower === 'filemoon' || serverUrlLower.includes('filemoon') || index === 2) {
-                displayName = server.name || 'Server 3: FileMoon';
-              } else if (serverTypeLower === 'streamtape' || serverUrlLower.includes('streamtape') || serverUrlLower.includes('streamta.pe')) {
-                displayName = server.name || `Server ${index + 1}: Streamtape`;
-              } else if (server.id === 's4' || serverTypeLower === 'facebook' || serverUrlLower.includes('facebook') || index === 3) {
-                displayName = server.name?.includes('Facebook') ? server.name : 'Server 4: Facebook';
-              } else if (server.id === 's5' || serverTypeLower === 'youtube' || serverUrlLower.includes('youtube') || index === 4) {
-                displayName = server.name?.includes('YouTube') ? server.name : 'Server 5: YouTube Trailer';
-              }
+            {s2Url && (
+              <button
+                onClick={() => handlePlayActiveServer('s2', s2Url, 'Server 2: EarnVids')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's2'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 2: EarnVids
+              </button>
+            )}
 
-              return (
-                <button
-                  key={server.id}
-                  onClick={() => handlePlayActiveServer(server.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                    activeServer === server.id
-                      ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
-                      : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
-                  }`}
-                >
-                  <Server className="w-3.5 h-3.5" />
-                  {displayName}
-                </button>
-              );
-            })}
+            {s3Url && (
+              <button
+                onClick={() => handlePlayActiveServer('s3', s3Url, 'Server 3: FileMoon')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's3'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 3: FileMoon
+              </button>
+            )}
+
+            {trailerUrl && (
+              <button
+                onClick={() => handlePlayActiveServer('trailer', trailerUrl, 'Trailer')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 'trailer'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Trailer
+              </button>
+            )}
           </div>
         </div>
 
@@ -359,17 +430,19 @@ export const MovieDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Clean Subtitle Download Source Button */}
-          <a
-            href={subtitleLink}
-            target="_blank"
-            rel="noreferrer"
-            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
-          >
-            <Subtitles className="w-4 h-4 text-cyan-300" />
-            [🌐 Download Subtitle File]
-            <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
-          </a>
+          {/* Clean Subtitle Download Source Button - Strict Conditional Rendering */}
+          {subtitleLink ? (
+            <a
+              href={subtitleLink}
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
+            >
+              <Subtitles className="w-4 h-4 text-cyan-300" />
+              [🌐 Download Subtitle File]
+              <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
+            </a>
+          ) : null}
         </div>
 
         {downloadSuccessMessage && (
@@ -492,22 +565,35 @@ export const MovieDetailPage: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {formattedCast.map((actor, idx) => (
-                <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/40 transition-all">
-                  <img
-                    src={actor.image || actor.profileUrl || '/fallback-avatar.png'}
-                    alt={actor.name}
-                    className="w-12 h-12 rounded-full object-cover shrink-0"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
-                    }}
-                  />
-                  <div className="min-w-0 flex flex-col">
-                    <span className="font-semibold text-white text-xs truncate">{actor.name}</span>
-                    <span className="text-xs text-gray-400 truncate">as {actor.character || 'Cast'}</span>
-                  </div>
-                </div>
-              ))}
+              {formattedCast.map((actor, idx) => {
+                const actorTmdbUrl = actor.tmdb_id
+                  ? `https://www.themoviedb.org/person/${actor.tmdb_id}`
+                  : `https://www.themoviedb.org/search/person?query=${encodeURIComponent(actor.name)}`;
+
+                return (
+                  <a
+                    key={idx}
+                    href={actorTmdbUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/60 hover:bg-white/[0.03] transition-all cursor-pointer"
+                    title={`View ${actor.name} on TMDB`}
+                  >
+                    <img
+                      src={actor.image || actor.profileUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
+                      alt={actor.name}
+                      className="w-12 h-12 rounded-full object-cover shrink-0 border border-white/10 group-hover:scale-105 transition-transform"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+                      }}
+                    />
+                    <div className="min-w-0 flex flex-col">
+                      <span className="font-semibold text-white text-xs truncate group-hover:text-purple-300 transition-colors">{actor.name}</span>
+                      <span className="text-[11px] text-gray-400 truncate">as {actor.character || 'Cast'}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
 
             <div className="pt-2 text-xs text-gray-300">
@@ -518,28 +604,39 @@ export const MovieDetailPage: React.FC = () => {
 
         </div>
 
-        {/* Right Column: Subtitle Source Link Card */}
+        {/* Right Column: Subtitle Source Link Card & Community */}
         <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-              <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
-            </h3>
+          {subtitleLink ? (
+            <div>
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
+                <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
+              </h3>
 
-            <div className="mt-4 p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-3">
-              <p className="text-xs text-[#9E9EA0] leading-[1.8]">
-                Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
-              </p>
-              <a
-                href={subtitleLink}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
-              >
-                <Globe className="w-4 h-4 text-cyan-300" />
-                [🌐 Download Subtitle File]
-              </a>
+              <div className="mt-4 p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-3">
+                <p className="text-xs text-[#9E9EA0] leading-[1.8]">
+                  Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
+                </p>
+                <a
+                  href={subtitleLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+                >
+                  <Globe className="w-4 h-4 text-cyan-300" />
+                  [🌐 Download Subtitle File]
+                </a>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
+                <Globe className="w-4 h-4 text-[#FF0E25]" /> CINEXUS Cinema Hub
+              </h3>
+              <p className="mt-4 text-xs text-[#9E9EA0] leading-[1.8]">
+                Enjoy high-speed streaming and direct multi-quality downloads on CINEXUS.
+              </p>
+            </div>
+          )}
 
           <a
             href="https://t.me/cinexus_official"

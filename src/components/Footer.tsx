@@ -69,9 +69,9 @@ export const Footer: React.FC = () => {
               {siteSettings.footerText || "CINEXUS (සිනෙක්ස්) • Sri Lanka's premier Sinhala subtitled streaming and multi-quality direct download portal."}
             </p>
 
-            {/* Rounded Glass Social Icons synced dynamically from Admin Panel */}
+            {/* Rounded Glass Social Icons synced dynamically from Admin Panel - Strict Conditional Rendering */}
             <div className="flex items-center gap-2 pt-2 flex-wrap">
-              {siteSettings.facebookUrl && (
+              {siteSettings.facebookUrl && siteSettings.facebookUrl.trim() !== '' && (
                 <a
                   href={siteSettings.facebookUrl}
                   target="_blank"
@@ -83,7 +83,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.telegramChannelUrl && (
+              {siteSettings.telegramChannelUrl && siteSettings.telegramChannelUrl.trim() !== '' && (
                 <a
                   href={siteSettings.telegramChannelUrl}
                   target="_blank"
@@ -95,7 +95,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.whatsappGroupUrl && (
+              {siteSettings.whatsappGroupUrl && siteSettings.whatsappGroupUrl.trim() !== '' && (
                 <a
                   href={siteSettings.whatsappGroupUrl}
                   target="_blank"
@@ -107,7 +107,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.instagramUrl && (
+              {siteSettings.instagramUrl && siteSettings.instagramUrl.trim() !== '' && (
                 <a
                   href={siteSettings.instagramUrl}
                   target="_blank"
@@ -119,7 +119,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.youtubeUrl && (
+              {siteSettings.youtubeUrl && siteSettings.youtubeUrl.trim() !== '' && (
                 <a
                   href={siteSettings.youtubeUrl}
                   target="_blank"
@@ -131,7 +131,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.contactEmail && (
+              {siteSettings.contactEmail && siteSettings.contactEmail.trim() !== '' && (
                 <Link
                   to="/contact"
                   className="w-9 h-9 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#FF0E25]/30 hover:border-[#FF0E25]/50 transition-all"

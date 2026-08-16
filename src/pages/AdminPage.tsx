@@ -190,8 +190,9 @@ export const AdminPage: React.FC = () => {
         }));
 
         if (data.cast && data.cast.length > 0) {
-          // Map cast list ensuring name, character, image, and profileUrl are populated
+          // Map cast list ensuring tmdb_id, name, character, image, and profileUrl are populated
           const mappedCastList: CastMember[] = data.cast.map(c => ({
+            tmdb_id: c.tmdb_id,
             name: c.name,
             character: c.character || 'Cast Role',
             image: c.image || c.profileUrl || '',
@@ -295,11 +296,11 @@ export const AdminPage: React.FC = () => {
     setEditingMovieId(movie.id);
     setFormData(movie);
 
-    setServer1Url(movie.servers?.[0]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
-    setServer2Url(movie.servers?.[1]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
-    setServer3Url(movie.servers?.[2]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer1Url(movie.streamServer1Url || movie.servers?.[0]?.url || '');
+    setServer2Url(movie.streamServer2Url || movie.servers?.[1]?.url || '');
+    setServer3Url(movie.streamServer3Url || movie.servers?.[2]?.url || '');
     setServer4Url(movie.servers?.[3]?.url || '');
-    setServer5Url(movie.servers?.[4]?.url || movie.trailerUrl || '');
+    setServer5Url(movie.trailerEmbedUrl || movie.servers?.[4]?.url || movie.trailerUrl || '');
 
     setDownloadLinksList(movie.downloadLinks && movie.downloadLinks.length > 0 ? movie.downloadLinks : [
       { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264', audioSubAttribute: `${movie.language || 'English'} [${movie.contentType || 'Sinhala Sub'}]` },
@@ -399,17 +400,18 @@ export const AdminPage: React.FC = () => {
     }
 
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1: StreamHG', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2: EarnVids', url: server2Url || 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
-      { id: 's3', name: 'Server 3: FileMoon', url: server3Url || 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
-      { id: 's4', name: 'Server 4: Facebook', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
-      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
-    ];
+      { id: 's1', name: 'Server 1: StreamHG', url: server1Url, quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: server2Url, quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: server3Url, quality: '720p', serverType: 'filemoon' },
+      { id: 's4', name: 'Server 4: Facebook', url: server4Url, quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || '', quality: '1080p', serverType: 'youtube' }
+    ].filter(s => s.url && s.url.trim() !== '');
 
-    // Ensure database schema stores cast as [{ name: string, character: string, image: string }]
+    // Ensure database schema stores cast as [{ tmdb_id, name: string, character: string, image: string }]
     const formattedCastArray = castList
       .filter(c => c.name.trim() !== '')
       .map(c => ({
+        tmdb_id: c.tmdb_id,
         name: c.name,
         character: c.character || 'Role Name',
         image: c.image || c.profileUrl || '',
@@ -418,6 +420,11 @@ export const AdminPage: React.FC = () => {
 
     const movieToSave = {
       ...formData,
+      streamServer1Url: server1Url.trim(),
+      streamServer2Url: server2Url.trim(),
+      streamServer3Url: server3Url.trim(),
+      trailerEmbedUrl: (server5Url || formData.trailerUrl || '').trim(),
+      trailerUrl: (server5Url || formData.trailerUrl || '').trim(),
       cast: formattedCastArray,
       hasSinhalaSub: formData.contentType === 'Sinhala Sub',
       language: formData.language || formData.languages?.[0] || 'English',

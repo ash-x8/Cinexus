@@ -9,6 +9,7 @@ export const TMDB_READ_ACCESS_TOKEN =
   'EyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3JiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
 
 export interface TMCastMember {
+  tmdb_id?: number | string;
   name: string;
   character: string;
   profileUrl?: string;
@@ -121,6 +122,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
             : null;
 
           return {
+            tmdb_id: c.id,
             name: actorName,
             character: characterName,
             image,
