@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useMovies } from '../context/MovieContext';
 import type { Movie, SiteSettings, ServerPlayer, DownloadLink } from '../types';
+import { fetchTMDBMetadata } from '../utils/tmdb';
+import { uploadToCloudinary } from '../utils/cloudinary';
 import {
   Film,
   Plus,
@@ -35,7 +37,8 @@ import {
   MessageSquare,
   Send,
   Layers,
-  Volume2
+  Upload,
+  Link as LinkIcon
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -54,7 +57,6 @@ export const AdminPage: React.FC = () => {
     addCategory,
     deleteCategory,
     resetToDefaultData,
-    fetchOMDbMetadata
   } = useMovies();
 
   // Auth passcode / email state
@@ -69,8 +71,12 @@ export const AdminPage: React.FC = () => {
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
 
-  // OMDb fetch loading indicator
-  const [isOmdbLoading, setIsOmdbLoading] = useState(false);
+  // TMDB fetch loading state
+  const [isTmdbLoading, setIsTmdbLoading] = useState(false);
+
+  // Cloudinary Upload Loading state
+  const [isPosterUploading, setIsPosterUploading] = useState(false);
+  const [isBackdropUploading, setIsBackdropUploading] = useState(false);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,11 +133,7 @@ export const AdminPage: React.FC = () => {
     cast: ['Lead Actor 1', 'Lead Actor 2'],
     director: 'Director Name',
     audioLanguage: 'English (Sinhala Sub)',
-    subtitleAuthor: {
-      name: 'සිනෙක්ස් සිංහල සබ්',
-      downloadsCount: 1500,
-      releaseDate: new Date().toISOString().split('T')[0]
-    },
+    subtitleSourceUrl: 'https://cinesubz.co',
     hasSinhalaSub: true,
     isDualAudio: false,
     isTrending: true,
@@ -146,52 +148,78 @@ export const AdminPage: React.FC = () => {
   const [server4Url, setServer4Url] = useState('');
   const [server5Url, setServer5Url] = useState('');
 
-  // Download links list state for dedicated Download Server Settings manager
+  // Download links list state
   const [downloadLinksList, setDownloadLinksList] = useState<DownloadLink[]>([]);
 
   // Category Form State
   const [newCatName, setNewCatName] = useState('');
   const [newCatSinhala, setNewCatSinhala] = useState('');
 
-  // OMDb API Auto-Fetch Helper (Key: 87cd62a9)
-  const handleOMDbFetch = async () => {
+  // TMDB API Auto-Fetch Helper
+  const handleTMDBFetch = async () => {
     if (!formData.title) {
-      alert('Please enter a movie title or IMDb ID first.');
+      alert('Please enter a movie title or TMDB/IMDb ID first.');
       return;
     }
-    setIsOmdbLoading(true);
+    setIsTmdbLoading(true);
     try {
-      const data = await fetchOMDbMetadata(formData.title);
-      if (data && data.Response !== 'False') {
-        const fetchedGenres = data.Genre ? data.Genre.split(', ') : formData.genres;
-        const fetchedLanguage = data.Language ? data.Language.split(', ')[0] : (formData.language || 'English');
-        const fetchedLanguages = data.Language ? data.Language.split(', ') : [fetchedLanguage];
-
+      const data = await fetchTMDBMetadata(formData.title);
+      if (data) {
         setFormData(prev => ({
           ...prev,
-          title: data.Title || prev.title,
-          sinhalaTitle: prev.sinhalaTitle || `${data.Title} (සිංහල උපසිරැසි)`,
-          year: parseInt(data.Year) || prev.year,
-          imdbRating: parseFloat(data.imdbRating) || 8.0,
-          posterUrl: data.Poster && data.Poster !== 'N/A' ? data.Poster : prev.posterUrl,
-          backdropUrl: data.Poster && data.Poster !== 'N/A' ? data.Poster : prev.backdropUrl,
-          englishPlot: data.Plot || prev.englishPlot,
-          sinhalaPlot: prev.sinhalaPlot || `${data.Title} සඳහා සියලුම සිංහල උපසිරැසි සමඟින් උසස්ම ගුණාත්මක භාවයෙන් යුතුව සිනෙක්ස් අඩවියෙන් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
-          director: data.Director || prev.director,
-          cast: data.Actors ? data.Actors.split(', ') : prev.cast,
-          genres: fetchedGenres,
-          language: fetchedLanguage,
-          languages: fetchedLanguages,
-          duration: data.Runtime || prev.duration,
+          title: data.title || prev.title,
+          sinhalaTitle: prev.sinhalaTitle || `${data.title} (සිංහල උපසිරැසි)`,
+          year: data.releaseYear || prev.year,
+          imdbRating: data.imdbRating || prev.imdbRating,
+          posterUrl: data.posterUrl || prev.posterUrl,
+          backdropUrl: data.backdropUrl || prev.backdropUrl,
+          englishPlot: data.englishPlot || prev.englishPlot,
+          sinhalaPlot: data.sinhalaPlot || prev.sinhalaPlot,
+          director: data.director || prev.director,
+          cast: data.cast || prev.cast,
+          genres: data.genres && data.genres.length > 0 ? data.genres : prev.genres,
+          language: data.language || prev.language,
+          languages: [data.language || 'English'],
+          duration: data.duration || prev.duration,
         }));
       } else {
-        alert(`OMDb Fetch Notice: ${data.Error || 'Movie not found.'}`);
+        alert('TMDB Fetch Notice: Movie details not found. Please verify title or ID.');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to fetch from OMDb API. Please check network connection.');
+      alert('Failed to fetch from TMDB API.');
     } finally {
-      setIsOmdbLoading(false);
+      setIsTmdbLoading(false);
+    }
+  };
+
+  // Cloudinary Poster File Upload Handler
+  const handlePosterFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsPosterUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData(prev => ({ ...prev, posterUrl: url }));
+    } catch (err: any) {
+      alert(`Cloudinary Upload Error: ${err.message || 'Failed to upload image.'}`);
+    } finally {
+      setIsPosterUploading(false);
+    }
+  };
+
+  // Cloudinary Backdrop File Upload Handler
+  const handleBackdropFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsBackdropUploading(true);
+    try {
+      const url = await uploadToCloudinary(file);
+      setFormData(prev => ({ ...prev, backdropUrl: url }));
+    } catch (err: any) {
+      alert(`Cloudinary Upload Error: ${err.message || 'Failed to upload image.'}`);
+    } finally {
+      setIsBackdropUploading(false);
     }
   };
 
@@ -230,11 +258,7 @@ export const AdminPage: React.FC = () => {
       cast: ['Lead Actor 1', 'Lead Actor 2'],
       director: 'Director Name',
       audioLanguage: 'English (Sinhala Sub)',
-      subtitleAuthor: {
-        name: 'සිනෙක්ස් සිංහල සබ්',
-        downloadsCount: 1500,
-        releaseDate: new Date().toISOString().split('T')[0]
-      },
+      subtitleSourceUrl: 'https://cinesubz.co',
       hasSinhalaSub: true,
       isDualAudio: false,
       isTrending: true,
@@ -248,7 +272,6 @@ export const AdminPage: React.FC = () => {
     setEditingMovieId(movie.id);
     setFormData(movie);
 
-    // Set 5 server helper fields
     setServer1Url(movie.servers?.[0]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
     setServer2Url(movie.servers?.[1]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
     setServer3Url(movie.servers?.[2]?.url || 'https://www.youtube.com/embed/d9MyW72ELq0');
@@ -321,7 +344,6 @@ export const AdminPage: React.FC = () => {
       return;
     }
 
-    // Build 5 servers array
     const updatedServers: ServerPlayer[] = [
       { id: 's1', name: 'Server 1 (StreamHG)', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: server2Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
@@ -1139,7 +1161,7 @@ export const AdminPage: React.FC = () => {
         </div>
       )}
 
-      {/* ADD / EDIT MOVIE MODAL FORM WITH MULTI-TAGGING (LANGUAGES, GENRES, CONTENT TYPES, TAGGED DOWNLOAD LINKS) */}
+      {/* ADD / EDIT MOVIE MODAL FORM WITH TMDB AUTO-FETCH & CLOUDINARY UPLOADS */}
       {isMovieModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl overflow-y-auto">
           <div className="relative w-full max-w-4xl bg-[#121620] border border-white/10 rounded-3xl my-8 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
@@ -1163,23 +1185,23 @@ export const AdminPage: React.FC = () => {
             {/* Modal Body Form */}
             <form onSubmit={handleSaveMovie} className="p-6 space-y-6 max-h-[80vh] overflow-y-auto text-xs">
 
-              {/* OMDb Auto Fetch Assistant (API Key: 87cd62a9) */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FF0E25]/20 via-[#C80016]/20 to-rose-950/40 border border-[#FF0E25]/30 flex items-center justify-between gap-4">
+              {/* TMDB API Auto Fetch Assistant */}
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-[#FF0E25]/20 via-[#C80016]/20 to-rose-950/40 border border-[#FF0E25]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2">
-                  <Bot className="w-5 h-5 text-[#FF0E25]" />
+                  <Bot className="w-5 h-5 text-[#FF0E25] shrink-0" />
                   <div>
-                    <p className="text-xs font-bold text-white">OMDb API Auto-Fetcher (Key: 87cd62a9)</p>
-                    <p className="text-[11px] text-[#9E9EA0]">Enter title or IMDb ID (e.g., Leo or Avatar) and click Fetch.</p>
+                    <p className="text-xs font-bold text-white">Fetch Details by Movie Name / TMDB ID</p>
+                    <p className="text-[11px] text-[#9E9EA0]">Enter title or TMDB/IMDb ID (e.g., Leo or 1011985 or tt1565432) and click Fetch.</p>
                   </div>
                 </div>
                 <button
                   type="button"
-                  onClick={handleOMDbFetch}
-                  disabled={isOmdbLoading}
-                  className="px-3.5 py-2 rounded-xl bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs whitespace-nowrap shadow-md flex items-center gap-1.5"
+                  onClick={handleTMDBFetch}
+                  disabled={isTmdbLoading}
+                  className="px-4 py-2 rounded-xl bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs whitespace-nowrap shadow-md flex items-center gap-1.5 shrink-0"
                 >
-                  {isOmdbLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
-                  OMDb Auto-Fetch
+                  {isTmdbLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  Fetch Details by Movie Name / TMDB ID
                 </button>
               </div>
 
@@ -1227,7 +1249,21 @@ export const AdminPage: React.FC = () => {
                   />
                 </div>
 
-                {/* CONTENT TYPE SELECTOR (CRITICAL REQUIREMENT) */}
+                {/* Subtitle Source URL Input */}
+                <div className="md:col-span-2">
+                  <label className="font-semibold text-gray-300 block mb-1 flex items-center gap-1.5">
+                    <LinkIcon className="w-3.5 h-3.5 text-[#FF0E25]" /> Subtitle Source URL (Download Subtitle File Link)
+                  </label>
+                  <input
+                    type="url"
+                    value={formData.subtitleSourceUrl || ''}
+                    onChange={(e) => setFormData({ ...formData, subtitleSourceUrl: e.target.value })}
+                    placeholder="https://cinesubz.co or https://subscene.best/subtitles/..."
+                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                  />
+                </div>
+
+                {/* CONTENT TYPE SELECTOR */}
                 <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
                   <label className="font-extrabold text-white block flex items-center gap-1.5">
                     <Layers className="w-4 h-4 text-[#FF0E25]" /> Content Type Selector*
@@ -1250,7 +1286,7 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* LANGUAGES MULTI-TAG SELECTOR (CRITICAL REQUIREMENT) */}
+                {/* LANGUAGES MULTI-TAG SELECTOR */}
                 <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
                   <label className="font-extrabold text-white block flex items-center gap-1.5">
                     <Globe className="w-4 h-4 text-sky-400" /> Language / Industry Tagging Options*
@@ -1276,7 +1312,7 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* GENRES MULTI-TAG SELECTOR (CRITICAL REQUIREMENT) */}
+                {/* GENRES MULTI-TAG SELECTOR */}
                 <div className="md:col-span-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10 space-y-2">
                   <label className="font-extrabold text-white block flex items-center gap-1.5">
                     <Tag className="w-4 h-4 text-amber-400" /> Genre Tagging Options*
@@ -1302,25 +1338,59 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div>
-                  <label className="font-semibold text-gray-300 block mb-1">Poster Image URL*</label>
+                {/* POSTER IMAGE URL WITH CLOUDINARY FILE UPLOAD */}
+                <div className="space-y-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-white block">Poster Image URL*</label>
+                    <label className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold cursor-pointer flex items-center gap-1 transition-all">
+                      {isPosterUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                      Upload Image to Cloudinary
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePosterFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                   <input
                     type="text"
                     value={formData.posterUrl}
                     onChange={(e) => setFormData({ ...formData, posterUrl: e.target.value })}
-                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    placeholder="https://image.tmdb.org/t/p/... or Cloudinary URL"
+                    className="w-full bg-[#121620] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                     required
                   />
+                  {formData.posterUrl && (
+                    <img src={formData.posterUrl} alt="Poster Preview" className="h-16 w-auto object-cover rounded-lg border border-white/10" />
+                  )}
                 </div>
 
-                <div>
-                  <label className="font-semibold text-gray-300 block mb-1">Backdrop Image URL</label>
+                {/* BACKDROP IMAGE URL WITH CLOUDINARY FILE UPLOAD */}
+                <div className="space-y-2 p-3.5 rounded-2xl bg-[#0A0A0E] border border-white/10">
+                  <div className="flex items-center justify-between">
+                    <label className="font-semibold text-white block">Backdrop Image URL</label>
+                    <label className="px-2.5 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-[10px] font-bold cursor-pointer flex items-center gap-1 transition-all">
+                      {isBackdropUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                      Upload Image to Cloudinary
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleBackdropFileUpload}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
                   <input
                     type="text"
                     value={formData.backdropUrl}
                     onChange={(e) => setFormData({ ...formData, backdropUrl: e.target.value })}
-                    className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
+                    placeholder="https://image.tmdb.org/t/p/... or Cloudinary URL"
+                    className="w-full bg-[#121620] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#FF0E25]"
                   />
+                  {formData.backdropUrl && (
+                    <img src={formData.backdropUrl} alt="Backdrop Preview" className="h-16 w-auto object-cover rounded-lg border border-white/10" />
+                  )}
                 </div>
 
                 <div>
@@ -1402,7 +1472,7 @@ export const AdminPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* CATEGORIZED DOWNLOAD LINKS & TAGS MANAGER (CRITICAL REQUIREMENT) */}
+                {/* CATEGORIZED DOWNLOAD LINKS & TAGS MANAGER */}
                 <div className="md:col-span-2 space-y-4 p-5 rounded-2xl bg-[#0A0A0E] border border-[#FF0E25]/30">
                   <div className="flex items-center justify-between border-b border-white/10 pb-2">
                     <div>
