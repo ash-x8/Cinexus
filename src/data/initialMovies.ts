@@ -30,7 +30,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['English'],
     language: 'English',
     contentType: 'Sinhala Sub',
-    cast: ['Sam Worthington', 'Zoe Saldana', 'Sigourney Weaver', 'Kate Winslet'],
+    cast: [
+      { name: 'Sam Worthington', character: 'Jake Sully', image: 'https://image.tmdb.org/t/p/w185/v31393L3J3A3J3A3J3A.jpg' },
+      { name: 'Zoe Saldana', character: 'Neytiri', image: 'https://image.tmdb.org/t/p/w185/v31393L3J3A3J3A3J3B.jpg' },
+      { name: 'Sigourney Weaver', character: 'Kiri', image: '' },
+      { name: 'Kate Winslet', character: 'Ronal', image: '' }
+    ],
     director: 'James Cameron',
     audioLanguage: 'English / English (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -75,7 +80,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['English'],
     language: 'English',
     contentType: 'Sinhala Sub',
-    cast: ['Timothée Chalamet', 'Zendaya', 'Rebecca Ferguson', 'Javier Bardem'],
+    cast: [
+      { name: 'Timothée Chalamet', character: 'Paul Atreides', image: '' },
+      { name: 'Zendaya', character: 'Chani', image: '' },
+      { name: 'Rebecca Ferguson', character: 'Lady Jessica', image: '' },
+      { name: 'Javier Bardem', character: 'Stilgar', image: '' }
+    ],
     director: 'Denis Villeneuve',
     audioLanguage: 'English (Sinhala Subtitled)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -120,7 +130,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['Tamil'],
     language: 'Tamil',
     contentType: 'Sinhala Sub',
-    cast: ['Vijay', 'Sanjay Dutt', 'Trisha Krishnan', 'Arjun Sarja'],
+    cast: [
+      { name: 'Vijay', character: 'Parthiban / Leo Das', image: '' },
+      { name: 'Sanjay Dutt', character: 'Antony Das', image: '' },
+      { name: 'Trisha Krishnan', character: 'Sathya Parthiban', image: '' },
+      { name: 'Arjun Sarja', character: 'Harold Das', image: '' }
+    ],
     director: 'Lokesh Kanagaraj',
     audioLanguage: 'Tamil (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -163,7 +178,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['English'],
     language: 'English',
     contentType: 'Sinhala Sub',
-    cast: ['Millie Bobby Brown', 'Finn Wolfhard', 'Winona Ryder', 'David Harbour'],
+    cast: [
+      { name: 'Millie Bobby Brown', character: 'Eleven / Jane Hopper', image: '' },
+      { name: 'Finn Wolfhard', character: 'Mike Wheeler', image: '' },
+      { name: 'Winona Ryder', character: 'Joyce Byers', image: '' },
+      { name: 'David Harbour', character: 'Jim Hopper', image: '' }
+    ],
     director: 'The Duffer Brothers',
     audioLanguage: 'English (Complete Sinhala Sub Pack)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -208,7 +228,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['English'],
     language: 'English',
     contentType: 'Sinhala Sub',
-    cast: ['Matthew McConaughey', 'Anne Hathaway', 'Jessica Chastain', 'Michael Caine'],
+    cast: [
+      { name: 'Matthew McConaughey', character: 'Joseph Cooper', image: '' },
+      { name: 'Anne Hathaway', character: 'Dr. Amelia Brand', image: '' },
+      { name: 'Jessica Chastain', character: 'Murphy Cooper', image: '' },
+      { name: 'Michael Caine', character: 'Professor John Brand', image: '' }
+    ],
     director: 'Christopher Nolan',
     audioLanguage: 'English / Dual Audio Sinhala',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -252,7 +277,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['Japanese'],
     language: 'Japanese',
     contentType: 'Sinhala Sub',
-    cast: ['Natsuki Hanae', 'Akari Kitō', 'Hiro Shimono', 'Yoshitsugu Matsuoka'],
+    cast: [
+      { name: 'Natsuki Hanae', character: 'Tanjiro Kamado (voice)', image: '' },
+      { name: 'Akari Kitō', character: 'Nezuko Kamado (voice)', image: '' },
+      { name: 'Hiro Shimono', character: 'Zenitsu Agatsuma (voice)', image: '' },
+      { name: 'Yoshitsugu Matsuoka', character: 'Inosuke Hashibira (voice)', image: '' }
+    ],
     director: 'Haruo Sotozaki',
     audioLanguage: 'Japanese (Sinhala Subbed)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -295,7 +325,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['Malayalam'],
     language: 'Malayalam',
     contentType: 'Sinhala Sub',
-    cast: ['Soubin Shahir', 'Sreenath Bhasi', 'Balu Varghese', 'Ganapathi'],
+    cast: [
+      { name: 'Soubin Shahir', character: 'Kuttan', image: '' },
+      { name: 'Sreenath Bhasi', character: 'Subhash', image: '' },
+      { name: 'Balu Varghese', character: 'Sixen', image: '' },
+      { name: 'Ganapathi', character: 'Dr. Abhilash', image: '' }
+    ],
     director: 'Chidambaram',
     audioLanguage: 'Malayalam (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
@@ -337,7 +372,12 @@ export const INITIAL_MOVIES: Movie[] = [
     languages: ['Telugu', 'Hindi'],
     language: 'Telugu',
     contentType: 'Sinhala Dubbed',
-    cast: ['Prabhas', 'Amitabh Bachchan', 'Kamal Haasan', 'Deepika Padukone'],
+    cast: [
+      { name: 'Prabhas', character: 'Bhairava / Karna', image: '' },
+      { name: 'Amitabh Bachchan', character: 'Ashwatthama', image: '' },
+      { name: 'Kamal Haasan', character: 'Supreme Yaskin', image: '' },
+      { name: 'Deepika Padukone', character: 'SUM-80 / Sumathi', image: '' }
+    ],
     director: 'Nag Ashwin',
     audioLanguage: 'Sinhala Dubbed / Telugu',
     subtitleSourceUrl: 'https://cinesubz.co',
