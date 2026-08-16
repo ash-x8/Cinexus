@@ -11,8 +11,8 @@ export const TMDB_READ_ACCESS_TOKEN =
 export interface TMCastMember {
   name: string;
   character: string;
-  profileUrl: string;
-  image: string;
+  profileUrl?: string;
+  image: string | null;
 }
 
 export interface TMDBMovieDetail {
@@ -114,17 +114,17 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
     // - Actor Photo: If profile_path exists: https://image.tmdb.org/t/p/w200/[profile_path], else default placeholder URL
     const castMembers: TMCastMember[] = credits.cast
       ? credits.cast.slice(0, 12).map((c: any) => {
-          const actorName = c.original_name || c.name || 'Unknown Actor';
+          const actorName = c.name || c.original_name || 'Unknown Actor';
           const characterName = c.character || 'Cast Member';
-          const actorPhoto = c.profile_path
-            ? `https://image.tmdb.org/t/p/w200${c.profile_path}`
-            : DEFAULT_ACTOR_PLACEHOLDER;
+          const image = c.profile_path
+            ? `https://image.tmdb.org/t/p/w185${c.profile_path}`
+            : null;
 
           return {
             name: actorName,
             character: characterName,
-            profileUrl: actorPhoto,
-            image: actorPhoto
+            image,
+            profileUrl: image || undefined
           };
         })
       : [];

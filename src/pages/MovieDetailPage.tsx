@@ -472,24 +472,22 @@ export const MovieDetailPage: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {formattedCast.map((actor, idx) => {
-                const actorImg = actor.image || actor.profileUrl;
-                return (
-                  <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/40 transition-all">
-                    <div className="w-11 h-11 rounded-xl overflow-hidden bg-purple-600/20 text-purple-300 font-black flex items-center justify-center text-sm shrink-0 border border-purple-500/20">
-                      {actorImg ? (
-                        <img src={actorImg} alt={actor.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" />
-                      ) : (
-                        <User className="w-5 h-5 text-purple-400" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-white truncate group-hover:text-purple-300 transition-colors">{actor.name}</p>
-                      <p className="text-[10px] text-rose-300 truncate">{actor.character || 'Lead Cast'}</p>
-                    </div>
+              {formattedCast.map((actor, idx) => (
+                <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/40 transition-all">
+                  <img
+                    src={actor.image || actor.profileUrl || '/fallback-avatar.png'}
+                    alt={actor.name}
+                    className="w-12 h-12 rounded-full object-cover shrink-0"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+                    }}
+                  />
+                  <div className="min-w-0 flex flex-col">
+                    <span className="font-semibold text-white text-xs truncate">{actor.name}</span>
+                    <span className="text-xs text-gray-400 truncate">as {actor.character || 'Cast'}</span>
                   </div>
-                );
-              })}
+                </div>
+              ))}
             </div>
 
             <div className="pt-2 text-xs text-gray-300">

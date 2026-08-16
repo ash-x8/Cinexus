@@ -132,8 +132,8 @@ export const AdminPage: React.FC = () => {
     languages: ['English'],
     contentType: 'Sinhala Sub',
     cast: [
-      { name: 'Lead Actor 1', character: 'Main Role', profileUrl: '' },
-      { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '' }
+      { name: 'Lead Actor 1', character: 'Main Role', profileUrl: '', image: '' },
+      { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '', image: '' }
     ],
     director: 'Director Name',
     audioLanguage: 'English (Sinhala Sub)',
@@ -259,8 +259,8 @@ export const AdminPage: React.FC = () => {
     ]);
 
     setCastList([
-      { name: 'Lead Actor 1', character: 'Main Role', profileUrl: '' },
-      { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '' }
+      { name: 'Lead Actor 1', character: 'Main Role', profileUrl: '', image: '' },
+      { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '', image: '' }
     ]);
 
     setFormData({
@@ -309,9 +309,14 @@ export const AdminPage: React.FC = () => {
 
     const formattedCast: CastMember[] = (movie.cast || []).map(item => {
       if (typeof item === 'string') {
-        return { name: item, character: 'Lead Role', profileUrl: '' };
+        return { name: item, character: 'Lead Role', profileUrl: '', image: '' };
       }
-      return item;
+      return {
+        name: item.name,
+        character: item.character || 'Lead Role',
+        profileUrl: item.profileUrl || item.image || '',
+        image: item.image || item.profileUrl || ''
+      };
     });
     setCastList(formattedCast);
 
@@ -319,7 +324,7 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleAddCastRow = () => {
-    setCastList(prev => [...prev, { name: '', character: 'Role Name', profileUrl: '' }]);
+    setCastList(prev => [...prev, { name: '', character: 'Role Name', profileUrl: '', image: '' }]);
   };
 
   const handleRemoveCastRow = (index: number) => {
@@ -1500,8 +1505,8 @@ export const AdminPage: React.FC = () => {
                     {castList.map((castItem, idx) => (
                       <div key={idx} className="p-3 rounded-2xl bg-[#121620] border border-white/10 flex flex-col sm:flex-row items-center gap-3">
                         <div className="w-10 h-10 rounded-xl overflow-hidden bg-[#0A0A0E] shrink-0 border border-white/10 flex items-center justify-center font-bold text-white text-xs">
-                          {castItem.profileUrl ? (
-                            <img src={castItem.profileUrl} alt={castItem.name} className="w-full h-full object-cover" />
+                          {(castItem.image || castItem.profileUrl) ? (
+                            <img src={castItem.image || castItem.profileUrl || ''} alt={castItem.name} className="w-full h-full object-cover" />
                           ) : (
                             castItem.name?.[0] || '?'
                           )}
@@ -1534,9 +1539,9 @@ export const AdminPage: React.FC = () => {
                             <label className="text-[#9E9EA0] block mb-0.5">Profile Photo CDN URL</label>
                             <input
                               type="text"
-                              value={castItem.profileUrl || ''}
-                              onChange={(e) => handleUpdateCastRow(idx, 'profileUrl', e.target.value)}
-                              placeholder="https://image.tmdb.org/t/p/w500/..."
+                              value={castItem.image || castItem.profileUrl || ''}
+                              onChange={(e) => handleUpdateCastRow(idx, 'image', e.target.value)}
+                              placeholder="https://image.tmdb.org/t/p/w185/..."
                               className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
                             />
                           </div>
