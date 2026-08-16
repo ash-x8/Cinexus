@@ -1350,12 +1350,12 @@ export const AdminPage: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 1 (StreamHG Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 1 (StreamHG / HGCloud Embed Link)</label>
                       <input
                         type="text"
                         value={server1Url}
                         onChange={(e) => setServer1Url(e.target.value)}
-                        placeholder="https://streamhg.com/e/..."
+                        placeholder="https://hgcloud.to/7uixqv4k0zat or https://audinifer.com/7uixqv4k0zat"
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>

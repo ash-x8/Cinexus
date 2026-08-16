@@ -74,6 +74,7 @@ export const MovieDetailPage: React.FC = () => {
   // Active server player selection with dynamic URL Sanitizer
   const rawServer = movie.servers?.find(s => s.id === activeServer) || movie.servers?.[0];
   const sanitizedPlayerUrl = rawServer ? sanitizeEmbedUrl(rawServer.url, rawServer.serverType) : '';
+  const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
   const relatedMovies = movies.filter(m => m.id !== movie.id && m.genres.some(g => movie.genres.includes(g))).slice(0, 6);
 
@@ -257,18 +258,37 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dynamic Video Player Frame with Monetization Sync & Zero External Redirection */}
-        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner">
+        {/* Dynamic Video Player Frame with Monetization Sync & Fallback Processing Overlay */}
+        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner group">
+          {isIframeProcessing && (
+            <div className="absolute inset-0 z-20 bg-[#0A0A0E]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 border border-white/10">
+              <div className="w-12 h-12 rounded-full border-2 border-[#FF0E25] border-t-transparent animate-spin flex items-center justify-center">
+                <Clock className="w-5 h-5 text-[#FF0E25]" />
+              </div>
+              <p className="text-sm font-extrabold text-white">Video Processing on Server</p>
+              <p className="text-xs text-[#9E9EA0] max-w-sm">Please Refresh in a few minutes while the cloud encoder finalizes stream rendering.</p>
+              <button
+                onClick={() => setIsIframeProcessing(false)}
+                className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white text-xs font-bold shadow-md hover:opacity-90"
+              >
+                Dismiss & Retry Playback
+              </button>
+            </div>
+          )}
+
           {sanitizedPlayerUrl ? (
             <iframe
               src={sanitizedPlayerUrl}
               title={`${movie.title} CINEXUS Player`}
-              className="w-full h-full border-0"
+              className="w-full h-full aspect-video rounded-xl border-0"
               {...MONETIZATION_IFRAME_PROPS}
+              onError={() => setIsIframeProcessing(true)}
             />
           ) : (
-            <div className="flex items-center justify-center h-full text-[#9E9EA0] text-xs font-bold">
-              Video stream for selected server is currently unavailable.
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-2 bg-[#0A0A0E]">
+              <Clock className="w-8 h-8 text-[#FF0E25] animate-pulse" />
+              <p className="text-sm font-bold text-white">Video Processing on Server - Please Refresh in a few minutes</p>
+              <p className="text-xs text-[#9E9EA0]">The selected stream mirror is compiling video segments.</p>
             </div>
           )}
         </div>

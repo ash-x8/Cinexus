@@ -31,22 +31,25 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
     }
   }
 
-  // 2. StreamHG Engine
+  // 2. StreamHG / HGCloud / Audinifer Engine
   if (
     serverType === 'streamhg' ||
     lowerUrl.includes('streamhg') ||
+    lowerUrl.includes('hgcloud') ||
+    lowerUrl.includes('audinifer') ||
     lowerUrl.includes('hglink')
   ) {
     let id = '';
-    const hgMatch = trimmed.match(/(?:streamhg\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9_-]+)/i);
+    // Regex matching all StreamHG/HGCloud domains: streamhg.com, streamhg.to, hgcloud.to, audinifer.com, hglink.to
+    const hgMatch = trimmed.match(/(?:streamhg\.(?:com|to)|hgcloud\.to|audinifer\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9]{12}|[a-zA-Z0-9_-]+)/i);
     if (hgMatch && hgMatch[1]) {
       id = hgMatch[1];
     } else {
-      const parts = trimmed.replace(/\/$/, '').split('/');
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
       id = parts[parts.length - 1];
     }
-    if (id && id !== 'streamhg.com') {
-      return `https://streamhg.com/e/${id}`;
+    if (id && !['streamhg.com', 'streamhg.to', 'hgcloud.to', 'audinifer.com', 'hglink.to'].includes(id.toLowerCase())) {
+      return `https://hgcloud.to/e/${id}`;
     }
   }
 

@@ -39,7 +39,7 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2023-01-15'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's1', name: 'Server 1 (StreamHG / HGCloud HD)', url: 'https://hgcloud.to/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
       { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
@@ -88,7 +88,7 @@ export const INITIAL_MOVIES: Movie[] = [
       releaseDate: '2024-03-01'
     },
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG 4K)', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
+      { id: 's1', name: 'Server 1 (StreamHG / HGCloud 4K)', url: 'https://audinifer.com/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
       { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
       { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
