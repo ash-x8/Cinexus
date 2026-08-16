@@ -1,7 +1,7 @@
 /**
  * Automatic URL Sanitizer & Iframe Formatter Engine
  * Converts raw streaming video URLs into clean, responsive embedded iframe URLs
- * supporting StreamHG, Doodstream, Streamtape, Facebook Free Data, and YouTube.
+ * supporting StreamHG, EarnVids, FileMoon, Facebook Free Data, and YouTube.
  */
 
 export function sanitizeEmbedUrl(url: string, serverType?: string): string {
@@ -53,7 +53,43 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
     }
   }
 
-  // 3. Doodstream Engine
+  // 3. EarnVids Engine
+  if (
+    serverType === 'earnvids' ||
+    lowerUrl.includes('earnvids')
+  ) {
+    let id = '';
+    const earnMatch = trimmed.match(/(?:earnvids\.(?:com|net|io|to|so))\/(?:v|e|d)?\/?([a-zA-Z0-9_-]+)/i);
+    if (earnMatch && earnMatch[1]) {
+      id = earnMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && !['earnvids.com', 'earnvids.net', 'earnvids.io'].includes(id.toLowerCase())) {
+      return `https://earnvids.com/e/${id}`;
+    }
+  }
+
+  // 4. FileMoon Engine
+  if (
+    serverType === 'filemoon' ||
+    lowerUrl.includes('filemoon')
+  ) {
+    let id = '';
+    const fmMatch = trimmed.match(/(?:filemoon\.(?:sx|top|in|to|link|ef|lat|me|club))\/(?:v|e|d)\/([a-zA-Z0-9_-]+)/i);
+    if (fmMatch && fmMatch[1]) {
+      id = fmMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && !['filemoon.sx', 'filemoon.top', 'filemoon.in'].includes(id.toLowerCase())) {
+      return `https://filemoon.sx/e/${id}`;
+    }
+  }
+
+  // Legacy: Doodstream Engine
   if (
     serverType === 'doodstream' ||
     lowerUrl.includes('dood')

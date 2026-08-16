@@ -12,10 +12,10 @@ export interface DownloadLink {
 
 export interface ServerPlayer {
   id: string;
-  name: string; // e.g., 'Server 1 (StreamHG)', 'Server 2 (Doodstream)', 'Server 3 (Streamtape)', 'Server 4 (Facebook Video)', 'Server 5 (YouTube Trailer)'
+  name: string; // e.g., 'Server 1: StreamHG', 'Server 2: EarnVids', 'Server 3: FileMoon', 'Server 4: Facebook', 'Server 5: YouTube Trailer'
   url: string; // embed URL
   quality: string;
-  serverType?: 'streamhg' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic' | string;
+  serverType?: 'streamhg' | 'earnvids' | 'filemoon' | 'doodstream' | 'streamtape' | 'facebook' | 'youtube' | 'generic' | string;
 }
 
 export interface CastMember {
