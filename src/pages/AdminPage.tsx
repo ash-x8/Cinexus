@@ -244,9 +244,9 @@ export const AdminPage: React.FC = () => {
 
   const handleOpenAddModal = () => {
     setEditingMovieId(null);
-    setServer1Url('https://www.youtube.com/embed/d9MyW72ELq0');
-    setServer2Url('https://www.youtube.com/embed/d9MyW72ELq0');
-    setServer3Url('https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer1Url('https://streamhg.com/e/d9MyW72ELq0');
+    setServer2Url('https://earnvids.com/e/d9MyW72ELq0');
+    setServer3Url('https://filemoon.sx/e/d9MyW72ELq0');
     setServer4Url('https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F');
     setServer5Url('https://www.youtube.com/embed/d9MyW72ELq0');
 
@@ -399,11 +399,11 @@ export const AdminPage: React.FC = () => {
     }
 
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1 (StreamHG)', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: server2Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: server3Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
-      { id: 's4', name: 'Server 4 (Facebook Free Data)', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
-      { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1: StreamHG', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: server2Url || 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: server3Url || 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
+      { id: 's4', name: 'Server 4: Facebook', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ];
 
     // Ensure database schema stores cast as [{ name: string, character: string, image: string }]
@@ -1567,32 +1567,32 @@ export const AdminPage: React.FC = () => {
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 1 (StreamHG / HGCloud Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 1: StreamHG Embed URL</label>
                       <input
                         type="text"
                         value={server1Url}
                         onChange={(e) => setServer1Url(e.target.value)}
-                        placeholder="https://hgcloud.to/7uixqv4k0zat or https://audinifer.com/7uixqv4k0zat"
+                        placeholder="https://hgcloud.to/7uixqv4k0zat or https://streamhg.com/e/..."
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 2 (Doodstream Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 2: EarnVids Embed URL</label>
                       <input
                         type="text"
                         value={server2Url}
                         onChange={(e) => setServer2Url(e.target.value)}
-                        placeholder="https://doodstream.com/e/..."
+                        placeholder="https://earnvids.com/e/..."
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>
                     <div>
-                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 3 (Streamtape Embed Link)</label>
+                      <label className="text-[11px] text-[#9E9EA0] block mb-1">Server 3: FileMoon Embed URL</label>
                       <input
                         type="text"
                         value={server3Url}
                         onChange={(e) => setServer3Url(e.target.value)}
-                        placeholder="https://streamtape.com/e/..."
+                        placeholder="https://filemoon.sx/e/..."
                         className="w-full bg-[#121620] border border-white/10 rounded-xl p-2.5 text-white focus:outline-none focus:border-[#FF0E25]"
                       />
                     </div>

@@ -40,9 +40,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'English / English (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG / HGCloud HD)', url: 'https://hgcloud.to/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://hgcloud.to/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
@@ -90,9 +90,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'English (Sinhala Subtitled)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG / HGCloud 4K)', url: 'https://audinifer.com/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://audinifer.com/7uixqv4k0zat', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/Way9Dexny3w', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/Way9Dexny3w', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
@@ -140,9 +140,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'Tamil (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Engine)', url: 'https://streamhg.com/e/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/mqqft2x_Aa4', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/mqqft2x_Aa4', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/mqqft2x_Aa4', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/mqqft2x_Aa4', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/mqqft2x_Aa4', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/mqqft2x_Aa4', quality: '1080p', serverType: 'youtube' }
     ],
@@ -188,9 +188,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'English (Complete Sinhala Sub Pack)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG All Episodes)', url: 'https://streamhg.com/e/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/yQEondeGvKo', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/yQEondeGvKo', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/yQEondeGvKo', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/yQEondeGvKo', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/yQEondeGvKo', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/yQEondeGvKo', quality: '1080p', serverType: 'youtube' }
     ],
@@ -238,9 +238,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'English / Dual Audio Sinhala',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG 1080p)', url: 'https://streamhg.com/e/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/zSWdZVtXT7E', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/zSWdZVtXT7E', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/zSWdZVtXT7E', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/zSWdZVtXT7E', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/zSWdZVtXT7E', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/zSWdZVtXT7E', quality: '1080p', serverType: 'youtube' }
     ],
@@ -287,9 +287,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'Japanese (Sinhala Subbed)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Anime HD)', url: 'https://streamhg.com/e/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/a9tq0aS5Zu8', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/a9tq0aS5Zu8', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/a9tq0aS5Zu8', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/a9tq0aS5Zu8', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/a9tq0aS5Zu8', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/a9tq0aS5Zu8', quality: '1080p', serverType: 'youtube' }
     ],
@@ -335,9 +335,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'Malayalam (Sinhala Sub)',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG HD)', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/d9MyW72ELq0', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/d9MyW72ELq0', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
     ],
@@ -382,9 +382,9 @@ export const INITIAL_MOVIES: Movie[] = [
     audioLanguage: 'Sinhala Dubbed / Telugu',
     subtitleSourceUrl: 'https://cinesubz.co',
     servers: [
-      { id: 's1', name: 'Server 1 (StreamHG Sinhala Dub)', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2 (Doodstream)', url: 'https://dood.so/e/Way9Dexny3w', quality: '720p', serverType: 'doodstream' },
-      { id: 's3', name: 'Server 3 (Streamtape)', url: 'https://streamtape.com/e/Way9Dexny3w', quality: '720p', serverType: 'streamtape' },
+      { id: 's1', name: 'Server 1: StreamHG', url: 'https://streamhg.com/e/Way9Dexny3w', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: 'https://earnvids.com/e/Way9Dexny3w', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: 'https://filemoon.sx/e/Way9Dexny3w', quality: '720p', serverType: 'filemoon' },
       { id: 's4', name: 'Server 4 (Facebook Embed)', url: 'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F', quality: '480p', serverType: 'facebook' },
       { id: 's5', name: 'Server 5 (YouTube Official Trailer)', url: 'https://www.youtube.com/embed/Way9Dexny3w', quality: '1080p', serverType: 'youtube' }
     ],
