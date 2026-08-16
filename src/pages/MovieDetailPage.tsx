@@ -230,37 +230,62 @@ export const MovieDetailPage: React.FC = () => {
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {movie.downloadLinks?.map((link) => (
-            <div
-              key={link.id}
-              className="bg-slate-900/80 backdrop-blur-md p-4 rounded-2xl flex flex-col justify-between space-y-3 border border-white/10 hover:border-cyan-400/50 transition-all"
-            >
-              <div className="flex items-center justify-between">
-                <span className="px-2.5 py-1 rounded-xl bg-cyan-500/20 text-cyan-300 font-black text-xs">
-                  {link.quality}
-                </span>
-                <span className="text-xs text-gray-400 font-medium">{link.size}</span>
-              </div>
-              <div>
-                <p className="text-xs font-extrabold text-white">{link.format}</p>
-                <p className="text-[11px] text-gray-400">Direct High Speed Link</p>
-              </div>
-              <button
-                onClick={() => handleDownloadClick(link.quality, link.url)}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-purple-600 via-rose-600 to-amber-500 hover:opacity-90 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md transition-all"
+          {(movie.downloadLinks && movie.downloadLinks.length > 0 ? movie.downloadLinks : [
+            { id: 'dl_480', quality: '480p', size: '600 MB', format: 'MP4', url: '#download-480p' },
+            { id: 'dl_720', quality: '720p', size: '1.2 GB', format: 'MP4', url: '#download-720p' },
+            { id: 'dl_1080', quality: '1080p', size: '2.5 GB', format: 'MKV', url: '#download-1080p' },
+            { id: 'dl_telegram', quality: 'Telegram', size: 'Fast Bot', format: 'Telegram File', url: 'https://t.me/cinexus_official' }
+          ]).map((link) => {
+            const getButtonLabel = (quality: string) => {
+              if (quality.toLowerCase().includes('telegram')) return 'Download via Telegram';
+              if (quality.toLowerCase().includes('480')) return 'Download 480p';
+              if (quality.toLowerCase().includes('720')) return 'Download 720p';
+              if (quality.toLowerCase().includes('1080')) return 'Download 1080p';
+              return `Download ${quality}`;
+            };
+
+            const isTelegram = link.quality.toLowerCase().includes('telegram');
+
+            return (
+              <div
+                key={link.id}
+                className="bg-[#121620]/90 backdrop-blur-md p-4 rounded-2xl flex flex-col justify-between space-y-3 border border-white/10 hover:border-red-500/50 transition-all shadow-lg"
               >
-                {link.quality === 'Telegram' ? (
-                  <>
-                    <Send className="w-3.5 h-3.5 text-cyan-300" /> Telegram Direct Link
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-3.5 h-3.5" /> Download {link.quality}
-                  </>
-                )}
-              </button>
-            </div>
-          ))}
+                <div className="flex items-center justify-between">
+                  <span className={`px-2.5 py-1 rounded-xl font-black text-xs ${
+                    isTelegram ? 'bg-sky-500/20 text-sky-300 border border-sky-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'
+                  }`}>
+                    {link.quality}
+                  </span>
+                  <span className="text-xs text-gray-400 font-medium">{link.size}</span>
+                </div>
+                <div>
+                  <p className="text-xs font-extrabold text-white">{link.format}</p>
+                  <p className="text-[11px] text-gray-400">Direct High Speed Server</p>
+                </div>
+                <button
+                  onClick={() => handleDownloadClick(link.quality, link.url)}
+                  className={`w-full py-3 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-lg transition-all ${
+                    isTelegram
+                      ? 'bg-sky-600 hover:bg-sky-500 text-white shadow-sky-600/30'
+                      : 'bg-red-600 hover:bg-red-500 text-white shadow-red-600/30'
+                  }`}
+                >
+                  {isTelegram ? (
+                    <>
+                      <Send className="w-4 h-4 text-white" />
+                      {getButtonLabel(link.quality)}
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 text-white" />
+                      {getButtonLabel(link.quality)}
+                    </>
+                  )}
+                </button>
+              </div>
+            );
+          })}
         </div>
       </section>
 
