@@ -72,7 +72,7 @@ export const Header: React.FC = () => {
           {/* Logo Integration: Left-aligned responsive img */}
           <Link to="/" className="flex items-center gap-3 shrink-0 group">
             <img
-              src="/favicon.svg"
+              src="/logo.png"
               alt="CINEXUS Logo"
               className="max-h-10 w-auto object-contain transition-transform duration-300 group-hover:scale-105"
             />

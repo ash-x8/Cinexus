@@ -28,7 +28,7 @@ export const Footer: React.FC = () => {
           <div className="space-y-4">
             <Link to="/" className="flex items-center gap-3">
               <img
-                src="/favicon.svg"
+                src="/logo.png"
                 alt="CINEXUS Logo"
                 className="max-h-10 w-auto object-contain"
               />
