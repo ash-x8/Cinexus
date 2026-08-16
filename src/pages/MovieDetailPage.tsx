@@ -275,15 +275,20 @@ export const MovieDetailPage: React.FC = () => {
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
             {movie.servers?.map((server, index) => {
               let displayName = server.name;
-              if (server.id === 's1' || server.serverType === 'streamhg' || index === 0) {
-                displayName = 'Server 1: StreamHG';
-              } else if (server.id === 's2' || server.serverType === 'earnvids' || index === 1) {
-                displayName = 'Server 2: EarnVids';
-              } else if (server.id === 's3' || server.serverType === 'filemoon' || index === 2) {
-                displayName = 'Server 3: FileMoon';
-              } else if (server.id === 's4' || server.serverType === 'facebook' || index === 3) {
+              const serverTypeLower = (server.serverType || '').toLowerCase();
+              const serverUrlLower = (server.url || '').toLowerCase();
+
+              if (server.id === 's1' || serverTypeLower === 'streamhg' || serverUrlLower.includes('streamhg') || serverUrlLower.includes('hgcloud') || index === 0) {
+                displayName = server.name || 'Server 1: StreamHG';
+              } else if (server.id === 's2' || serverTypeLower === 'earnvids' || serverUrlLower.includes('earnvids') || index === 1) {
+                displayName = server.name || 'Server 2: EarnVids';
+              } else if (server.id === 's3' || serverTypeLower === 'filemoon' || serverUrlLower.includes('filemoon') || index === 2) {
+                displayName = server.name || 'Server 3: FileMoon';
+              } else if (serverTypeLower === 'streamtape' || serverUrlLower.includes('streamtape') || serverUrlLower.includes('streamta.pe')) {
+                displayName = server.name || `Server ${index + 1}: Streamtape`;
+              } else if (server.id === 's4' || serverTypeLower === 'facebook' || serverUrlLower.includes('facebook') || index === 3) {
                 displayName = server.name?.includes('Facebook') ? server.name : 'Server 4: Facebook';
-              } else if (server.id === 's5' || server.serverType === 'youtube' || index === 4) {
+              } else if (server.id === 's5' || serverTypeLower === 'youtube' || serverUrlLower.includes('youtube') || index === 4) {
                 displayName = server.name?.includes('YouTube') ? server.name : 'Server 5: YouTube Trailer';
               }
 

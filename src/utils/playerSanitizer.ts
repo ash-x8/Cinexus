@@ -1,8 +1,18 @@
 /**
  * Automatic URL Sanitizer & Iframe Formatter Engine
  * Converts raw streaming video URLs into clean, responsive embedded iframe URLs
- * supporting StreamHG, EarnVids, FileMoon, Facebook Free Data, and YouTube.
+ * supporting StreamHG, EarnVids, FileMoon, Streamtape, Doodstream, Facebook Free Data, and YouTube.
  */
+
+// Known sample/default YouTube IDs used in seed data to ensure smooth fallback playback
+const SAMPLE_YOUTUBE_IDS = new Set([
+  'd9MyW72ELq0',
+  'Way9Dexny3w',
+  'mqqft2x_Aa4',
+  'yQEondeGvKo',
+  'zSWdZVtXT7E',
+  'a9tq0aS5Zu8'
+]);
 
 export function sanitizeEmbedUrl(url: string, serverType?: string): string {
   if (!url || typeof url !== 'string') return '';
@@ -11,7 +21,7 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
 
   const lowerUrl = trimmed.toLowerCase();
 
-  // 1. YouTube Trailer / Embed
+  // 1. YouTube Trailer / Embed (Prioritize direct YouTube URLs or youtube serverType)
   if (
     serverType === 'youtube' ||
     lowerUrl.includes('youtube.com') ||
@@ -25,6 +35,9 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
     } else if (trimmed.includes('v=')) {
       const match = trimmed.match(/[?&]v=([^&]+)/);
       if (match) videoId = match[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      videoId = parts[parts.length - 1];
     }
     if (videoId) {
       return `https://www.youtube.com/embed/${videoId}`;
@@ -40,16 +53,21 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
     lowerUrl.includes('hglink')
   ) {
     let id = '';
-    // Regex matching all StreamHG/HGCloud domains: streamhg.com, streamhg.to, hgcloud.to, audinifer.com, hglink.to
-    const hgMatch = trimmed.match(/(?:streamhg\.(?:com|to)|hgcloud\.to|audinifer\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9]{12}|[a-zA-Z0-9_-]+)/i);
+    const hgMatch = trimmed.match(/(?:streamhg\.(?:com|to)|hgcloud\.to|audinifer\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9_-]+)/i);
     if (hgMatch && hgMatch[1]) {
       id = hgMatch[1];
     } else {
       const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
       id = parts[parts.length - 1];
     }
-    if (id && !['streamhg.com', 'streamhg.to', 'hgcloud.to', 'audinifer.com', 'hglink.to'].includes(id.toLowerCase())) {
-      return `https://hgcloud.to/e/${id}`;
+
+    if (id) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      if (!['streamhg.com', 'streamhg.to', 'hgcloud.to', 'audinifer.com', 'hglink.to', 'e', 'v'].includes(id.toLowerCase())) {
+        return `https://hgcloud.to/e/${id}`;
+      }
     }
   }
 
@@ -66,8 +84,14 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
       const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
       id = parts[parts.length - 1];
     }
-    if (id && !['earnvids.com', 'earnvids.net', 'earnvids.io'].includes(id.toLowerCase())) {
-      return `https://earnvids.com/e/${id}`;
+
+    if (id) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      if (!['earnvids.com', 'earnvids.net', 'earnvids.io', 'e', 'v', 'd'].includes(id.toLowerCase())) {
+        return `https://earnvids.com/e/${id}`;
+      }
     }
   }
 
@@ -77,55 +101,74 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
     lowerUrl.includes('filemoon')
   ) {
     let id = '';
-    const fmMatch = trimmed.match(/(?:filemoon\.(?:sx|top|in|to|link|ef|lat|me|club))\/(?:v|e|d)\/([a-zA-Z0-9_-]+)/i);
+    const fmMatch = trimmed.match(/(?:filemoon\.(?:sx|top|in|to|link|ef|lat|me|club))\/(?:v|e|d)?\/?([a-zA-Z0-9_-]+)/i);
     if (fmMatch && fmMatch[1]) {
       id = fmMatch[1];
     } else {
       const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
       id = parts[parts.length - 1];
     }
-    if (id && !['filemoon.sx', 'filemoon.top', 'filemoon.in'].includes(id.toLowerCase())) {
-      return `https://filemoon.sx/e/${id}`;
+
+    if (id) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      if (!['filemoon.sx', 'filemoon.top', 'filemoon.in', 'e', 'v', 'd'].includes(id.toLowerCase())) {
+        return `https://filemoon.sx/e/${id}`;
+      }
     }
   }
 
-  // Legacy: Doodstream Engine
+  // 5. Streamtape Engine
+  if (
+    serverType === 'streamtape' ||
+    lowerUrl.includes('streamtape') ||
+    lowerUrl.includes('streamta.pe')
+  ) {
+    let id = '';
+    const stMatch = trimmed.match(/(?:streamtape\.(?:com|to|net|xyz|site|club)|streamta\.pe)\/(?:v|e)?\/?([a-zA-Z0-9_-]+)/i);
+    if (stMatch && stMatch[1]) {
+      id = stMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+
+    if (id) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      if (!['streamtape.com', 'streamtape', 'streamta.pe', 'e', 'v'].includes(id.toLowerCase())) {
+        return `https://streamtape.com/e/${id}`;
+      }
+    }
+  }
+
+  // 6. Doodstream Engine
   if (
     serverType === 'doodstream' ||
     lowerUrl.includes('dood')
   ) {
     let id = '';
-    const doodMatch = trimmed.match(/(?:dood\.(?:so|to|watch|wf|la)|doodstream\.com)\/(?:v|e|d)\/([a-zA-Z0-9_-]+)/i);
+    const doodMatch = trimmed.match(/(?:dood\.(?:so|to|watch|wf|la)|doodstream\.(?:com|co))\/(?:v|e|d)?\/?([a-zA-Z0-9_-]+)/i);
     if (doodMatch && doodMatch[1]) {
       id = doodMatch[1];
     } else {
-      const parts = trimmed.replace(/\/$/, '').split('/');
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
       id = parts[parts.length - 1];
     }
+
     if (id) {
-      return `https://dood.so/e/${id}`;
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      if (!['dood.so', 'doodstream.com', 'e', 'v', 'd'].includes(id.toLowerCase())) {
+        return `https://dood.so/e/${id}`;
+      }
     }
   }
 
-  // 4. Streamtape Engine
-  if (
-    serverType === 'streamtape' ||
-    lowerUrl.includes('streamtape')
-  ) {
-    let id = '';
-    const stMatch = trimmed.match(/streamtape\.com\/(?:v|e)\/([a-zA-Z0-9_-]+)/i);
-    if (stMatch && stMatch[1]) {
-      id = stMatch[1];
-    } else {
-      const parts = trimmed.replace(/\/$/, '').split('/');
-      id = parts[parts.length - 1];
-    }
-    if (id) {
-      return `https://streamtape.com/e/${id}`;
-    }
-  }
-
-  // 5. Facebook Video Player
+  // 7. Facebook Video Player
   if (
     serverType === 'facebook' ||
     lowerUrl.includes('facebook.com') ||
