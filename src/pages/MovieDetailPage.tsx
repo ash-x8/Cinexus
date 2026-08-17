@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
-import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
+import { formatToEmbedUrl } from '../utils/playerSanitizer';
 import { executeDownload } from '../utils/downloadEngine';
 import type { CastMember } from '../types';
 import {
@@ -126,7 +126,7 @@ export const MovieDetailPage: React.FC = () => {
     }
   }
 
-  const sanitizedPlayerUrl = activeUrl ? sanitizeEmbedUrl(activeUrl, activeServerType) : '';
+  const sanitizedPlayerUrl = activeUrl ? formatToEmbedUrl(activeUrl, activeServerType) : '';
   const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
   // Sync current video stream to global PlayerContext for background floating mini-player persistence
@@ -401,10 +401,13 @@ export const MovieDetailPage: React.FC = () => {
 
           {sanitizedPlayerUrl ? (
             <iframe
+              key={activeServer}
               src={sanitizedPlayerUrl}
               title={`${movie.title} CINEXUS Player`}
               className="w-full h-full aspect-video rounded-xl border-0"
-              {...MONETIZATION_IFRAME_PROPS}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
               onError={() => setIsIframeProcessing(true)}
             />
           ) : (

@@ -211,7 +211,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-[#9E9EA0] font-medium">
               <li>
                 <Link
-                  to="/about-us"
+                  to="/about"
                   className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('aboutUs')}

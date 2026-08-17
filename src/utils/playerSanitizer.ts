@@ -14,6 +14,80 @@ const SAMPLE_YOUTUBE_IDS = new Set([
   'a9tq0aS5Zu8'
 ]);
 
+/**
+ * Helper utility function to convert standard view/download video links
+ * (e.g. /v/, /d/) to proper iframe embed endpoints (/e/).
+ */
+export function formatToEmbedUrl(url: string, serverType?: string): string {
+  if (!url || typeof url !== 'string') return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+
+  const lowerUrl = trimmed.toLowerCase();
+
+  // EarnVids link conversion
+  if (serverType === 'earnvids' || lowerUrl.includes('earnvids')) {
+    let id = '';
+    const earnMatch = trimmed.match(/(?:earnvids\.(?:com|net|io|to|so))\/(?:v|e|d)?\/?([a-zA-Z0-9_-]+)/i);
+    if (earnMatch && earnMatch[1]) {
+      id = earnMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && !['earnvids.com', 'earnvids.net', 'earnvids.io', 'e', 'v', 'd'].includes(id.toLowerCase())) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      return `https://earnvids.com/e/${id}`;
+    }
+  }
+
+  // FileMoon link conversion
+  if (serverType === 'filemoon' || lowerUrl.includes('filemoon')) {
+    let id = '';
+    const fmMatch = trimmed.match(/(?:filemoon\.(?:sx|top|in|to|link|ef|lat|me|club))\/(?:v|e|d)?\/?([a-zA-Z0-9_-]+)/i);
+    if (fmMatch && fmMatch[1]) {
+      id = fmMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && !['filemoon.sx', 'filemoon.top', 'filemoon.in', 'e', 'v', 'd'].includes(id.toLowerCase())) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      return `https://filemoon.sx/e/${id}`;
+    }
+  }
+
+  // StreamHG / HGCloud / Audinifer link conversion
+  if (
+    serverType === 'streamhg' ||
+    lowerUrl.includes('streamhg') ||
+    lowerUrl.includes('hgcloud') ||
+    lowerUrl.includes('audinifer') ||
+    lowerUrl.includes('hglink')
+  ) {
+    let id = '';
+    const hgMatch = trimmed.match(/(?:streamhg\.(?:com|to)|hgcloud\.to|audinifer\.com|hglink\.to)\/(?:v|e)?\/?([a-zA-Z0-9_-]+)/i);
+    if (hgMatch && hgMatch[1]) {
+      id = hgMatch[1];
+    } else {
+      const parts = trimmed.replace(/\/$/, '').split('?')[0].split('#')[0].split('/');
+      id = parts[parts.length - 1];
+    }
+    if (id && !['streamhg.com', 'streamhg.to', 'hgcloud.to', 'audinifer.com', 'hglink.to', 'e', 'v'].includes(id.toLowerCase())) {
+      if (SAMPLE_YOUTUBE_IDS.has(id)) {
+        return `https://www.youtube.com/embed/${id}`;
+      }
+      return `https://hgcloud.to/e/${id}`;
+    }
+  }
+
+  return sanitizeEmbedUrl(trimmed, serverType);
+}
+
 export function sanitizeEmbedUrl(url: string, serverType?: string): string {
   if (!url || typeof url !== 'string') return '';
   const trimmed = url.trim();
