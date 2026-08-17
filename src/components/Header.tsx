@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Search, Star, Menu, X, Sparkles, Subtitles, Megaphone, Globe, RotateCcw } from 'lucide-react';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { Search, Star, Menu, X, Sparkles, Subtitles, Megaphone, Globe, User, Bookmark } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -15,10 +15,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
     analytics,
     searchQuery,
     setSearchQuery,
-    selectedCategory,
-    setSelectedCategory,
     resetAllFilters,
-    logSearchQuery
+    logSearchQuery,
+    currentUser,
+    watchlist
   } = useMovies();
 
   const { language, toggleLanguage, t } = useLanguage();
@@ -52,17 +52,21 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
     navigate(`/movie/${id}`);
   };
 
-  const handleLogoClick = (e: React.MouseEvent) => {
+  const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    resetAllFilters();
-    window.location.href = '/';
+    if (searchQuery.trim()) {
+      logSearchQuery(searchQuery);
+      setIsSearchFocused(false);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
   };
 
   const navLinks = [
-    { label: t('home'), category: 'All' },
-    { label: t('sinhalaSub'), category: 'Sinhala Subbed' },
-    { label: t('movies'), category: 'All' },
-    { label: t('tvSeries'), category: 'TV Series' },
+    { label: 'Home', path: '/' },
+    { label: 'Movies', path: '/movies' },
+    { label: 'Genres', path: '/genres' },
+    { label: 'Discover', path: '/discover' },
+    { label: 'My List', path: '/my-list', badge: watchlist.length > 0 ? watchlist.length : undefined },
   ];
 
   return (
@@ -84,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20 gap-4">
 
-          {/* Left Controls: Sidebar Drawer Toggle (Mobile) + Single CINEXUS Official Logo */}
+          {/* Left Controls: Sidebar Drawer Toggle (Mobile) + CINEXUS Brand Logo */}
           <div className="flex items-center gap-3 shrink-0">
             {onToggleMobileSidebar && (
               <button
@@ -96,12 +100,12 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
               </button>
             )}
 
-            {/* Single Logo Policy: Strictly ONE official CINEXUS 3D logo in header. Click reaction forces hard refresh to homepage */}
-            <a
-              href="/"
-              onClick={handleLogoClick}
+            {/* CINEXUS Logo */}
+            <Link
+              to="/"
+              onClick={() => resetAllFilters()}
               className="flex items-center gap-3 focus:outline-none group"
-              title="CINEXUS - Return to Homepage"
+              title="CINEXUS - Premium Movie Discovery"
             >
               <img
                 src="/logo.png"
@@ -114,59 +118,64 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
                     {siteSettings.siteTitle || 'CINEXUS'}
                   </span>
                   <span className="px-1.5 py-0.5 text-[9px] font-black rounded bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30 uppercase tracking-widest">
-                    PRO
+                    CINEMATIC
                   </span>
                 </div>
                 <p className="text-[10px] font-bold text-[#9E9EA0] tracking-wider flex items-center gap-1">
                   {siteSettings.sinhalaTitle || 'සිනෙක්ස්'} <span className="inline-block w-1.5 h-1.5 rounded-full bg-[#FF0E25] animate-pulse" /> Sinhala Subtitled Cinema
                 </p>
               </div>
-            </a>
+            </Link>
           </div>
 
           {/* Nav Menu Links */}
           <nav className="hidden lg:flex items-center gap-6 text-xs font-extrabold uppercase tracking-wider text-gray-300">
-            {navLinks.map((item, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSelectedCategory(item.category);
-                  navigate('/');
-                }}
-                className={`transition-colors duration-200 hover:text-[#FF0E25] ${
-                  selectedCategory === item.category && item.label !== t('home')
-                    ? 'text-[#FF0E25] font-black'
-                    : ''
-                }`}
+            {navLinks.map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                className={({ isActive }) =>
+                  `relative transition-colors duration-200 hover:text-[#FF0E25] flex items-center gap-1 ${
+                    isActive ? 'text-[#FF0E25] font-black' : ''
+                  }`
+                }
               >
-                {item.label}
-              </button>
+                <span>{item.label}</span>
+                {item.badge !== undefined && (
+                  <span className="px-1.5 py-0.2 rounded-full bg-[#FF0E25] text-white text-[9px] font-black">
+                    {item.badge}
+                  </span>
+                )}
+              </NavLink>
             ))}
           </nav>
 
           {/* Compact Live Search Bar */}
           <div className="relative flex-1 max-w-xs md:max-w-sm mx-2" ref={searchRef}>
-            <div className={`relative flex items-center rounded-2xl bg-[#121620]/90 border transition-all duration-300 ${
-              isSearchFocused ? 'border-[#FF0E25] shadow-[0_0_20px_rgba(255,14,37,0.3)] bg-[#171b29]' : 'border-white/10 hover:border-white/20'
-            }`}>
-              <Search className={`w-4 h-4 ml-3.5 transition-colors ${isSearchFocused ? 'text-[#FF0E25]' : 'text-[#9E9EA0]'}`} />
-              <input
-                type="text"
-                placeholder={t('searchPlaceholder')}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setIsSearchFocused(true)}
-                className="w-full py-2 px-3 bg-transparent text-xs text-white placeholder-[#9E9EA0] focus:outline-none"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="mr-3 text-[#9E9EA0] hover:text-white p-1 rounded-full hover:bg-white/10"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+            <form onSubmit={handleSearchSubmit}>
+              <div className={`relative flex items-center rounded-2xl bg-[#121620]/90 border transition-all duration-300 ${
+                isSearchFocused ? 'border-[#FF0E25] shadow-[0_0_20px_rgba(255,14,37,0.3)] bg-[#171b29]' : 'border-white/10 hover:border-white/20'
+              }`}>
+                <Search className={`w-4 h-4 ml-3.5 transition-colors ${isSearchFocused ? 'text-[#FF0E25]' : 'text-[#9E9EA0]'}`} />
+                <input
+                  type="text"
+                  placeholder={t('searchPlaceholder')}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  className="w-full py-2 px-3 bg-transparent text-xs text-white placeholder-[#9E9EA0] focus:outline-none"
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery('')}
+                    className="mr-3 text-[#9E9EA0] hover:text-white p-1 rounded-full hover:bg-white/10"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </form>
 
             {/* Live Search Popup Dropdown */}
             {isSearchFocused && searchSuggestions.length > 0 && (
@@ -216,7 +225,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
             )}
           </div>
 
-          {/* Right Action Bar: Top Language Toggle Button (EN | SI) */}
+          {/* Right Action Bar: Language Toggle + Profile Link */}
           <div className="flex items-center gap-2.5 shrink-0">
             {/* Header Language Switcher Button (EN | SI) */}
             <button
@@ -230,11 +239,30 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
               <span className={language === 'SI' ? 'text-[#FF0E25] font-black' : 'text-gray-400'}>SI</span>
             </button>
 
-            {/* Live active viewers badge */}
-            <div className="hidden xl:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-extrabold whitespace-nowrap shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping inline-block" />
-              <span>🟢 {t('liveViewers')}: {(analytics?.activeStreams || 1482).toLocaleString()}</span>
-            </div>
+            {/* Profile Avatar / Login Action */}
+            <Link
+              to={currentUser ? "/profile" : "/login"}
+              className="flex items-center gap-2 p-1.5 sm:px-3 py-1.5 rounded-xl bg-[#121620] border border-white/10 hover:border-[#FF0E25]/50 transition-all"
+              title={currentUser ? `Profile (${currentUser.username})` : "Sign In"}
+            >
+              {currentUser ? (
+                <>
+                  <img
+                    src={currentUser.avatarUrl}
+                    alt={currentUser.username}
+                    className="w-6 h-6 rounded-full object-cover border border-[#FF0E25]"
+                  />
+                  <span className="hidden sm:inline text-xs font-bold text-white truncate max-w-[100px]">
+                    {currentUser.username}
+                  </span>
+                </>
+              ) : (
+                <>
+                  <User className="w-4 h-4 text-[#FF0E25]" />
+                  <span className="hidden sm:inline text-xs font-bold text-gray-300">Sign In</span>
+                </>
+              )}
+            </Link>
           </div>
 
         </div>

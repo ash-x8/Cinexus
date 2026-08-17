@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Play, Subtitles, Download, Sparkles, Volume2, Globe } from 'lucide-react';
+import { Star, Play, Subtitles, Download, Sparkles, Volume2, Globe, Bookmark, Heart } from 'lucide-react';
 import type { Movie } from '../types';
+import { useMovies } from '../context/MovieContext';
 
 interface MovieCardProps {
   movie: Movie;
@@ -10,6 +11,10 @@ interface MovieCardProps {
 
 export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const { watchlist, favorites, toggleWatchlist, toggleFavorite } = useMovies();
+
+  const isBookmarked = watchlist.includes(movie.id);
+  const isLiked = favorites.includes(movie.id);
 
   // Content type badge identifier
   const isDubbed = movie.contentType === 'Sinhala Dubbed';
@@ -47,18 +52,52 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
         <div className="absolute inset-0 bg-gradient-to-t from-[#0A0A0E] via-black/40 to-transparent opacity-60 group-hover:opacity-90 transition-opacity duration-300" />
 
         {/* Top Badges Bar */}
-        <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 pointer-events-none z-10">
+        <div className="absolute top-2 left-2 right-2 flex items-center justify-between gap-1 z-10 pointer-events-auto">
 
           {/* IMDb Score Badge */}
-          <div className="flex items-center gap-1 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-lg border border-amber-500/30 text-amber-400 text-[11px] font-black shadow-md">
+          <div className="flex items-center gap-1 bg-black/80 backdrop-blur-md px-2 py-0.5 rounded-lg border border-amber-500/30 text-amber-400 text-[11px] font-black shadow-md pointer-events-none">
             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
             {movie.imdbRating ? movie.imdbRating.toFixed(1) : '7.5'}
           </div>
 
-          {/* Quality Badge */}
-          <span className="px-2 py-0.5 rounded-lg bg-[#FF0E25] text-white font-black text-[9px] tracking-wider uppercase shadow-md">
-            {movie.qualityBadge}
-          </span>
+          {/* Action Bookmark/Heart Buttons & Quality Badge */}
+          <div className="flex items-center gap-1">
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleWatchlist(movie.id);
+              }}
+              className={`p-1.5 rounded-lg backdrop-blur-md transition-all ${
+                isBookmarked
+                  ? 'bg-[#FF0E25] text-white shadow-md'
+                  : 'bg-black/70 text-gray-300 hover:text-white hover:bg-black'
+              }`}
+              title={isBookmarked ? 'Remove from Watchlist' : 'Add to Watchlist'}
+            >
+              <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-white' : ''}`} />
+            </button>
+
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                toggleFavorite(movie.id);
+              }}
+              className={`p-1.5 rounded-lg backdrop-blur-md transition-all ${
+                isLiked
+                  ? 'bg-rose-600 text-white shadow-md'
+                  : 'bg-black/70 text-gray-300 hover:text-rose-400 hover:bg-black'
+              }`}
+              title={isLiked ? 'Remove from Favorites' : 'Add to Favorites'}
+            >
+              <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-white' : ''}`} />
+            </button>
+
+            <span className="px-2 py-0.5 rounded-lg bg-[#FF0E25] text-white font-black text-[9px] tracking-wider uppercase shadow-md pointer-events-none">
+              {movie.qualityBadge}
+            </span>
+          </div>
         </div>
 
         {/* Cinesub Style Visual Badges & Language Pill Overlay */}

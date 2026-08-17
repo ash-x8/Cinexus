@@ -27,16 +27,21 @@ import {
   HardDrive,
   Volume2,
   Layers,
-  ExternalLink
+  ExternalLink,
+  Bookmark,
+  Heart
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { movies, incrementViews, incrementDownloads } = useMovies();
+  const { movies, incrementViews, incrementDownloads, watchlist, favorites, toggleWatchlist, toggleFavorite, addToRecentlyViewed } = useMovies();
   const { t } = useLanguage();
   const { playStream } = usePlayer();
 
   const movie = movies.find(m => m.id === id);
+
+  const isBookmarked = movie ? watchlist.includes(movie.id) : false;
+  const isLiked = movie ? favorites.includes(movie.id) : false;
 
   const [activeServer, setActiveServer] = useState<string>('');
   const [plotTab, setPlotTab] = useState<'sinhala' | 'english'>('sinhala');
@@ -61,6 +66,7 @@ export const MovieDetailPage: React.FC = () => {
   useEffect(() => {
     if (movie) {
       incrementViews(movie.id);
+      addToRecentlyViewed(movie.id);
 
       // Auto-set initial player state: If Server 1 is empty but Server 2 exists, set to Server 2, etc.
       if (s1Url) {
@@ -246,7 +252,7 @@ export const MovieDetailPage: React.FC = () => {
                 {movie.sinhalaTitle}
               </p>
 
-              {/* Quick Metadata Bar */}
+              {/* Quick Metadata Bar & Action Buttons */}
               <div className="flex flex-wrap items-center gap-3 text-xs font-semibold text-gray-300 pt-1">
                 <span className="flex items-center gap-1 text-amber-400 bg-black/70 px-3 py-1 rounded-xl border border-amber-500/30 font-bold">
                   <Star className="w-4 h-4 fill-amber-400 text-amber-400" /> {movie.imdbRating.toFixed(1)} IMDb
@@ -260,6 +266,31 @@ export const MovieDetailPage: React.FC = () => {
                 <span className="flex items-center gap-1 text-rose-300 bg-black/50 px-2.5 py-1 rounded-xl border border-white/10">
                   <Eye className="w-3.5 h-3.5 text-rose-400" /> {movie.viewsCount.toLocaleString()} Views
                 </span>
+
+                {/* Bookmark & Favorite Toggle Buttons */}
+                <button
+                  onClick={() => toggleWatchlist(movie.id)}
+                  className={`px-3 py-1 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all ${
+                    isBookmarked
+                      ? 'bg-[#FF0E25] text-white border-[#FF0E25] shadow-md'
+                      : 'bg-black/60 text-gray-200 border-white/20 hover:border-[#FF0E25]'
+                  }`}
+                >
+                  <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? 'fill-white' : ''}`} />
+                  {isBookmarked ? 'In Watchlist' : 'Add to List'}
+                </button>
+
+                <button
+                  onClick={() => toggleFavorite(movie.id)}
+                  className={`px-3 py-1 rounded-xl border font-bold text-xs flex items-center gap-1.5 transition-all ${
+                    isLiked
+                      ? 'bg-rose-600 text-white border-rose-600 shadow-md'
+                      : 'bg-black/60 text-gray-200 border-white/20 hover:border-rose-500'
+                  }`}
+                >
+                  <Heart className={`w-3.5 h-3.5 ${isLiked ? 'fill-white' : ''}`} />
+                  {isLiked ? 'Favorited' : 'Favorite'}
+                </button>
               </div>
             </div>
           </div>
