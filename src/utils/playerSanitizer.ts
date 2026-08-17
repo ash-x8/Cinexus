@@ -218,7 +218,6 @@ export function sanitizeEmbedUrl(url: string, serverType?: string): string {
 export const MONETIZATION_IFRAME_PROPS = {
   allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share',
   allowFullScreen: true,
-  sandbox: 'allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation',
   frameBorder: '0',
   referrerPolicy: 'origin-when-cross-origin' as const,
 };

@@ -10,6 +10,17 @@ export interface DownloadLink {
   audioSubAttribute?: string; // e.g., 'Tamil [Sinhala Sub]', 'Hindi [Original Audio]'
 }
 
+export interface Episode {
+  id: string;
+  episodeNumber: number;
+  seasonNumber?: number;
+  title: string;
+  streamServer1Url?: string;
+  streamServer2Url?: string;
+  streamServer3Url?: string;
+  downloadUrl?: string;
+}
+
 export interface ServerPlayer {
   id: string;
   name: string; // e.g., 'Server 1: StreamHG', 'Server 2: EarnVids', 'Server 3: FileMoon', 'Server 4: Facebook', 'Server 5: YouTube Trailer'
@@ -71,6 +82,7 @@ export interface Movie {
   isTVSeries: boolean;
   seasonsCount?: number;
   episodesCount?: number;
+  episodes?: Episode[];
 
   // Stats
   viewsCount: number;
