@@ -46,11 +46,11 @@ interface MovieContextType {
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
 
-const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v3';
-const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v3';
-const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v3';
-const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v3';
-const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v3';
+const LOCAL_STORAGE_MOVIES_KEY = 'cinexus_movies_data_v2';
+const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v2';
+const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v2';
+const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v2';
+const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v2';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: 'CINEXUS',
@@ -82,40 +82,9 @@ const DEFAULT_SETTINGS: SiteSettings = {
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [movies, setMovies] = useState<Movie[]>(() => {
-    const migrateServers = (movieList: Movie[]): Movie[] => {
-      return movieList.map(m => ({
-        ...m,
-        servers: m.servers?.map(s => {
-          if (s.id === 's2' || s.serverType === 'doodstream' || s.name?.includes('Doodstream') || s.name?.includes('Server 2')) {
-            return {
-              ...s,
-              id: 's2',
-              name: 'Server 2: EarnVids',
-              serverType: 'earnvids',
-              url: s.url?.includes('earnvids') ? s.url : (s.url?.replace(/dood\.[a-z]+\/e\//, 'earnvids.com/e/') || 'https://earnvids.com/e/d9MyW72ELq0')
-            };
-          }
-          if (s.id === 's3' || s.serverType === 'streamtape' || s.name?.includes('Streamtape') || s.name?.includes('Server 3')) {
-            return {
-              ...s,
-              id: 's3',
-              name: 'Server 3: FileMoon',
-              serverType: 'filemoon',
-              url: s.url?.includes('filemoon') ? s.url : (s.url?.replace(/streamtape\.com\/e\//, 'filemoon.sx/e/') || 'https://filemoon.sx/e/d9MyW72ELq0')
-            };
-          }
-          return s;
-        })
-      }));
-    };
-
-    const savedV3 = localStorage.getItem(LOCAL_STORAGE_MOVIES_KEY);
-    if (savedV3) {
-      try { return migrateServers(JSON.parse(savedV3)); } catch (e) { console.error(e); }
-    }
-    const savedV2 = localStorage.getItem('cinexus_movies_data_v2');
-    if (savedV2) {
-      try { return migrateServers(JSON.parse(savedV2)); } catch (e) { console.error(e); }
+    const saved = localStorage.getItem(LOCAL_STORAGE_MOVIES_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
     return INITIAL_MOVIES;
   });

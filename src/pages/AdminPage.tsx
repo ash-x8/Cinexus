@@ -188,6 +188,34 @@ export const AdminPage: React.FC = () => {
   // Download links list state
   const [downloadLinksList, setDownloadLinksList] = useState<DownloadLink[]>([]);
 
+  // TV Series Episodes list state
+  const [episodesList, setEpisodesList] = useState<any[]>([]);
+
+  const handleAddEpisodeRow = () => {
+    const nextEpNum = episodesList.length + 1;
+    setEpisodesList(prev => [
+      ...prev,
+      {
+        id: `ep_${Date.now()}_${nextEpNum}`,
+        episodeNumber: nextEpNum,
+        seasonNumber: 1,
+        title: `Episode ${nextEpNum}`,
+        streamServer1Url: 'https://streamhg.com/e/yQEondeGvKo',
+        streamServer2Url: 'https://earnvids.com/e/yQEondeGvKo',
+        streamServer3Url: 'https://filemoon.sx/e/yQEondeGvKo',
+        downloadUrl: '#download-ep'
+      }
+    ]);
+  };
+
+  const handleRemoveEpisodeRow = (index: number) => {
+    setEpisodesList(prev => prev.filter((_, idx) => idx !== index));
+  };
+
+  const handleUpdateEpisodeRow = (index: number, key: string, value: any) => {
+    setEpisodesList(prev => prev.map((ep, idx) => idx === index ? { ...ep, [key]: value } : ep));
+  };
+
   // Editable Cast Members State
   const [castList, setCastList] = useState<CastMember[]>([]);
 
@@ -297,6 +325,19 @@ export const AdminPage: React.FC = () => {
       { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '', image: '' }
     ]);
 
+    setEpisodesList([
+      {
+        id: 'ep_1',
+        episodeNumber: 1,
+        seasonNumber: 1,
+        title: 'Episode 1: Pilot',
+        streamServer1Url: 'https://streamhg.com/e/yQEondeGvKo',
+        streamServer2Url: 'https://earnvids.com/e/yQEondeGvKo',
+        streamServer3Url: 'https://filemoon.sx/e/yQEondeGvKo',
+        downloadUrl: '#download-ep1'
+      }
+    ]);
+
     setFormData({
       title: '',
       sinhalaTitle: '',
@@ -353,6 +394,7 @@ export const AdminPage: React.FC = () => {
       };
     });
     setCastList(formattedCast);
+    setEpisodesList(movie.episodes || []);
 
     setIsMovieModalOpen(true);
   };
@@ -433,14 +475,14 @@ export const AdminPage: React.FC = () => {
     }
 
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1: StreamHG', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2: EarnVids', url: server2Url || 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
-      { id: 's3', name: 'Server 3: FileMoon', url: server3Url || 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
-      { id: 's4', name: 'Server 4: Facebook', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
-      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
-    ];
+      { id: 's1', name: 'Server 1: StreamHG', url: server1Url, quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: server2Url, quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: server3Url, quality: '720p', serverType: 'filemoon' },
+      { id: 's4', name: 'Server 4: Facebook', url: server4Url, quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || '', quality: '1080p', serverType: 'youtube' }
+    ].filter(s => s.url && s.url.trim() !== '');
 
-    // Ensure database schema stores cast as [{ name: string, character: string, image: string }]
+    // Ensure database schema stores cast as [{ tmdb_id, name: string, character: string, image: string }]
     const formattedCastArray = castList
       .filter(c => c.name.trim() !== '')
       .map(c => ({
@@ -464,6 +506,8 @@ export const AdminPage: React.FC = () => {
       languages: formData.languages && formData.languages.length > 0 ? formData.languages : [formData.language || 'English'],
       servers: updatedServers,
       downloadLinks: downloadLinksList,
+      episodes: episodesList,
+      episodesCount: episodesList.length,
     };
 
     if (editingMovieId) {
@@ -609,72 +653,61 @@ export const AdminPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Navigation Tabs Switcher */}
+      {/* Streamlined Admin Navigation Tabs Switcher */}
       <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-2">
         <button
           onClick={() => setActiveTab('movies')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
             activeTab === 'movies'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
               : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Film className="w-4 h-4" /> Movie Catalog ({movies.length})
+          <Film className="w-4 h-4" /> 1. Catalog Manager ({movies.length})
         </button>
 
         <button
           onClick={() => setActiveTab('branding')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
             activeTab === 'branding'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
               : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Settings className="w-4 h-4" /> General Content & Notice Banner
+          <Settings className="w-4 h-4" /> 2. Site Notices & Text
         </button>
 
         <button
           onClick={() => setActiveTab('social')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
             activeTab === 'social'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
               : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Share2 className="w-4 h-4" /> Social Media & Contact CMS
-        </button>
-
-        <button
-          onClick={() => setActiveTab('legal')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-            activeTab === 'legal'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
-              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <FileText className="w-4 h-4" /> Dynamic Pages & Legal Editor
-        </button>
-
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
-            activeTab === 'analytics'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
-              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Activity className="w-4 h-4" /> Realtime Metrics
+          <Share2 className="w-4 h-4" /> 3. Social Media Links
         </button>
 
         <button
           onClick={() => setActiveTab('categories')}
-          className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
             activeTab === 'categories'
-              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
               : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
           }`}
         >
-          <Tag className="w-4 h-4" /> Genres & Categories
+          <Tag className="w-4 h-4" /> 4. Categories & Genres
+        </button>
+
+        <button
+          onClick={() => setActiveTab('analytics')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+            activeTab === 'analytics'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Activity className="w-4 h-4" /> 5. Server Health Monitor
         </button>
       </div>
 
@@ -1675,6 +1708,116 @@ export const AdminPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
+
+                {/* TV SERIES EPISODES MANAGER (Conditional UI Section when isTVSeries is checked) */}
+                {Boolean(formData.isTVSeries) && (
+                  <div className="md:col-span-2 space-y-4 p-5 rounded-2xl bg-[#0A0A0E] border border-rose-500/40">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div>
+                        <h4 className="font-extrabold text-white text-sm flex items-center gap-2">
+                          <Layers className="w-4 h-4 text-[#FF0E25]" /> TV Series Episode List & Streaming Servers
+                        </h4>
+                        <p className="text-[11px] text-[#9E9EA0]">
+                          Add and configure episode titles, season numbers, and custom StreamHG/EarnVids/FileMoon stream links per episode.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleAddEpisodeRow}
+                        className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs flex items-center gap-1 shadow-md transition-all"
+                      >
+                        <Plus className="w-3.5 h-3.5" /> Add Episode
+                      </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      {episodesList.map((epRow, idx) => (
+                        <div key={epRow.id || idx} className="p-3.5 rounded-2xl bg-[#121620] border border-white/10 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-extrabold text-rose-300">
+                              Episode #{epRow.episodeNumber} ({epRow.title || 'Untitled Episode'})
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveEpisodeRow(idx)}
+                              className="p-1 rounded bg-rose-500/20 text-rose-300 hover:bg-rose-500 hover:text-white text-[10px]"
+                              title="Remove episode"
+                            >
+                              <X className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 text-[11px]">
+                            <div>
+                              <label className="text-[#9E9EA0] block mb-0.5">Ep #</label>
+                              <input
+                                type="number"
+                                value={epRow.episodeNumber}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'episodeNumber', parseInt(e.target.value) || 1)}
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[#9E9EA0] block mb-0.5">Season #</label>
+                              <input
+                                type="number"
+                                value={epRow.seasonNumber || 1}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'seasonNumber', parseInt(e.target.value) || 1)}
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <label className="text-[#9E9EA0] block mb-0.5">Episode Title</label>
+                              <input
+                                type="text"
+                                value={epRow.title}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'title', e.target.value)}
+                                placeholder="e.g. Episode 1: Chapter One"
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <label className="text-[#9E9EA0] block mb-0.5">Server 1 (StreamHG Embed Link)</label>
+                              <input
+                                type="text"
+                                value={epRow.streamServer1Url || ''}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'streamServer1Url', e.target.value)}
+                                placeholder="https://streamhg.com/e/..."
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[#9E9EA0] block mb-0.5">Server 2 (EarnVids Embed Link)</label>
+                              <input
+                                type="text"
+                                value={epRow.streamServer2Url || ''}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'streamServer2Url', e.target.value)}
+                                placeholder="https://earnvids.com/e/..."
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+
+                            <div>
+                              <label className="text-[#9E9EA0] block mb-0.5">Server 3 (FileMoon Embed Link)</label>
+                              <input
+                                type="text"
+                                value={epRow.streamServer3Url || ''}
+                                onChange={(e) => handleUpdateEpisodeRow(idx, 'streamServer3Url', e.target.value)}
+                                placeholder="https://filemoon.sx/e/..."
+                                className="w-full bg-[#0A0A0E] border border-white/10 rounded-lg p-2 text-white focus:outline-none"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* 5-Server Embedded Player URLs Manager */}
                 <div className="md:col-span-2 space-y-3 p-4 rounded-2xl bg-[#0A0A0E] border border-white/10">

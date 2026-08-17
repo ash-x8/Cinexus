@@ -41,16 +41,20 @@ export const MovieDetailPage: React.FC = () => {
   const [activeServer, setActiveServer] = useState<string>('');
   const [plotTab, setPlotTab] = useState<'sinhala' | 'english'>('sinhala');
   const [downloadSuccessMessage, setDownloadSuccessMessage] = useState<string>('');
+  const [activeEpisodeId, setActiveEpisodeId] = useState<string>('');
   const [trailerModal, setTrailerModal] = useState<{ isOpen: boolean; url: string; title: string }>({
     isOpen: false,
     url: '',
     title: '',
   });
 
-  // Strict URL extraction and non-empty checks
-  const s1Url = movie?.streamServer1Url?.trim() || '';
-  const s2Url = movie?.streamServer2Url?.trim() || '';
-  const s3Url = movie?.streamServer3Url?.trim() || '';
+  // Episode Selection Logic for TV Series
+  const selectedEpisode = movie?.episodes?.find(ep => ep.id === activeEpisodeId) || movie?.episodes?.[0];
+
+  // Strict URL extraction and non-empty checks (Override with selected episode if TV series)
+  const s1Url = selectedEpisode?.streamServer1Url?.trim() || movie?.streamServer1Url?.trim() || '';
+  const s2Url = selectedEpisode?.streamServer2Url?.trim() || movie?.streamServer2Url?.trim() || '';
+  const s3Url = selectedEpisode?.streamServer3Url?.trim() || movie?.streamServer3Url?.trim() || '';
   const trailerUrl = movie?.trailerEmbedUrl?.trim() || movie?.trailerUrl?.trim() || '';
   const subtitleUrl = movie?.subtitleSourceUrl?.trim() || '';
 
@@ -301,6 +305,56 @@ export const MovieDetailPage: React.FC = () => {
         </div>
       </section>
 
+      {/* TV SERIES EPISODE SELECTOR GRID (Renders when movie is a TV Series and has episodes) */}
+      {Boolean(movie.isTVSeries && movie.episodes && movie.episodes.length > 0) && (
+        <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-4">
+          <div className="flex items-center justify-between border-b border-white/5 pb-3">
+            <div>
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Layers className="w-5 h-5 text-[#FF0E25]" />
+                TV Series Episodes Selector (කථාංග තෝරන්න)
+              </h3>
+              <p className="text-xs text-[#9E9EA0] mt-0.5">Select an episode to load its streaming servers & direct download links.</p>
+            </div>
+            <span className="px-3 py-1 rounded-xl bg-[#FF0E25]/20 text-[#FF0E25] font-extrabold text-xs border border-[#FF0E25]/30">
+              {movie.episodes?.length || 0} Episodes Available
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            {movie.episodes?.map((ep) => {
+              const isSelected = (selectedEpisode?.id === ep.id) || (!activeEpisodeId && movie.episodes?.[0]?.id === ep.id);
+              return (
+                <button
+                  key={ep.id}
+                  onClick={() => {
+                    setActiveEpisodeId(ep.id);
+                    if (ep.streamServer1Url) setActiveServer('s1');
+                    else if (ep.streamServer2Url) setActiveServer('s2');
+                    else if (ep.streamServer3Url) setActiveServer('s3');
+                  }}
+                  className={`p-3.5 rounded-2xl border text-left transition-all flex items-center justify-between ${
+                    isSelected
+                      ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white border-[#FF0E25] shadow-lg shadow-[#FF0E25]/30'
+                      : 'bg-[#0A0A0E] text-gray-300 border-white/10 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  <div className="min-w-0 pr-2">
+                    <span className="font-extrabold text-xs block truncate">
+                      Ep {ep.episodeNumber}: {ep.title}
+                    </span>
+                    <span className="text-[10px] opacity-80 block truncate">
+                      {ep.seasonNumber ? `Season ${ep.seasonNumber}` : 'Full Episode'}
+                    </span>
+                  </div>
+                  <Play className={`w-4 h-4 shrink-0 ${isSelected ? 'text-white fill-white' : 'text-[#FF0E25]'}`} />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       {/* ONLINE STREAMING PLAYER */}
       <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
@@ -314,7 +368,7 @@ export const MovieDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Server Switcher Tabs - Strict Conditional Rendering */}
+          {/* Server Switcher Tabs & External Mirror Popout Button */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
             {Boolean(s1Url) && (
               <button
@@ -356,6 +410,19 @@ export const MovieDetailPage: React.FC = () => {
                 <Server className="w-3.5 h-3.5" />
                 Server 3: FileMoon
               </button>
+            )}
+
+            {Boolean(sanitizedPlayerUrl) && (
+              <a
+                href={sanitizedPlayerUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shadow-md"
+                title="Open player in direct popout window"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                Open External Player Mirror
+              </a>
             )}
 
             {Boolean(trailerUrl) && (
