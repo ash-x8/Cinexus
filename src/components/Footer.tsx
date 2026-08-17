@@ -44,9 +44,13 @@ export const Footer: React.FC = () => {
           {/* Column 1: Branding & Community Socials */}
           <div className="space-y-4">
             {/* Single Logo Policy: Strictly ONE logo in the footer */}
-            <Link
-              to="/"
-              onClick={() => { setSelectedCategory('All'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                setSelectedCategory('All');
+                window.location.href = '/';
+              }}
               className="flex items-center gap-3 shrink-0 group focus:outline-none"
               title="CINEXUS - Go to Homepage"
             >
@@ -63,7 +67,7 @@ export const Footer: React.FC = () => {
                   {siteSettings.sinhalaTitle || 'සිනෙක්ස්'} සිංහල උපසිරැසි
                 </p>
               </div>
-            </Link>
+            </a>
 
             <p className="text-[#9E9EA0] leading-relaxed">
               {siteSettings.footerText || "CINEXUS (සිනෙක්ස්) • Sri Lanka's premier Sinhala subtitled streaming and multi-quality direct download portal."}
@@ -71,7 +75,7 @@ export const Footer: React.FC = () => {
 
             {/* Rounded Glass Social Icons synced dynamically from Admin Panel - Strict Conditional Rendering */}
             <div className="flex items-center gap-2 pt-2 flex-wrap">
-              {siteSettings.facebookUrl && siteSettings.facebookUrl.trim() !== '' && (
+              {Boolean(siteSettings.facebookUrl && siteSettings.facebookUrl.trim() !== '') && (
                 <a
                   href={siteSettings.facebookUrl}
                   target="_blank"
@@ -83,7 +87,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.telegramChannelUrl && siteSettings.telegramChannelUrl.trim() !== '' && (
+              {Boolean(siteSettings.telegramChannelUrl && siteSettings.telegramChannelUrl.trim() !== '') && (
                 <a
                   href={siteSettings.telegramChannelUrl}
                   target="_blank"
@@ -95,7 +99,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.whatsappGroupUrl && siteSettings.whatsappGroupUrl.trim() !== '' && (
+              {Boolean(siteSettings.whatsappGroupUrl && siteSettings.whatsappGroupUrl.trim() !== '') && (
                 <a
                   href={siteSettings.whatsappGroupUrl}
                   target="_blank"
@@ -107,7 +111,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.instagramUrl && siteSettings.instagramUrl.trim() !== '' && (
+              {Boolean(siteSettings.instagramUrl && siteSettings.instagramUrl.trim() !== '') && (
                 <a
                   href={siteSettings.instagramUrl}
                   target="_blank"
@@ -119,7 +123,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.youtubeUrl && siteSettings.youtubeUrl.trim() !== '' && (
+              {Boolean(siteSettings.youtubeUrl && siteSettings.youtubeUrl.trim() !== '') && (
                 <a
                   href={siteSettings.youtubeUrl}
                   target="_blank"
@@ -131,7 +135,7 @@ export const Footer: React.FC = () => {
                 </a>
               )}
 
-              {siteSettings.contactEmail && siteSettings.contactEmail.trim() !== '' && (
+              {Boolean(siteSettings.contactEmail && siteSettings.contactEmail.trim() !== '') && (
                 <Link
                   to="/contact"
                   className="w-9 h-9 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-gray-300 hover:text-white hover:bg-[#FF0E25]/30 hover:border-[#FF0E25]/50 transition-all"
@@ -211,7 +215,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-2.5 text-[#9E9EA0] font-medium">
               <li>
                 <Link
-                  to="/about-us"
+                  to="/about"
                   className="hover:text-[#FF0E25] transition-colors text-left block"
                 >
                   {t('aboutUs')}
