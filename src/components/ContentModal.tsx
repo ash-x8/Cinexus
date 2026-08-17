@@ -3,6 +3,7 @@ import { X, FileText, Send, CheckCircle, Heart, Bookmark, User, Film, HelpCircle
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 import { MovieCard } from './MovieCard';
+import { ProfileAvatar } from './ProfileAvatar';
 
 export type ContentModalType = 'about' | 'terms' | 'privacy' | 'contact' | 'faq' | 'request' | 'watchlist' | 'favorites' | 'account' | null;
 
@@ -320,13 +321,9 @@ export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => 
           {type === 'account' && (
             <div className="space-y-4">
               <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-white/10 flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-[#FF0E25] to-amber-500 p-0.5">
-                  <div className="w-full h-full bg-[#121620] rounded-full flex items-center justify-center text-white font-bold">
-                    CX
-                  </div>
-                </div>
+                <ProfileAvatar size="lg" editable={true} />
                 <div>
-                  <h4 className="text-sm font-extrabold text-white">CINEXUS Guest User</h4>
+                  <h4 className="text-sm font-extrabold text-white">{siteSettings.siteTitle || 'CINEXUS'} User</h4>
                   <p className="text-xs text-emerald-400 font-bold">● Active Premium Session (Free Access)</p>
                 </div>
               </div>

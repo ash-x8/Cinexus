@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { Home, Compass, Search, Bookmark, User } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
+import { ProfileAvatar } from './ProfileAvatar';
 
 export const MobileBottomNav: React.FC = () => {
   const location = useLocation();
@@ -47,7 +48,11 @@ export const MobileBottomNav: React.FC = () => {
               }`}
             >
               <div className="relative">
-                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                {item.label === 'Profile' && currentUser ? (
+                  <ProfileAvatar size="sm" editable={false} />
+                ) : (
+                  <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110' : ''}`} />
+                )}
                 {item.badge !== undefined && (
                   <span className="absolute -top-1.5 -right-2 px-1.5 py-0.2 rounded-full bg-[#FF0E25] text-white text-[9px] font-black shadow-sm">
                     {item.badge}

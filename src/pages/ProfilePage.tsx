@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { MovieCard } from '../components/MovieCard';
+import { ProfileAvatar } from '../components/ProfileAvatar';
 import {
   User,
   LogOut,
@@ -32,7 +33,6 @@ export const ProfilePage: React.FC = () => {
 
   const [isEditing, setIsEditing] = useState(false);
   const [usernameInput, setUsernameInput] = useState(currentUser?.username || '');
-  const [avatarInput, setAvatarInput] = useState(currentUser?.avatarUrl || '');
 
   if (!currentUser) {
     return (
@@ -54,7 +54,6 @@ export const ProfilePage: React.FC = () => {
     e.preventDefault();
     updateUserProfile({
       username: usernameInput,
-      avatarUrl: avatarInput,
     });
     setIsEditing(false);
   };
@@ -68,24 +67,13 @@ export const ProfilePage: React.FC = () => {
   const savedFavorites = movies.filter(m => favorites.includes(m.id));
   const recentMovies = movies.filter(m => recentlyViewed.includes(m.id));
 
-  const avatars = [
-    'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-    'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=200&q=80',
-    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
-    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-  ];
-
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
 
       {/* Profile Header Dashboard */}
       <div className="p-6 sm:p-8 rounded-3xl bg-[#121620] border border-white/10 shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
-          <img
-            src={currentUser.avatarUrl}
-            alt={currentUser.username}
-            className="w-24 h-24 rounded-full object-cover border-2 border-[#FF0E25] shadow-xl"
-          />
+          <ProfileAvatar size="xl" editable={true} />
           <div className="space-y-1">
             <div className="flex items-center justify-center sm:justify-start gap-2">
               <h1 className="text-2xl font-black text-white">{currentUser.username}</h1>
@@ -106,7 +94,7 @@ export const ProfilePage: React.FC = () => {
             className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#FF0E25] text-white font-extrabold text-xs flex items-center gap-2 transition-all"
           >
             <Edit2 className="w-4 h-4 text-[#FF0E25]" />
-            {isEditing ? 'Cancel Edit' : 'Edit Profile'}
+            {isEditing ? 'Cancel Edit' : 'Edit Username'}
           </button>
 
           <button
@@ -123,7 +111,7 @@ export const ProfilePage: React.FC = () => {
       {isEditing && (
         <form onSubmit={handleSaveProfile} className="p-6 rounded-3xl bg-[#121620] border border-[#FF0E25]/40 space-y-4 animate-in slide-in-from-top-4 duration-200">
           <h3 className="text-sm font-black text-white uppercase tracking-wider flex items-center gap-2">
-            <Settings className="w-4 h-4 text-[#FF0E25]" /> Edit Profile Settings
+            <Settings className="w-4 h-4 text-[#FF0E25]" /> Edit Account Settings
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -137,31 +125,13 @@ export const ProfilePage: React.FC = () => {
                 required
               />
             </div>
-
-            <div className="space-y-1">
-              <label className="font-bold text-[#9E9EA0]">Choose Avatar Preset</label>
-              <div className="flex items-center gap-3 pt-1">
-                {avatars.map((url, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => setAvatarInput(url)}
-                    className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-all ${
-                      avatarInput === url ? 'border-[#FF0E25] scale-110 shadow-lg' : 'border-transparent opacity-60'
-                    }`}
-                  >
-                    <img src={url} alt="Avatar option" className="w-full h-full object-cover" />
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           <button
             type="submit"
             className="px-5 py-2.5 bg-[#FF0E25] hover:bg-[#C80016] text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 shadow-md"
           >
-            <Check className="w-4 h-4" /> Save Changes
+            <Check className="w-4 h-4" /> Save Username
           </button>
         </form>
       )}
