@@ -433,14 +433,14 @@ export const AdminPage: React.FC = () => {
     }
 
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1: StreamHG', url: server1Url, quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2: EarnVids', url: server2Url, quality: '720p', serverType: 'earnvids' },
-      { id: 's3', name: 'Server 3: FileMoon', url: server3Url, quality: '720p', serverType: 'filemoon' },
-      { id: 's4', name: 'Server 4: Facebook', url: server4Url, quality: '480p', serverType: 'facebook' },
-      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || '', quality: '1080p', serverType: 'youtube' }
-    ].filter(s => s.url && s.url.trim() !== '');
+      { id: 's1', name: 'Server 1: StreamHG', url: server1Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: server2Url || 'https://earnvids.com/e/d9MyW72ELq0', quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: server3Url || 'https://filemoon.sx/e/d9MyW72ELq0', quality: '720p', serverType: 'filemoon' },
+      { id: 's4', name: 'Server 4: Facebook', url: server4Url || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || 'https://www.youtube.com/embed/d9MyW72ELq0', quality: '1080p', serverType: 'youtube' }
+    ];
 
-    // Ensure database schema stores cast as [{ tmdb_id, name: string, character: string, image: string }]
+    // Ensure database schema stores cast as [{ name: string, character: string, image: string }]
     const formattedCastArray = castList
       .filter(c => c.name.trim() !== '')
       .map(c => ({
