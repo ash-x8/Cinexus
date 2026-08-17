@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Movie, Category, Tag, Analytics, SiteSettings } from '../types';
+import type { Movie, Category, Tag, Analytics, SiteSettings, UserProfile } from '../types';
 import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
 
 // Supabase API credentials & CDN client initialization
@@ -42,6 +42,20 @@ interface MovieContextType {
   resetToDefaultData: () => void;
   fetchOMDbMetadata: (titleOrImdbId: string) => Promise<any>;
   logSearchQuery: (query: string) => void;
+
+  // Watchlist, Favorites, History & Profile User State
+  watchlist: string[];
+  favorites: string[];
+  watchedHistory: string[];
+  recentlyViewed: string[];
+  currentUser: UserProfile | null;
+  toggleWatchlist: (movieId: string) => void;
+  toggleFavorite: (movieId: string) => void;
+  markAsWatched: (movieId: string) => void;
+  addToRecentlyViewed: (movieId: string) => void;
+  loginUser: (email: string, username?: string) => void;
+  logoutUser: () => void;
+  updateUserProfile: (profile: Partial<UserProfile>) => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -51,6 +65,11 @@ const LOCAL_STORAGE_CATEGORIES_KEY = 'cinexus_categories_data_v2';
 const LOCAL_STORAGE_ANALYTICS_KEY = 'cinexus_analytics_data_v2';
 const LOCAL_STORAGE_SETTINGS_KEY = 'cinexus_site_settings_v2';
 const LOCAL_STORAGE_AUTH_KEY = 'cinexus_admin_session_token_v2';
+const LOCAL_STORAGE_WATCHLIST_KEY = 'cinexus_user_watchlist_v1';
+const LOCAL_STORAGE_FAVORITES_KEY = 'cinexus_user_favorites_v1';
+const LOCAL_STORAGE_WATCHED_KEY = 'cinexus_user_watched_v1';
+const LOCAL_STORAGE_RECENT_VIEWED_KEY = 'cinexus_recently_viewed_v1';
+const LOCAL_STORAGE_USER_PROFILE_KEY = 'cinexus_user_profile_v1';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: 'CINEXUS',
@@ -132,6 +151,53 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return token === 'cinexus_authenticated_admin_session';
   });
 
+  // User List persistence states
+  const [watchlist, setWatchlist] = useState<string[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_WATCHLIST_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return ['m1', 'm2'];
+  });
+
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_FAVORITES_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return ['m2', 'm5'];
+  });
+
+  const [watchedHistory, setWatchedHistory] = useState<string[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_WATCHED_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return ['m3'];
+  });
+
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_RECENT_VIEWED_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return ['m1', 'm2', 'm3'];
+  });
+
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_USER_PROFILE_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return {
+      id: 'u_default',
+      username: 'Cinephile',
+      email: 'user@cinexus.site',
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      joinedDate: '2025-01-01',
+    };
+  });
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedContentType, setSelectedContentType] = useState('All');
@@ -194,6 +260,74 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
     }
   }, [isAdminAuthenticated]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_WATCHLIST_KEY, JSON.stringify(watchlist));
+  }, [watchlist]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_FAVORITES_KEY, JSON.stringify(favorites));
+  }, [favorites]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_WATCHED_KEY, JSON.stringify(watchedHistory));
+  }, [watchedHistory]);
+
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_RECENT_VIEWED_KEY, JSON.stringify(recentlyViewed));
+  }, [recentlyViewed]);
+
+  useEffect(() => {
+    if (currentUser) {
+      localStorage.setItem(LOCAL_STORAGE_USER_PROFILE_KEY, JSON.stringify(currentUser));
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_USER_PROFILE_KEY);
+    }
+  }, [currentUser]);
+
+  const toggleWatchlist = (movieId: string) => {
+    setWatchlist(prev =>
+      prev.includes(movieId) ? prev.filter(id => id !== movieId) : [...prev, movieId]
+    );
+  };
+
+  const toggleFavorite = (movieId: string) => {
+    setFavorites(prev =>
+      prev.includes(movieId) ? prev.filter(id => id !== movieId) : [...prev, movieId]
+    );
+  };
+
+  const markAsWatched = (movieId: string) => {
+    setWatchedHistory(prev =>
+      prev.includes(movieId) ? prev : [movieId, ...prev]
+    );
+  };
+
+  const addToRecentlyViewed = (movieId: string) => {
+    setRecentlyViewed(prev => {
+      const filtered = prev.filter(id => id !== movieId);
+      return [movieId, ...filtered].slice(0, 20);
+    });
+  };
+
+  const loginUser = (email: string, username?: string) => {
+    const newUser: UserProfile = {
+      id: `u_${Date.now()}`,
+      username: username || email.split('@')[0] || 'Cinephile',
+      email: email,
+      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+      joinedDate: new Date().toISOString().split('T')[0],
+    };
+    setCurrentUser(newUser);
+  };
+
+  const logoutUser = () => {
+    setCurrentUser(null);
+  };
+
+  const updateUserProfile = (profile: Partial<UserProfile>) => {
+    setCurrentUser(prev => prev ? { ...prev, ...profile } : null);
+  };
 
   const loginAdmin = (email: string, password: string): boolean => {
     const validEmails = ['admin@cinexus.site', 'admin@cinexus.co', 'admin'];
@@ -326,6 +460,18 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       resetToDefaultData,
       fetchOMDbMetadata,
       logSearchQuery,
+      watchlist,
+      favorites,
+      watchedHistory,
+      recentlyViewed,
+      currentUser,
+      toggleWatchlist,
+      toggleFavorite,
+      markAsWatched,
+      addToRecentlyViewed,
+      loginUser,
+      logoutUser,
+      updateUserProfile,
     }}>
       {children}
     </MovieContext.Provider>

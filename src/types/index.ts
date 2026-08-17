@@ -140,3 +140,11 @@ export interface Analytics {
   userTrafficToday: number;
   recentSearches?: string[];
 }
+
+export interface UserProfile {
+  id: string;
+  username: string;
+  email: string;
+  avatarUrl: string;
+  joinedDate: string;
+}
