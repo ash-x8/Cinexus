@@ -49,12 +49,12 @@ export const AppContent: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/about" element={<AboutPage />} />
-          <Route path="/about-us" element={<AboutPage />} />
-          <Route path="/terms" element={<TermsPage />} />
-          <Route path="/privacy" element={<PrivacyPage />} />
-          <Route path="/contact" element={<ContactPage />} />
-          <Route path="/faq" element={<FAQPage />} />
+          <Route path="/about" element={<LegalPage type="about" />} />
+          <Route path="/about-us" element={<LegalPage type="about" />} />
+          <Route path="/terms" element={<LegalPage type="terms" />} />
+          <Route path="/privacy" element={<LegalPage type="privacy" />} />
+          <Route path="/contact" element={<LegalPage type="contact" />} />
+          <Route path="/faq" element={<LegalPage type="faq" />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
