@@ -111,7 +111,7 @@ export const FloatingMiniPlayer: React.FC = () => {
             className="w-full h-full aspect-video border-0"
             allowFullScreen
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
+            referrerPolicy="origin-when-cross-origin"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-black/90 p-4 text-center space-y-2">

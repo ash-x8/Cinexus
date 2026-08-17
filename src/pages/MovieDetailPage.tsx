@@ -316,35 +316,61 @@ export const MovieDetailPage: React.FC = () => {
 
           {/* Server Switcher Tabs - Strict Conditional Rendering */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
-            {movie.servers?.map((server, index) => {
-              let displayName = server.name;
-              if (server.id === 's1' || server.serverType === 'streamhg' || index === 0) {
-                displayName = 'Server 1: StreamHG';
-              } else if (server.id === 's2' || server.serverType === 'earnvids' || index === 1) {
-                displayName = 'Server 2: EarnVids';
-              } else if (server.id === 's3' || server.serverType === 'filemoon' || index === 2) {
-                displayName = 'Server 3: FileMoon';
-              } else if (server.id === 's4' || server.serverType === 'facebook' || index === 3) {
-                displayName = server.name?.includes('Facebook') ? server.name : 'Server 4: Facebook';
-              } else if (server.id === 's5' || server.serverType === 'youtube' || index === 4) {
-                displayName = server.name?.includes('YouTube') ? server.name : 'Server 5: YouTube Trailer';
-              }
+            {Boolean(s1Url) && (
+              <button
+                onClick={() => handlePlayActiveServer('s1', s1Url, 'Server 1: StreamHG')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's1'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 1: StreamHG
+              </button>
+            )}
 
-              return (
-                <button
-                  key={server.id}
-                  onClick={() => handlePlayActiveServer(server.id)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                    activeServer === server.id
-                      ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
-                      : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
-                  }`}
-                >
-                  <Server className="w-3.5 h-3.5" />
-                  {displayName}
-                </button>
-              );
-            })}
+            {Boolean(s2Url) && (
+              <button
+                onClick={() => handlePlayActiveServer('s2', s2Url, 'Server 2: EarnVids')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's2'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 2: EarnVids
+              </button>
+            )}
+
+            {Boolean(s3Url) && (
+              <button
+                onClick={() => handlePlayActiveServer('s3', s3Url, 'Server 3: FileMoon')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 's3'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Server 3: FileMoon
+              </button>
+            )}
+
+            {Boolean(trailerUrl) && (
+              <button
+                onClick={() => handlePlayActiveServer('trailer', trailerUrl, 'Trailer')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
+                  activeServer === 'trailer'
+                    ? 'bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 text-white shadow-lg shadow-[#FF0E25]/30'
+                    : 'bg-[#0A0A0E] text-gray-300 hover:text-white border border-white/10'
+                }`}
+              >
+                <Server className="w-3.5 h-3.5" />
+                Trailer
+              </button>
+            )}
           </div>
         </div>
 
@@ -374,7 +400,7 @@ export const MovieDetailPage: React.FC = () => {
               className="w-full h-full aspect-video rounded-xl border-0"
               allowFullScreen
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
+              referrerPolicy="origin-when-cross-origin"
               onError={() => setIsIframeProcessing(true)}
             />
           ) : (
