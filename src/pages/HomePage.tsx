@@ -252,11 +252,15 @@ export const HomePage: React.FC = () => {
             ))}
           </div>
 
-          {/* Main Grid: Movies Display */}
+          {/* Main Grid: Movies Display with Glassmorphism Hover Effects */}
           {sortedMovies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {sortedMovies.map((movie) => (
-                <MovieCard key={movie.id} movie={movie} />
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  onTrailerClick={(url, title) => handleOpenTrailer(url, title)}
+                />
               ))}
             </div>
           ) : (
