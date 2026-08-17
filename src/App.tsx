@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
@@ -10,7 +10,11 @@ import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
 import { AdminPage } from './pages/AdminPage';
-import { LegalPage } from './pages/LegalPage';
+import AboutPage from './app/about/page';
+import PrivacyPage from './app/privacy/page';
+import TermsPage from './app/terms/page';
+import FAQPage from './app/faq/page';
+import ContactPage from './app/contact/page';
 
 // Helper component to check window location for /admin, /#admin, or /?route=admin
 const AdminRouteInterceptor: React.FC = () => {
@@ -18,7 +22,6 @@ const AdminRouteInterceptor: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const fullUrl = window.location.href;
     const searchParams = new URLSearchParams(window.location.search);
     const routeParam = searchParams.get('route');
 

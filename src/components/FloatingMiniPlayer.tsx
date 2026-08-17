@@ -105,6 +105,7 @@ export const FloatingMiniPlayer: React.FC = () => {
       <div className="relative aspect-video w-full bg-black">
         {isPlaying ? (
           <iframe
+            key={activeStream.streamUrl}
             src={sanitizedUrl}
             title={`${activeStream.title} Floating Player`}
             className="w-full h-full aspect-video border-0"

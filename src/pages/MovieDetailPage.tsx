@@ -27,8 +27,7 @@ import {
   HardDrive,
   Volume2,
   Layers,
-  ExternalLink,
-  User
+  ExternalLink
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
@@ -48,30 +47,32 @@ export const MovieDetailPage: React.FC = () => {
     title: '',
   });
 
+  // Strict URL extraction and non-empty checks
+  const s1Url = movie?.streamServer1Url?.trim() || '';
+  const s2Url = movie?.streamServer2Url?.trim() || '';
+  const s3Url = movie?.streamServer3Url?.trim() || '';
+  const trailerUrl = movie?.trailerEmbedUrl?.trim() || movie?.trailerUrl?.trim() || '';
+  const subtitleUrl = movie?.subtitleSourceUrl?.trim() || '';
+
   useEffect(() => {
     if (movie) {
       incrementViews(movie.id);
 
-      // Determine default server if activeServer is empty
-      const s1Url = movie.streamServer1Url || movie.servers?.find(s => s.id === 's1' || s.serverType === 'streamhg')?.url;
-      const s2Url = movie.streamServer2Url || movie.servers?.find(s => s.id === 's2' || s.serverType === 'earnvids')?.url;
-      const s3Url = movie.streamServer3Url || movie.servers?.find(s => s.id === 's3' || s.serverType === 'filemoon')?.url;
-      const trailer = movie.trailerEmbedUrl || movie.trailerUrl;
-
+      // Auto-set initial player state: If Server 1 is empty but Server 2 exists, set to Server 2, etc.
       if (s1Url) {
         setActiveServer('s1');
       } else if (s2Url) {
         setActiveServer('s2');
       } else if (s3Url) {
         setActiveServer('s3');
-      } else if (trailer) {
+      } else if (trailerUrl) {
         setActiveServer('trailer');
       } else if (movie.servers && movie.servers.length > 0) {
         setActiveServer(movie.servers[0].id);
       }
     }
     window.scrollTo(0, 0);
-  }, [id, movie?.id]);
+  }, [id, movie?.id, s1Url, s2Url, s3Url, trailerUrl]);
 
   if (!movie) {
     return (
@@ -89,13 +90,7 @@ export const MovieDetailPage: React.FC = () => {
     );
   }
 
-  // Determine available server URLs directly
-  const s1Url = (movie.streamServer1Url || movie.servers?.find(s => s.id === 's1' || s.serverType === 'streamhg')?.url || '').trim();
-  const s2Url = (movie.streamServer2Url || movie.servers?.find(s => s.id === 's2' || s.serverType === 'earnvids')?.url || '').trim();
-  const s3Url = (movie.streamServer3Url || movie.servers?.find(s => s.id === 's3' || s.serverType === 'filemoon')?.url || '').trim();
-  const trailerUrl = (movie.trailerEmbedUrl || movie.trailerUrl || '').trim();
-
-  // Active server player selection with dynamic URL Sanitizer
+  // Active server selection logic
   let activeUrl = '';
   let activeServerName = '';
   let activeServerType = 'generic';
@@ -117,7 +112,6 @@ export const MovieDetailPage: React.FC = () => {
     activeServerName = 'Trailer';
     activeServerType = 'youtube';
   } else {
-    // Fallback to searching servers list
     const foundServer = movie.servers?.find(s => s.id === activeServer && s.url && s.url.trim() !== '') || movie.servers?.find(s => s.url && s.url.trim() !== '');
     if (foundServer) {
       activeUrl = foundServer.url;
@@ -129,7 +123,7 @@ export const MovieDetailPage: React.FC = () => {
   const sanitizedPlayerUrl = activeUrl ? formatToEmbedUrl(activeUrl, activeServerType) : '';
   const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
-  // Sync current video stream to global PlayerContext for background floating mini-player persistence
+  // Sync active stream to PlayerContext for persistent floating mini-player
   const handlePlayActiveServer = (serverId: string, url: string, name: string) => {
     setActiveServer(serverId);
     if (url) {
@@ -162,7 +156,6 @@ export const MovieDetailPage: React.FC = () => {
 
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
   const categoryType = movie.contentType || (movie.hasSinhalaSub ? 'Sinhala Sub' : 'Without Sub / English');
-  const subtitleLink = movie.subtitleSourceUrl ? movie.subtitleSourceUrl.trim() : '';
 
   // Normalize cast array
   const formattedCast: CastMember[] = (movie.cast || []).map(item => {
@@ -323,7 +316,7 @@ export const MovieDetailPage: React.FC = () => {
 
           {/* Server Switcher Tabs - Strict Conditional Rendering */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
-            {s1Url && (
+            {Boolean(s1Url) && (
               <button
                 onClick={() => handlePlayActiveServer('s1', s1Url, 'Server 1: StreamHG')}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
@@ -337,7 +330,7 @@ export const MovieDetailPage: React.FC = () => {
               </button>
             )}
 
-            {s2Url && (
+            {Boolean(s2Url) && (
               <button
                 onClick={() => handlePlayActiveServer('s2', s2Url, 'Server 2: EarnVids')}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
@@ -351,7 +344,7 @@ export const MovieDetailPage: React.FC = () => {
               </button>
             )}
 
-            {s3Url && (
+            {Boolean(s3Url) && (
               <button
                 onClick={() => handlePlayActiveServer('s3', s3Url, 'Server 3: FileMoon')}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
@@ -365,7 +358,7 @@ export const MovieDetailPage: React.FC = () => {
               </button>
             )}
 
-            {trailerUrl && (
+            {Boolean(trailerUrl) && (
               <button
                 onClick={() => handlePlayActiveServer('trailer', trailerUrl, 'Trailer')}
                 className={`px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap transition-all flex items-center gap-1.5 ${
@@ -381,7 +374,7 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dynamic Video Player Frame */}
+        {/* Dynamic Video Player Frame with key={activeServer} for unmount/remount sync */}
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner group">
           {isIframeProcessing && (
             <div className="absolute inset-0 z-20 bg-[#0A0A0E]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 border border-white/10">
@@ -434,9 +427,9 @@ export const MovieDetailPage: React.FC = () => {
           </div>
 
           {/* Clean Subtitle Download Source Button - Strict Conditional Rendering */}
-          {subtitleLink ? (
+          {Boolean(subtitleUrl) && (
             <a
-              href={subtitleLink}
+              href={subtitleUrl}
               target="_blank"
               rel="noreferrer"
               className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
@@ -445,7 +438,7 @@ export const MovieDetailPage: React.FC = () => {
               [🌐 Download Subtitle File]
               <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
             </a>
-          ) : null}
+          )}
         </div>
 
         {downloadSuccessMessage && (
@@ -487,7 +480,6 @@ export const MovieDetailPage: React.FC = () => {
                     <HardDrive className="w-3.5 h-3.5 text-[#FF0E25]" /> {link.format || 'Standard HD'}
                   </p>
                   <p className="text-[11px] text-[#9E9EA0]">{displayRes} • {displayServer}</p>
-                  {/* Audio / Sub Tag Attribute Badge */}
                   <span className="inline-block mt-1 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-bold text-amber-300">
                     🏷️ {attrTag}
                   </span>
@@ -556,7 +548,7 @@ export const MovieDetailPage: React.FC = () => {
             {/* Formatted Plot Summary with line-height: 1.8 */}
             <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-white/5">
               <p className="text-xs sm:text-sm text-gray-200 font-normal tracking-wide leading-[1.8] whitespace-pre-line">
-                {plotTab === 'sinhala' ? movie.sinhalaPlot : movie.englishPlot}
+                {plotTab === 'sinhala' ? (movie.sinhalaPlot || movie.englishPlot) : (movie.englishPlot || movie.sinhalaPlot)}
               </p>
             </div>
           </div>
@@ -578,7 +570,7 @@ export const MovieDetailPage: React.FC = () => {
                     key={idx}
                     href={actorTmdbUrl}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/60 hover:bg-white/[0.03] transition-all cursor-pointer"
                     title={`View ${actor.name} on TMDB`}
                   >
@@ -609,7 +601,7 @@ export const MovieDetailPage: React.FC = () => {
 
         {/* Right Column: Subtitle Source Link Card & Community */}
         <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6 flex flex-col justify-between">
-          {subtitleLink ? (
+          {Boolean(subtitleUrl) ? (
             <div>
               <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
                 <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
@@ -620,7 +612,7 @@ export const MovieDetailPage: React.FC = () => {
                   Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
                 </p>
                 <a
-                  href={subtitleLink}
+                  href={subtitleUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
