@@ -31,6 +31,26 @@ export interface TMDBMovieDetail {
   crew: string[];
   duration: string;
   language: string;
+  isTVSeries?: boolean;
+  seasons?: {
+    seasonNumber: number;
+    episodes: {
+      episodeNumber: number;
+      seasonNumber: number;
+      title: string;
+      overview?: string;
+    }[];
+  }[];
+  episodes?: {
+    id: string;
+    episodeNumber: number;
+    seasonNumber: number;
+    title: string;
+    streamServer1Url?: string;
+    streamServer2Url?: string;
+    streamServer3Url?: string;
+    downloadUrl?: string;
+  }[];
 }
 
 export const DEFAULT_ACTOR_PLACEHOLDER = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
@@ -139,9 +159,61 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
           .map((c: any) => `${c.name} (${c.job})`)
       : [];
 
-    const releaseYear = detail.release_date
-      ? parseInt(detail.release_date.split('-')[0], 10)
+    const releaseYear = (detail.release_date || detail.first_air_date)
+      ? parseInt((detail.release_date || detail.first_air_date).split('-')[0], 10)
       : new Date().getFullYear();
+
+    const isTV = mediaType === 'tv';
+    let fetchedSeasons: any[] = [];
+    let fetchedEpisodes: any[] = [];
+
+    if (isTV && detail.seasons && detail.seasons.length > 0) {
+      // Fetch episode details for each season
+      const seasonPromises = detail.seasons
+        .filter((s: any) => s.season_number > 0)
+        .map(async (s: any) => {
+          try {
+            const seasonRes = await fetch(
+              `https://api.themoviedb.org/3/tv/${mediaId}/season/${s.season_number}?api_key=${TMDB_API_KEY}`
+            );
+            if (seasonRes.ok) {
+              const seasonData = await seasonRes.json();
+              return seasonData;
+            }
+          } catch (e) {
+            console.error('Season fetch error', e);
+          }
+          return null;
+        });
+
+      const seasonResults = await Promise.all(seasonPromises);
+      seasonResults.forEach((sData: any) => {
+        if (!sData) return;
+        const eps = (sData.episodes || []).map((ep: any) => ({
+          episodeNumber: ep.episode_number,
+          seasonNumber: sData.season_number,
+          title: ep.name || `Episode ${ep.episode_number}`,
+          overview: ep.overview || ''
+        }));
+        fetchedSeasons.push({
+          seasonNumber: sData.season_number,
+          episodes: eps
+        });
+
+        eps.forEach((ep: any) => {
+          fetchedEpisodes.push({
+            id: `ep_s${sData.season_number}_e${ep.episodeNumber}`,
+            episodeNumber: ep.episodeNumber,
+            seasonNumber: sData.season_number,
+            title: ep.title,
+            streamServer1Url: '',
+            streamServer2Url: '',
+            streamServer3Url: '',
+            downloadUrl: ''
+          });
+        });
+      });
+    }
 
     const genres = detail.genres ? detail.genres.map((g: any) => g.name) : ['Action'];
 
@@ -174,20 +246,23 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
     const languageStr = langNames[primaryLangCode] || 'English';
 
     return {
-      title: detail.title || detail.original_title || trimmed,
-      originalTitle: detail.original_title,
+      title: detail.title || detail.name || detail.original_title || detail.original_name || trimmed,
+      originalTitle: detail.original_title || detail.original_name,
       releaseYear,
       imdbRating: detail.vote_average ? parseFloat(detail.vote_average.toFixed(1)) : 8.0,
       genres,
       posterUrl,
       backdropUrl,
       englishPlot: detail.overview || 'No plot summary available.',
-      sinhalaPlot: `${detail.title || trimmed} චිත්‍රපටය සඳහා සිංහල උපසිරැසි සමඟින් උසස්ම HD ගුණාත්මක භාවයෙන් CINEXUS වෙතින් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
+      sinhalaPlot: `${detail.title || detail.name || trimmed} සඳහා සිංහල උපසිරැසි සමඟින් උසස්ම HD ගුණාත්මක භාවයෙන් CINEXUS වෙතින් නොමිලේම නරඹන්න සහ බාගත කරගන්න.`,
       director: directorName,
       cast: castMembers,
       crew: crewNames,
-      duration: durationStr,
-      language: languageStr
+      duration: isTV ? `${detail.number_of_seasons || 1} Season(s)` : durationStr,
+      language: languageStr,
+      isTVSeries: isTV,
+      seasons: fetchedSeasons,
+      episodes: fetchedEpisodes
     };
   } catch (err) {
     console.error('TMDB Auto-Fetch Error:', err);

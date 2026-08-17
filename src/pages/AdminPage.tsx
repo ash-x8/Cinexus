@@ -223,7 +223,7 @@ export const AdminPage: React.FC = () => {
   const [newCatName, setNewCatName] = useState('');
   const [newCatSinhala, setNewCatSinhala] = useState('');
 
-  // TMDB API Auto-Fetch Helper for Cast, Crew, and Movie Metadata
+  // TMDB API Auto-Fetch Helper for Cast, Crew, Movie & TV Metadata
   const fetchMovieDetails = async () => {
     if (!formData.title) {
       alert('Please enter a movie title or TMDB/IMDb ID first.');
@@ -248,10 +248,10 @@ export const AdminPage: React.FC = () => {
           language: data.language || prev.language,
           languages: [data.language || 'English'],
           duration: data.duration || prev.duration,
+          isTVSeries: data.isTVSeries ?? prev.isTVSeries,
         }));
 
         if (data.cast && data.cast.length > 0) {
-          // Map cast list ensuring tmdb_id, name, character, image, and profileUrl are populated
           const mappedCastList: CastMember[] = data.cast.map(c => ({
             tmdb_id: c.tmdb_id,
             name: c.name,
@@ -261,8 +261,12 @@ export const AdminPage: React.FC = () => {
           }));
           setCastList(mappedCastList);
         }
+
+        if (data.isTVSeries && data.episodes && data.episodes.length > 0) {
+          setEpisodesList(data.episodes);
+        }
       } else {
-        alert('TMDB Fetch Notice: Movie details not found. Please verify title or ID.');
+        alert('TMDB Fetch Notice: Movie/TV details not found. Please verify title or ID.');
       }
     } catch (err) {
       console.error(err);
@@ -306,37 +310,15 @@ export const AdminPage: React.FC = () => {
 
   const handleOpenAddModal = () => {
     setEditingMovieId(null);
-    setServer1Url('https://streamhg.com/e/d9MyW72ELq0');
-    setServer2Url('https://earnvids.com/e/d9MyW72ELq0');
-    setServer3Url('https://filemoon.sx/e/d9MyW72ELq0');
-    setServer4Url('https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Ffacebook%2Fvideos%2F10153231379946729%2F');
-    setServer5Url('https://www.youtube.com/embed/d9MyW72ELq0');
+    setServer1Url('');
+    setServer2Url('');
+    setServer3Url('');
+    setServer4Url('');
+    setServer5Url('');
 
-    setDownloadLinksList([
-      { id: 'dl_4k', quality: '4K', resolution: '3840x2160', fileSize: '5.2 GB', url: '#download-4k', serverType: 'Direct High-Speed', format: 'MKV / x265', audioSubAttribute: 'English [Sinhala Sub]' },
-      { id: 'dl_1080', quality: '1080p', resolution: '1920x1080', fileSize: '2.5 GB', url: '#download-1080p', serverType: 'Direct High-Speed', format: 'MKV / x264', audioSubAttribute: 'English [Sinhala Sub]' },
-      { id: 'dl_720', quality: '720p', resolution: '1280x720', fileSize: '1.2 GB', url: '#download-720p', serverType: 'Direct High-Speed', format: 'MP4 / x264', audioSubAttribute: 'English [Sinhala Sub]' },
-      { id: 'dl_480', quality: '480p', resolution: '854x480', fileSize: '600 MB', url: '#download-480p', serverType: 'Direct High-Speed', format: 'MP4', audioSubAttribute: 'English [Sinhala Sub]' },
-      { id: 'dl_tg', quality: 'Telegram', resolution: 'Original HD', fileSize: 'Direct Telegram File', url: 'https://t.me/cinexus_official', serverType: 'Telegram Channel', format: 'Telegram', audioSubAttribute: 'English [Sinhala Sub]' }
-    ]);
-
-    setCastList([
-      { name: 'Lead Actor 1', character: 'Main Role', profileUrl: '', image: '' },
-      { name: 'Lead Actor 2', character: 'Supporting Role', profileUrl: '', image: '' }
-    ]);
-
-    setEpisodesList([
-      {
-        id: 'ep_1',
-        episodeNumber: 1,
-        seasonNumber: 1,
-        title: 'Episode 1: Pilot',
-        streamServer1Url: 'https://streamhg.com/e/yQEondeGvKo',
-        streamServer2Url: 'https://earnvids.com/e/yQEondeGvKo',
-        streamServer3Url: 'https://filemoon.sx/e/yQEondeGvKo',
-        downloadUrl: '#download-ep1'
-      }
-    ]);
+    setDownloadLinksList([]);
+    setCastList([]);
+    setEpisodesList([]);
 
     setFormData({
       title: '',
@@ -345,21 +327,21 @@ export const AdminPage: React.FC = () => {
       imdbRating: 8.0,
       duration: '2h 15m',
       qualityBadge: '1080p WEB-DL',
-      posterUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop',
-      backdropUrl: 'https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=1600&auto=format&fit=crop',
-      trailerUrl: 'https://www.youtube.com/embed/d9MyW72ELq0',
+      posterUrl: '',
+      backdropUrl: '',
+      trailerUrl: '',
       sinhalaPlot: '',
       englishPlot: '',
-      genres: ['Action', 'Sci-Fi'],
+      genres: ['Action'],
       language: 'English',
       languages: ['English'],
       contentType: 'Sinhala Sub',
-      director: 'Director Name',
-      audioLanguage: 'English (Sinhala Sub)',
-      subtitleSourceUrl: 'https://cinesubz.co',
+      director: '',
+      audioLanguage: 'English',
+      subtitleSourceUrl: '',
       hasSinhalaSub: true,
       isDualAudio: false,
-      isTrending: true,
+      isTrending: false,
       isFeatured: false,
       isTVSeries: false,
     });

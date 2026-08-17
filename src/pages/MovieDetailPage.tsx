@@ -412,19 +412,6 @@ export const MovieDetailPage: React.FC = () => {
               </button>
             )}
 
-            {Boolean(sanitizedPlayerUrl) && (
-              <a
-                href={sanitizedPlayerUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 text-xs font-bold whitespace-nowrap transition-all flex items-center gap-1.5 shadow-md"
-                title="Open player in direct popout window"
-              >
-                <ExternalLink className="w-3.5 h-3.5" />
-                Open External Player Mirror
-              </a>
-            )}
-
             {Boolean(trailerUrl) && (
               <button
                 onClick={() => handlePlayActiveServer('trailer', trailerUrl, 'Trailer')}
