@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { X, FileText, Send, CheckCircle, Heart, Bookmark, User, Film, HelpCircle, Mail, ShieldCheck, ChevronDown, ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { X, FileText, Send, CheckCircle, Heart, Bookmark, User, Film, HelpCircle, Mail, ShieldCheck, ChevronDown, ChevronRight, LogIn, UserPlus, Lock } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 import { MovieCard } from './MovieCard';
@@ -13,14 +14,17 @@ interface ContentModalProps {
 }
 
 export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => {
-  const { siteSettings, movies } = useMovies();
+  const navigate = useNavigate();
+  const { siteSettings, movies, currentUser, submitMovieRequest } = useMovies();
   const { t } = useLanguage();
 
-  // Form states
+  // Request form states
   const [requestTitle, setRequestTitle] = useState('');
   const [requestYear, setRequestYear] = useState('');
+  const [requestLanguage, setRequestLanguage] = useState('English');
   const [requestNotes, setRequestYearNotes] = useState('');
   const [requestSent, setRequestSent] = useState(false);
+  const [requestError, setRequestError] = useState('');
 
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -34,14 +38,27 @@ export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => 
 
   const handleRequestSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setRequestSent(true);
-    setTimeout(() => {
-      setRequestSent(false);
-      setRequestTitle('');
-      setRequestYear('');
-      setRequestYearNotes('');
-      onClose();
-    }, 2500);
+    setRequestError('');
+    const res = submitMovieRequest({
+      movieName: requestTitle,
+      year: requestYear,
+      language: requestLanguage,
+      message: requestNotes
+    });
+
+    if (res.success) {
+      setRequestSent(true);
+      setTimeout(() => {
+        setRequestSent(false);
+        setRequestTitle('');
+        setRequestYear('');
+        setRequestLanguage('English');
+        setRequestYearNotes('');
+        onClose();
+      }, 2500);
+    } else {
+      setRequestError(res.message);
+    }
   };
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -255,52 +272,116 @@ export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => 
                 {siteSettings.requestMovieRules}
               </div>
 
-              {requestSent ? (
-                <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-2">
-                  <CheckCircle className="w-5 h-5 text-emerald-400" />
-                  Your movie request for "{requestTitle}" has been received!
+              {!currentUser ? (
+                <div className="p-6 rounded-2xl bg-[#0A0A0E] border border-white/10 text-center space-y-4">
+                  <div className="w-12 h-12 rounded-2xl bg-[#FF0E25]/20 text-[#FF0E25] flex items-center justify-center mx-auto">
+                    <Lock className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h4 className="font-extrabold text-white text-sm">Authentication Required</h4>
+                    <p className="text-[#9E9EA0] text-xs mt-1">
+                      Please log in or create an account to submit a movie request.
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-center gap-3 pt-2">
+                    <button
+                      onClick={() => {
+                        onClose();
+                        navigate('/login');
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-extrabold text-xs flex items-center gap-2 shadow-lg"
+                    >
+                      <LogIn className="w-4 h-4" /> Login
+                    </button>
+                    <button
+                      onClick={() => {
+                        onClose();
+                        navigate('/signup');
+                      }}
+                      className="px-5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs flex items-center gap-2 transition-colors border border-white/10"
+                    >
+                      <UserPlus className="w-4 h-4 text-emerald-400" /> Create Account
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <form onSubmit={handleRequestSubmit} className="space-y-4">
-                  <h4 className="font-bold text-white text-sm">Submit New Movie Request</h4>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Movie / TV Series Official Title*</label>
-                    <input
-                      type="text"
-                      required
-                      value={requestTitle}
-                      onChange={(e) => setRequestTitle(e.target.value)}
-                      placeholder="e.g., Gladiator II"
-                      className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
-                    />
+                <>
+                  <div className="p-3 bg-[#0A0A0E] border border-emerald-500/30 rounded-xl flex items-center gap-2 text-[#9E9EA0] text-[11px]">
+                    <span className="font-bold text-white">Logged in as:</span>
+                    <span className="text-emerald-400 font-bold">{currentUser.username} ({currentUser.email})</span>
                   </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Release Year</label>
-                    <input
-                      type="text"
-                      value={requestYear}
-                      onChange={(e) => setRequestYear(e.target.value)}
-                      placeholder="2024 / 2025"
-                      className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-gray-300 mb-1">Additional Notes / IMDb URL</label>
-                    <textarea
-                      rows={2}
-                      value={requestNotes}
-                      onChange={(e) => setRequestYearNotes(e.target.value)}
-                      placeholder="e.g. Please add 1080p WEB-DL with Sinhala Subtitles"
-                      className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
-                    />
-                  </div>
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2"
-                  >
-                    <Send className="w-4 h-4" /> Submit Movie Request
-                  </button>
-                </form>
+
+                  {requestSent ? (
+                    <div className="p-4 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 font-bold flex items-center gap-2">
+                      <CheckCircle className="w-5 h-5 text-emerald-400" />
+                      Your movie request for "{requestTitle}" has been submitted successfully!
+                    </div>
+                  ) : (
+                    <form onSubmit={handleRequestSubmit} className="space-y-4">
+                      <h4 className="font-bold text-white text-sm">Submit New Movie Request</h4>
+
+                      {requestError && (
+                        <p className="text-xs text-[#FF0E25] font-semibold bg-[#FF0E25]/10 p-2.5 rounded-xl border border-[#FF0E25]/20">
+                          {requestError}
+                        </p>
+                      )}
+
+                      <div>
+                        <label className="block text-gray-300 mb-1">Movie / TV Series Official Title*</label>
+                        <input
+                          type="text"
+                          required
+                          value={requestTitle}
+                          onChange={(e) => setRequestTitle(e.target.value)}
+                          placeholder="e.g., Gladiator II"
+                          className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-gray-300 mb-1">Release Year</label>
+                          <input
+                            type="text"
+                            value={requestYear}
+                            onChange={(e) => setRequestYear(e.target.value)}
+                            placeholder="2024 / 2025"
+                            className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-gray-300 mb-1">Language</label>
+                          <input
+                            type="text"
+                            value={requestLanguage}
+                            onChange={(e) => setRequestLanguage(e.target.value)}
+                            placeholder="e.g. English, Tamil, Hindi"
+                            className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-gray-300 mb-1">Additional Notes / IMDb URL</label>
+                        <textarea
+                          rows={2}
+                          value={requestNotes}
+                          onChange={(e) => setRequestYearNotes(e.target.value)}
+                          placeholder="e.g. Please add 1080p WEB-DL with Sinhala Subtitles"
+                          className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                        />
+                      </div>
+
+                      <button
+                        type="submit"
+                        className="w-full py-3 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-extrabold text-xs shadow-lg flex items-center justify-center gap-2"
+                      >
+                        <Send className="w-4 h-4" /> Submit Movie Request
+                      </button>
+                    </form>
+                  )}
+                </>
               )}
             </div>
           )}

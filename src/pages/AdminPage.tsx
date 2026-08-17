@@ -58,6 +58,9 @@ export const AdminPage: React.FC = () => {
     addCategory,
     deleteCategory,
     resetToDefaultData,
+    movieRequests,
+    updateMovieRequestStatus,
+    deleteMovieRequest,
   } = useMovies();
 
   // Auth passcode / email state
@@ -66,7 +69,7 @@ export const AdminPage: React.FC = () => {
   const [authError, setAuthError] = useState('');
 
   // Admin Tab State
-  const [activeTab, setActiveTab] = useState<'movies' | 'branding' | 'social' | 'legal' | 'analytics' | 'categories'>('movies');
+  const [activeTab, setActiveTab] = useState<'movies' | 'requests' | 'branding' | 'social' | 'legal' | 'analytics' | 'categories'>('movies');
 
   // Site Settings Form State
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
@@ -119,7 +122,7 @@ export const AdminPage: React.FC = () => {
       setAdminEmail('');
       setAdminPassword('');
     } else {
-      setAuthError('Invalid Admin Email or Password! (Default: admin@cinexus.site / cinexus2025)');
+      setAuthError('Invalid Admin Email or Password!');
     }
   };
 
@@ -545,7 +548,7 @@ export const AdminPage: React.FC = () => {
               </label>
               <input
                 type="email"
-                placeholder="admin@cinexus.site"
+                placeholder="Enter admin email"
                 value={adminEmail}
                 onChange={(e) => setAdminEmail(e.target.value)}
                 className="w-full bg-[#0A0A0E] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
@@ -560,7 +563,7 @@ export const AdminPage: React.FC = () => {
               </label>
               <input
                 type="password"
-                placeholder="Enter password (cinexus2025)"
+                placeholder="Enter admin password"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 className="w-full bg-[#0A0A0E] border border-white/15 rounded-xl px-4 py-3 text-xs text-white focus:outline-none focus:border-[#FF0E25] transition-colors"
@@ -581,12 +584,6 @@ export const AdminPage: React.FC = () => {
               <ShieldCheck className="w-4 h-4" /> Authenticate Administrator
             </button>
           </form>
-
-          <div className="p-3 bg-white/5 rounded-2xl border border-white/5 text-[11px] text-[#9E9EA0] text-left space-y-1">
-            <p className="font-bold text-gray-300">Default Access Credentials:</p>
-            <p>Email: <code className="text-[#FF0E25]">admin@cinexus.site</code></p>
-            <p>Password: <code className="text-amber-300">cinexus2025</code></p>
-          </div>
         </div>
       </div>
     );
@@ -646,6 +643,17 @@ export const AdminPage: React.FC = () => {
           }`}
         >
           <Film className="w-4 h-4" /> 1. Catalog Manager ({movies.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('requests')}
+          className={`px-4 py-2.5 rounded-xl text-xs font-extrabold transition-all flex items-center gap-2 ${
+            activeTab === 'requests'
+              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white shadow-md shadow-[#FF0E25]/30'
+              : 'text-[#9E9EA0] hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Send className="w-4 h-4 text-emerald-400" /> Movie Requests ({movieRequests.length})
         </button>
 
         <button
@@ -1150,8 +1158,123 @@ export const AdminPage: React.FC = () => {
                   className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
               </div>
+
+              <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-emerald-500/30 space-y-2">
+                <label className="font-bold text-white block flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-emerald-400" /> Movie Request Notification Destination Email
+                </label>
+                <p className="text-[11px] text-[#9E9EA0]">
+                  This address receives notification alerts when visitors submit movie requests. It is kept private and never rendered on public web pages.
+                </p>
+                <input
+                  type="email"
+                  value={settingsForm.movieRequestAdminEmail || ''}
+                  onChange={(e) => setSettingsForm({ ...settingsForm, movieRequestAdminEmail: e.target.value })}
+                  placeholder="admin@cinexus.site"
+                  className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                />
+              </div>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* TAB: MOVIE REQUESTS INBOX */}
+      {activeTab === 'requests' && (
+        <div className="space-y-6 animate-in fade-in duration-300">
+          <div className="bg-[#121620]/90 backdrop-blur-xl p-6 rounded-3xl border border-white/10 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                  <Send className="w-5 h-5 text-emerald-400" /> Submitted Movie Requests ({movieRequests.length})
+                </h3>
+                <p className="text-xs text-[#9E9EA0] mt-1">
+                  Manage requests submitted by registered users. Review details, update status, or archive requests.
+                </p>
+              </div>
+            </div>
+
+            {movieRequests.length === 0 ? (
+              <div className="text-center py-12 bg-[#0A0A0E] rounded-2xl border border-white/5 space-y-2">
+                <Send className="w-8 h-8 text-[#9E9EA0] mx-auto opacity-40" />
+                <p className="text-sm font-bold text-gray-300">No Movie Requests Found</p>
+                <p className="text-xs text-[#9E9EA0]">New user requests will appear here in real time.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-300">
+                  <thead className="bg-[#0A0A0E] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
+                    <tr>
+                      <th className="p-4">Requested Movie</th>
+                      <th className="p-4">Requester Details</th>
+                      <th className="p-4">Message / Notes</th>
+                      <th className="p-4">Submission Date</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {movieRequests.map((req) => (
+                      <tr key={req.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-4">
+                          <p className="font-bold text-white text-sm">{req.movieName}</p>
+                          <p className="text-[#9E9EA0] text-[11px]">{req.year || 'N/A'} • {req.language || 'English'}</p>
+                        </td>
+
+                        <td className="p-4">
+                          <p className="font-bold text-rose-300">{req.userName}</p>
+                          <p className="text-[#9E9EA0] text-[11px]">@{req.userUsername} ({req.userEmail})</p>
+                          <span className="text-[10px] text-gray-500">ID: {req.userId}</span>
+                        </td>
+
+                        <td className="p-4 max-w-xs">
+                          <p className="text-[#9E9EA0] text-xs truncate" title={req.message}>
+                            {req.message || 'No additional message.'}
+                          </p>
+                        </td>
+
+                        <td className="p-4 text-[#9E9EA0]">
+                          {new Date(req.createdAt).toLocaleDateString()}
+                        </td>
+
+                        <td className="p-4">
+                          <select
+                            value={req.status}
+                            onChange={(e) => updateMovieRequestStatus(req.id, e.target.value as any)}
+                            className={`px-3 py-1.5 rounded-xl font-bold text-[11px] border focus:outline-none bg-[#0A0A0E] ${
+                              req.status === 'COMPLETED' ? 'text-emerald-400 border-emerald-500/30' :
+                              req.status === 'REVIEWING' ? 'text-sky-400 border-sky-500/30' :
+                              req.status === 'REJECTED' ? 'text-rose-400 border-rose-500/30' :
+                              'text-amber-400 border-amber-500/30'
+                            }`}
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="REVIEWING">REVIEWING</option>
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="REJECTED">REJECTED</option>
+                          </select>
+                        </td>
+
+                        <td className="p-4 text-right">
+                          <button
+                            onClick={() => {
+                              if (confirm(`Delete request for "${req.movieName}"?`)) {
+                                deleteMovieRequest(req.id);
+                              }
+                            }}
+                            className="p-2 rounded-lg bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white transition-colors"
+                            title="Delete Request"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       )}
 

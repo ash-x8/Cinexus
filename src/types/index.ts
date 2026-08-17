@@ -131,6 +131,27 @@ export interface SiteSettings {
   contactUsContent: string;
   faqContent: string;
   requestMovieRules: string;
+
+  // Movie Request Admin Notification Email
+  movieRequestAdminEmail: string;
+}
+
+export interface MovieRequest {
+  id: string;
+  userId: string;
+  userName: string;
+  userUsername: string;
+  userEmail: string;
+  movieName: string;
+  year?: string | number;
+  language?: string;
+  message?: string;
+  status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
+  createdAt: string;
+  updatedAt: string;
+  emailStatus: 'PENDING' | 'SENT' | 'FAILED';
+  emailSentTo?: string;
+  emailError?: string;
 }
 
 export interface Analytics {
