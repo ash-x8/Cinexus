@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, Star, Menu, X, Sparkles, Subtitles, Megaphone, Globe, User, Bookmark } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
+import { ProfileAvatar } from './ProfileAvatar';
 
 interface HeaderProps {
   onToggleMobileSidebar?: () => void;
@@ -247,11 +248,7 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileSidebar }) => {
             >
               {currentUser ? (
                 <>
-                  <img
-                    src={currentUser.avatarUrl}
-                    alt={currentUser.username}
-                    className="w-6 h-6 rounded-full object-cover border border-[#FF0E25]"
-                  />
+                  <ProfileAvatar size="sm" editable={false} />
                   <span className="hidden sm:inline text-xs font-bold text-white truncate max-w-[100px]">
                     {currentUser.username}
                   </span>
