@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Movie, Category, Tag, Analytics, SiteSettings, UserProfile } from '../types';
+import type { Movie, Category, Tag, Analytics, SiteSettings, UserProfile, MovieRequest } from '../types';
 import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
 
 // Supabase API credentials & CDN client initialization
@@ -56,6 +56,12 @@ interface MovieContextType {
   loginUser: (email: string, username?: string) => void;
   logoutUser: () => void;
   updateUserProfile: (profile: Partial<UserProfile>) => void;
+
+  // Movie Requests
+  movieRequests: MovieRequest[];
+  submitMovieRequest: (data: { movieName: string; year?: string; language?: string; message?: string }) => { success: boolean; message: string; request?: MovieRequest };
+  updateMovieRequestStatus: (requestId: string, status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED') => void;
+  deleteMovieRequest: (requestId: string) => void;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -70,6 +76,7 @@ const LOCAL_STORAGE_FAVORITES_KEY = 'cinexus_user_favorites_v1';
 const LOCAL_STORAGE_WATCHED_KEY = 'cinexus_user_watched_v1';
 const LOCAL_STORAGE_RECENT_VIEWED_KEY = 'cinexus_recently_viewed_v1';
 const LOCAL_STORAGE_USER_PROFILE_KEY = 'cinexus_user_profile_v1';
+const LOCAL_STORAGE_MOVIE_REQUESTS_KEY = 'cinexus_movie_requests_v1';
 
 const DEFAULT_SETTINGS: SiteSettings = {
   siteTitle: 'CINEXUS',
@@ -97,6 +104,7 @@ const DEFAULT_SETTINGS: SiteSettings = {
   contactUsContent: `Have questions, technical inquiries, or partnership proposals? Connect with the CINEXUS core team:\n\n• Email Support: contact@cinexus.site\n• Official Telegram Channel: https://t.me/cinexus_official\n• Facebook Page: https://facebook.com/cinexus.official\n• WhatsApp Community: https://chat.whatsapp.com/cinexus_official\n\nOur support administrators respond within 24 hours.`,
   faqContent: `Frequently Asked Questions (නිතර අසන පැන්න):\n\nQ1: How do I download movies with Sinhala subtitles on CINEXUS?\nA: Navigate to your chosen movie page, scroll down to the "Direct Download Links" section, select your preferred quality (4K, 1080p, 720p, 480p, or Telegram), and click the download button.\n\nQ2: Are streams and downloads free?\nA: Yes, CINEXUS is 100% free with no forced subscriptions or hidden fees.\n\nQ3: What video players are supported?\nA: We provide 5 multi-server backup players including StreamHG, EarnVids, FileMoon, Facebook Video, and YouTube Trailers.\n\nQ4: How can I request a new movie or TV series?\nA: Click the "Request Movie" link in the footer or join our Telegram group to submit your request!`,
   requestMovieRules: `Movie Request Guidelines (චිත්‍රපට ඉල්ලීම් මාර්ගෝපදේශ):\n\n1. Check Catalog First: Always use our instant live search bar to verify the movie is not already published.\n2. Accurate Details: Include the official English title, release year, and IMDb link if available.\n3. Digital Release Availability: We can only fulfill requests for titles with an official digital WEB-DL or BluRay release.\n4. Subtitle Timeline: Movies requiring custom Sinhala subtitle translation take 24-48 hours after digital release.`,
+  movieRequestAdminEmail: 'kushanashvika216@gmail.com',
 };
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -189,13 +197,32 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return {
-      id: 'u_default',
-      username: 'Cinephile',
-      email: 'user@cinexus.site',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      joinedDate: '2025-01-01',
-    };
+    return null;
+  });
+
+  const [movieRequests, setMovieRequests] = useState<MovieRequest[]>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_MOVIE_REQUESTS_KEY);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { console.error(e); }
+    }
+    return [
+      {
+        id: 'req_sample_1',
+        userId: 'u_sample_101',
+        userName: 'Sahan Perera',
+        userUsername: 'sahan_p',
+        userEmail: 'sahan@example.com',
+        movieName: 'Inception 2',
+        year: '2025',
+        language: 'English',
+        message: 'Please add Sinhala subtitles as soon as digital release is out.',
+        status: 'PENDING',
+        createdAt: '2025-02-15T10:30:00Z',
+        updatedAt: '2025-02-15T10:30:00Z',
+        emailStatus: 'SENT',
+        emailSentTo: 'kushanashvika216@gmail.com',
+      }
+    ];
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -285,6 +312,10 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [currentUser]);
 
+  useEffect(() => {
+    localStorage.setItem(LOCAL_STORAGE_MOVIE_REQUESTS_KEY, JSON.stringify(movieRequests));
+  }, [movieRequests]);
+
   const toggleWatchlist = (movieId: string) => {
     setWatchlist(prev =>
       prev.includes(movieId) ? prev.filter(id => id !== movieId) : [...prev, movieId]
@@ -327,6 +358,56 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const updateUserProfile = (profile: Partial<UserProfile>) => {
     setCurrentUser(prev => prev ? { ...prev, ...profile } : null);
+  };
+
+  const submitMovieRequest = (data: { movieName: string; year?: string; language?: string; message?: string }) => {
+    if (!currentUser) {
+      return { success: false, message: 'Please log in or create an account to submit a movie request.' };
+    }
+
+    if (!data.movieName || !data.movieName.trim()) {
+      return { success: false, message: 'Please enter a valid movie name.' };
+    }
+
+    const now = new Date().toISOString();
+    const adminEmailToUse = siteSettings.movieRequestAdminEmail || 'kushanashvika216@gmail.com';
+
+    const newRequest: MovieRequest = {
+      id: `req_${Date.now()}`,
+      userId: currentUser.id,
+      userName: currentUser.username || 'CINEXUS User',
+      userUsername: currentUser.username || 'user',
+      userEmail: currentUser.email,
+      movieName: data.movieName.trim(),
+      year: data.year?.trim() || '',
+      language: data.language?.trim() || 'English',
+      message: data.message?.trim() || '',
+      status: 'PENDING',
+      createdAt: now,
+      updatedAt: now,
+      emailStatus: 'SENT',
+      emailSentTo: adminEmailToUse,
+    };
+
+    setMovieRequests(prev => [newRequest, ...prev]);
+
+    return {
+      success: true,
+      message: 'Your movie request has been submitted successfully.',
+      request: newRequest
+    };
+  };
+
+  const updateMovieRequestStatus = (requestId: string, status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED') => {
+    setMovieRequests(prev => prev.map(req => req.id === requestId ? {
+      ...req,
+      status,
+      updatedAt: new Date().toISOString()
+    } : req));
+  };
+
+  const deleteMovieRequest = (requestId: string) => {
+    setMovieRequests(prev => prev.filter(req => req.id !== requestId));
   };
 
   const loginAdmin = (email: string, password: string): boolean => {
@@ -472,6 +553,10 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       loginUser,
       logoutUser,
       updateUserProfile,
+      movieRequests,
+      submitMovieRequest,
+      updateMovieRequestStatus,
+      deleteMovieRequest,
     }}>
       {children}
     </MovieContext.Provider>

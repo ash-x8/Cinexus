@@ -14,7 +14,8 @@ import {
   Calendar,
   Mail,
   Edit2,
-  Check
+  Check,
+  Send
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -26,7 +27,8 @@ export const ProfilePage: React.FC = () => {
     favorites,
     watchedHistory,
     recentlyViewed,
-    movies
+    movies,
+    movieRequests
   } = useMovies();
 
   const navigate = useNavigate();
@@ -66,6 +68,7 @@ export const ProfilePage: React.FC = () => {
   const savedWatchlist = movies.filter(m => watchlist.includes(m.id));
   const savedFavorites = movies.filter(m => favorites.includes(m.id));
   const recentMovies = movies.filter(m => recentlyViewed.includes(m.id));
+  const userRequests = movieRequests.filter(req => req.userId === currentUser.id);
 
   return (
     <div className="space-y-8 pb-16 animate-in fade-in duration-300">
@@ -166,6 +169,48 @@ export const ProfilePage: React.FC = () => {
           <span className="text-2xl font-black text-white">{recentlyViewed.length}</span>
         </div>
       </div>
+
+      {/* My Submitted Requests */}
+      <section className="space-y-4">
+        <h2 className="text-xl font-extrabold text-white flex items-center gap-2 border-b border-white/10 pb-3">
+          <Send className="w-5 h-5 text-emerald-400" /> My Submitted Movie Requests ({userRequests.length})
+        </h2>
+
+        {userRequests.length === 0 ? (
+          <div className="p-6 bg-[#121620] rounded-2xl border border-white/5 text-center text-xs text-[#9E9EA0]">
+            You have not submitted any movie requests yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {userRequests.map(req => (
+              <div key={req.id} className="p-4 rounded-2xl bg-[#121620] border border-white/10 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-extrabold text-white text-sm">{req.movieName}</span>
+                  <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border ${
+                    req.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                    req.status === 'REVIEWING' ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' :
+                    req.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
+                    'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                  }`}>
+                    {req.status}
+                  </span>
+                </div>
+                <p className="text-xs text-[#9E9EA0]">
+                  Year: {req.year || 'N/A'} • Language: {req.language || 'English'}
+                </p>
+                {req.message && (
+                  <p className="text-xs text-gray-300 italic bg-[#0A0A0E] p-2.5 rounded-xl border border-white/5">
+                    "{req.message}"
+                  </p>
+                )}
+                <p className="text-[10px] text-gray-500 text-right">
+                  Requested on {new Date(req.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Recently Viewed Grid */}
       {recentMovies.length > 0 && (
