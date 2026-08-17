@@ -19,6 +19,7 @@ export interface ServerPlayer {
 }
 
 export interface CastMember {
+  tmdb_id?: number | string;
   name: string;
   character?: string;
   profileUrl?: string;
@@ -37,6 +38,12 @@ export interface Movie {
   posterUrl: string;
   backdropUrl: string;
   trailerUrl: string;
+
+  // Dedicated Server URLs
+  streamServer1Url?: string;
+  streamServer2Url?: string;
+  streamServer3Url?: string;
+  trailerEmbedUrl?: string;
 
   // Plots
   sinhalaPlot: string;

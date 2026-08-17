@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Play, Pause, Maximize2, X, Move, Film } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
-import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
+import { formatToEmbedUrl } from '../utils/playerSanitizer';
 
 export const FloatingMiniPlayer: React.FC = () => {
   const { activeStream, isPlaying, togglePlay, expandPlayer, closePlayer } = usePlayer();
@@ -54,7 +54,7 @@ export const FloatingMiniPlayer: React.FC = () => {
     navigate(`/movie/${activeStream.movieId}`);
   };
 
-  const sanitizedUrl = sanitizeEmbedUrl(activeStream.streamUrl);
+  const sanitizedUrl = formatToEmbedUrl(activeStream.streamUrl);
 
   return (
     <div
@@ -105,10 +105,13 @@ export const FloatingMiniPlayer: React.FC = () => {
       <div className="relative aspect-video w-full bg-black">
         {isPlaying ? (
           <iframe
+            key={activeStream.streamUrl}
             src={sanitizedUrl}
             title={`${activeStream.title} Floating Player`}
             className="w-full h-full aspect-video border-0"
-            {...MONETIZATION_IFRAME_PROPS}
+            allowFullScreen
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
           />
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-black/90 p-4 text-center space-y-2">

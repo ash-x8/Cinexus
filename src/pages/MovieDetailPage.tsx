@@ -5,7 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
-import { sanitizeEmbedUrl, MONETIZATION_IFRAME_PROPS } from '../utils/playerSanitizer';
+import { formatToEmbedUrl } from '../utils/playerSanitizer';
 import { executeDownload } from '../utils/downloadEngine';
 import type { CastMember } from '../types';
 import {
@@ -27,8 +27,7 @@ import {
   HardDrive,
   Volume2,
   Layers,
-  ExternalLink,
-  User
+  ExternalLink
 } from 'lucide-react';
 
 export const MovieDetailPage: React.FC = () => {
@@ -48,15 +47,32 @@ export const MovieDetailPage: React.FC = () => {
     title: '',
   });
 
+  // Strict URL extraction and non-empty checks
+  const s1Url = movie?.streamServer1Url?.trim() || '';
+  const s2Url = movie?.streamServer2Url?.trim() || '';
+  const s3Url = movie?.streamServer3Url?.trim() || '';
+  const trailerUrl = movie?.trailerEmbedUrl?.trim() || movie?.trailerUrl?.trim() || '';
+  const subtitleUrl = movie?.subtitleSourceUrl?.trim() || '';
+
   useEffect(() => {
     if (movie) {
       incrementViews(movie.id);
-      if (movie.servers && movie.servers.length > 0) {
+
+      // Auto-set initial player state: If Server 1 is empty but Server 2 exists, set to Server 2, etc.
+      if (s1Url) {
+        setActiveServer('s1');
+      } else if (s2Url) {
+        setActiveServer('s2');
+      } else if (s3Url) {
+        setActiveServer('s3');
+      } else if (trailerUrl) {
+        setActiveServer('trailer');
+      } else if (movie.servers && movie.servers.length > 0) {
         setActiveServer(movie.servers[0].id);
       }
     }
     window.scrollTo(0, 0);
-  }, [id, movie?.id]);
+  }, [id, movie?.id, s1Url, s2Url, s3Url, trailerUrl]);
 
   if (!movie) {
     return (
@@ -74,22 +90,49 @@ export const MovieDetailPage: React.FC = () => {
     );
   }
 
-  // Active server player selection with dynamic URL Sanitizer
-  const rawServer = movie.servers?.find(s => s.id === activeServer) || movie.servers?.[0];
-  const sanitizedPlayerUrl = rawServer ? sanitizeEmbedUrl(rawServer.url, rawServer.serverType) : '';
+  // Active server selection logic
+  let activeUrl = '';
+  let activeServerName = '';
+  let activeServerType = 'generic';
+
+  if (activeServer === 's1' && s1Url) {
+    activeUrl = s1Url;
+    activeServerName = 'Server 1: StreamHG';
+    activeServerType = 'streamhg';
+  } else if (activeServer === 's2' && s2Url) {
+    activeUrl = s2Url;
+    activeServerName = 'Server 2: EarnVids';
+    activeServerType = 'earnvids';
+  } else if (activeServer === 's3' && s3Url) {
+    activeUrl = s3Url;
+    activeServerName = 'Server 3: FileMoon';
+    activeServerType = 'filemoon';
+  } else if (activeServer === 'trailer' && trailerUrl) {
+    activeUrl = trailerUrl;
+    activeServerName = 'Trailer';
+    activeServerType = 'youtube';
+  } else {
+    const foundServer = movie.servers?.find(s => s.id === activeServer && s.url && s.url.trim() !== '') || movie.servers?.find(s => s.url && s.url.trim() !== '');
+    if (foundServer) {
+      activeUrl = foundServer.url;
+      activeServerName = foundServer.name;
+      activeServerType = foundServer.serverType || 'generic';
+    }
+  }
+
+  const sanitizedPlayerUrl = activeUrl ? formatToEmbedUrl(activeUrl, activeServerType) : '';
   const [isIframeProcessing, setIsIframeProcessing] = useState<boolean>(false);
 
-  // Sync current video stream to global PlayerContext for background floating mini-player persistence
-  const handlePlayActiveServer = (serverId: string) => {
+  // Sync active stream to PlayerContext for persistent floating mini-player
+  const handlePlayActiveServer = (serverId: string, url: string, name: string) => {
     setActiveServer(serverId);
-    const selected = movie.servers?.find(s => s.id === serverId);
-    if (selected) {
+    if (url) {
       playStream({
         movieId: movie.id,
         title: movie.title,
         posterUrl: movie.posterUrl,
-        streamUrl: selected.url,
-        serverName: selected.name || 'CINEXUS Stream',
+        streamUrl: url,
+        serverName: name,
       });
     }
   };
@@ -113,7 +156,6 @@ export const MovieDetailPage: React.FC = () => {
 
   const primaryLang = movie.language || movie.languages?.[0] || 'English';
   const categoryType = movie.contentType || (movie.hasSinhalaSub ? 'Sinhala Sub' : 'Without Sub / English');
-  const subtitleLink = movie.subtitleSourceUrl || 'https://cinesubz.co';
 
   // Normalize cast array
   const formattedCast: CastMember[] = (movie.cast || []).map(item => {
@@ -121,6 +163,7 @@ export const MovieDetailPage: React.FC = () => {
       return { name: item, character: 'Lead Cast', profileUrl: '', image: '' };
     }
     return {
+      tmdb_id: item.tmdb_id,
       name: item.name,
       character: item.character || 'Lead Cast',
       profileUrl: item.profileUrl || item.image || '',
@@ -271,7 +314,7 @@ export const MovieDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Server Switcher Tabs */}
+          {/* Server Switcher Tabs - Strict Conditional Rendering */}
           <div className="flex items-center gap-2 overflow-x-auto max-w-full pb-2 sm:pb-0">
             {movie.servers?.map((server, index) => {
               let displayName = server.name;
@@ -305,7 +348,7 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dynamic Video Player Frame */}
+        {/* Dynamic Video Player Frame with key={activeServer} for unmount/remount sync */}
         <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner group">
           {isIframeProcessing && (
             <div className="absolute inset-0 z-20 bg-[#0A0A0E]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 border border-white/10">
@@ -325,10 +368,13 @@ export const MovieDetailPage: React.FC = () => {
 
           {sanitizedPlayerUrl ? (
             <iframe
+              key={activeServer}
               src={sanitizedPlayerUrl}
               title={`${movie.title} CINEXUS Player`}
               className="w-full h-full aspect-video rounded-xl border-0"
-              {...MONETIZATION_IFRAME_PROPS}
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              sandbox="allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
               onError={() => setIsIframeProcessing(true)}
             />
           ) : (
@@ -354,17 +400,19 @@ export const MovieDetailPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Clean Subtitle Download Source Button */}
-          <a
-            href={subtitleLink}
-            target="_blank"
-            rel="noreferrer"
-            className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
-          >
-            <Subtitles className="w-4 h-4 text-cyan-300" />
-            [🌐 Download Subtitle File]
-            <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
-          </a>
+          {/* Clean Subtitle Download Source Button - Strict Conditional Rendering */}
+          {Boolean(subtitleUrl) && (
+            <a
+              href={subtitleUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:opacity-90 text-white text-xs font-black flex items-center gap-2 shadow-lg shadow-purple-600/30 transition-all shrink-0"
+            >
+              <Subtitles className="w-4 h-4 text-cyan-300" />
+              [🌐 Download Subtitle File]
+              <ExternalLink className="w-3.5 h-3.5 ml-0.5 opacity-80" />
+            </a>
+          )}
         </div>
 
         {downloadSuccessMessage && (
@@ -406,7 +454,6 @@ export const MovieDetailPage: React.FC = () => {
                     <HardDrive className="w-3.5 h-3.5 text-[#FF0E25]" /> {link.format || 'Standard HD'}
                   </p>
                   <p className="text-[11px] text-[#9E9EA0]">{displayRes} • {displayServer}</p>
-                  {/* Audio / Sub Tag Attribute Badge */}
                   <span className="inline-block mt-1 px-2 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] font-bold text-amber-300">
                     🏷️ {attrTag}
                   </span>
@@ -475,7 +522,7 @@ export const MovieDetailPage: React.FC = () => {
             {/* Formatted Plot Summary with line-height: 1.8 */}
             <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-white/5">
               <p className="text-xs sm:text-sm text-gray-200 font-normal tracking-wide leading-[1.8] whitespace-pre-line">
-                {plotTab === 'sinhala' ? movie.sinhalaPlot : movie.englishPlot}
+                {plotTab === 'sinhala' ? (movie.sinhalaPlot || movie.englishPlot) : (movie.englishPlot || movie.sinhalaPlot)}
               </p>
             </div>
           </div>
@@ -487,22 +534,35 @@ export const MovieDetailPage: React.FC = () => {
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {formattedCast.map((actor, idx) => (
-                <div key={idx} className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/40 transition-all">
-                  <img
-                    src={actor.image || actor.profileUrl || '/fallback-avatar.png'}
-                    alt={actor.name}
-                    className="w-12 h-12 rounded-full object-cover shrink-0"
-                    onError={(e) => {
-                      (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
-                    }}
-                  />
-                  <div className="min-w-0 flex flex-col">
-                    <span className="font-semibold text-white text-xs truncate">{actor.name}</span>
-                    <span className="text-xs text-gray-400 truncate">as {actor.character || 'Cast'}</span>
-                  </div>
-                </div>
-              ))}
+              {formattedCast.map((actor, idx) => {
+                const actorTmdbUrl = actor.tmdb_id
+                  ? `https://www.themoviedb.org/person/${actor.tmdb_id}`
+                  : `https://www.themoviedb.org/search/person?query=${encodeURIComponent(actor.name)}`;
+
+                return (
+                  <a
+                    key={idx}
+                    href={actorTmdbUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bg-[#0A0A0E] p-3 rounded-2xl border border-white/5 flex items-center gap-3 group hover:border-purple-500/60 hover:bg-white/[0.03] transition-all cursor-pointer"
+                    title={`View ${actor.name} on TMDB`}
+                  >
+                    <img
+                      src={actor.image || actor.profileUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80'}
+                      alt={actor.name}
+                      className="w-12 h-12 rounded-full object-cover shrink-0 border border-white/10 group-hover:scale-105 transition-transform"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLImageElement).src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
+                      }}
+                    />
+                    <div className="min-w-0 flex flex-col">
+                      <span className="font-semibold text-white text-xs truncate group-hover:text-purple-300 transition-colors">{actor.name}</span>
+                      <span className="text-[11px] text-gray-400 truncate">as {actor.character || 'Cast'}</span>
+                    </div>
+                  </a>
+                );
+              })}
             </div>
 
             <div className="pt-2 text-xs text-gray-300">
@@ -513,28 +573,39 @@ export const MovieDetailPage: React.FC = () => {
 
         </div>
 
-        {/* Right Column: Subtitle Source Link Card */}
+        {/* Right Column: Subtitle Source Link Card & Community */}
         <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
-              <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
-            </h3>
+          {Boolean(subtitleUrl) ? (
+            <div>
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
+                <Subtitles className="w-4 h-4 text-[#FF0E25]" /> Subtitle File Link (උපසිරැසි ගොනුව)
+              </h3>
 
-            <div className="mt-4 p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-3">
-              <p className="text-xs text-[#9E9EA0] leading-[1.8]">
-                Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
-              </p>
-              <a
-                href={subtitleLink}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
-              >
-                <Globe className="w-4 h-4 text-cyan-300" />
-                [🌐 Download Subtitle File]
-              </a>
+              <div className="mt-4 p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-3">
+                <p className="text-xs text-[#9E9EA0] leading-[1.8]">
+                  Get the official external SRT/ASS Sinhala subtitle file for offline media player synchronization.
+                </p>
+                <a
+                  href={subtitleUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:opacity-90 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
+                >
+                  <Globe className="w-4 h-4 text-cyan-300" />
+                  [🌐 Download Subtitle File]
+                </a>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div>
+              <h3 className="text-base font-extrabold text-white flex items-center gap-2 border-b border-white/5 pb-3">
+                <Globe className="w-4 h-4 text-[#FF0E25]" /> CINEXUS Cinema Hub
+              </h3>
+              <p className="mt-4 text-xs text-[#9E9EA0] leading-[1.8]">
+                Enjoy high-speed streaming and direct multi-quality downloads on CINEXUS.
+              </p>
+            </div>
+          )}
 
           <a
             href="https://t.me/cinexus_official"
