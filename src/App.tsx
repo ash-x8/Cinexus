@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { HashRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
@@ -10,7 +10,11 @@ import { Footer } from './components/Footer';
 import { HomePage } from './pages/HomePage';
 import { MovieDetailPage } from './pages/MovieDetailPage';
 import { AdminPage } from './pages/AdminPage';
-import { LegalPage } from './pages/LegalPage';
+import AboutPage from './app/about/page';
+import PrivacyPage from './app/privacy/page';
+import TermsPage from './app/terms/page';
+import FAQPage from './app/faq/page';
+import ContactPage from './app/contact/page';
 
 // Helper component to check window location for /admin, /#admin, or /?route=admin
 const AdminRouteInterceptor: React.FC = () => {
@@ -18,7 +22,6 @@ const AdminRouteInterceptor: React.FC = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const fullUrl = window.location.href;
     const searchParams = new URLSearchParams(window.location.search);
     const routeParam = searchParams.get('route');
 
@@ -46,11 +49,12 @@ export const AppContent: React.FC = () => {
           <Route path="/" element={<HomePage />} />
           <Route path="/movie/:id" element={<MovieDetailPage />} />
           <Route path="/admin" element={<AdminPage />} />
-          <Route path="/about-us" element={<LegalPage type="about" />} />
-          <Route path="/terms" element={<LegalPage type="terms" />} />
-          <Route path="/privacy" element={<LegalPage type="privacy" />} />
-          <Route path="/contact" element={<LegalPage type="contact" />} />
-          <Route path="/faq" element={<LegalPage type="faq" />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/about-us" element={<AboutPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/faq" element={<FAQPage />} />
           <Route path="*" element={<HomePage />} />
         </Routes>
       </main>
