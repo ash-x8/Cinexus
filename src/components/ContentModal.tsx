@@ -36,10 +36,10 @@ export const ContentModal: React.FC<ContentModalProps> = ({ type, onClose }) => 
 
   if (!type) return null;
 
-  const handleRequestSubmit = (e: React.FormEvent) => {
+  const handleRequestSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setRequestError('');
-    const res = submitMovieRequest({
+    const res = await submitMovieRequest({
       movieName: requestTitle,
       year: requestYear,
       language: requestLanguage,

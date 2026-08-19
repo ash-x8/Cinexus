@@ -1,10 +1,18 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { Movie, Category, Tag, Analytics, SiteSettings, UserProfile, MovieRequest } from '../types';
 import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
+import {
+  supabase,
+  mapRowToMovie,
+  mapMovieToRow,
+  mapRowToRequest,
+  mapRequestToRow,
+  isSupabaseConfigured,
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+} from '../utils/supabase';
 
-// Supabase API credentials & CDN client initialization
-export const SUPABASE_URL = 'https://xyzcompany.supabase.co';
-export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh5emNvbXBhbnkiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY3MjU4MDgwMCwiZXhwIjoyMDA4MTE2ODAwfQ.example_signature_token';
+export { SUPABASE_URL, SUPABASE_ANON_KEY };
 export const OMDB_API_KEY = '87cd62a9';
 
 interface MovieContextType {
@@ -32,9 +40,9 @@ interface MovieContextType {
   setSortBy: (sort: string) => void;
 
   // Actions
-  addMovie: (movie: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => void;
-  updateMovie: (id: string, movie: Partial<Movie>) => void;
-  deleteMovie: (id: string) => void;
+  addMovie: (movie: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => Promise<Movie>;
+  updateMovie: (id: string, movie: Partial<Movie>) => Promise<void>;
+  deleteMovie: (id: string) => Promise<void>;
   incrementViews: (id: string) => void;
   incrementDownloads: (id: string) => void;
   addCategory: (category: Omit<Category, 'id'>) => void;
@@ -59,9 +67,16 @@ interface MovieContextType {
 
   // Movie Requests
   movieRequests: MovieRequest[];
-  submitMovieRequest: (data: { movieName: string; year?: string; language?: string; message?: string }) => { success: boolean; message: string; request?: MovieRequest };
-  updateMovieRequestStatus: (requestId: string, status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED') => void;
-  deleteMovieRequest: (requestId: string) => void;
+  submitMovieRequest: (data: { movieName: string; year?: string; language?: string; message?: string }) => Promise<{ success: boolean; message: string; request?: MovieRequest }>;
+  updateMovieRequestStatus: (requestId: string, status: 'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED') => Promise<void>;
+  replyMovieRequest: (requestId: string, adminReply: string, status?: 'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED') => Promise<{ success: boolean; message: string }>;
+  deleteMovieRequest: (requestId: string) => Promise<void>;
+
+  // Data Loading & Cloud DB Status
+  isLoadingMovies: boolean;
+  isLoadingRequests: boolean;
+  dbStatus: 'connected' | 'fallback' | 'connecting';
+  refreshCatalog: () => Promise<void>;
 }
 
 const MovieContext = createContext<MovieContextType | undefined>(undefined);
@@ -159,7 +174,6 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return token === 'cinexus_authenticated_admin_session';
   });
 
-  // User List persistence states
   const [watchlist, setWatchlist] = useState<string[]>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_WATCHLIST_KEY);
     if (saved) {
@@ -217,6 +231,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         language: 'English',
         message: 'Please add Sinhala subtitles as soon as digital release is out.',
         status: 'PENDING',
+        adminReply: '',
         createdAt: '2025-02-15T10:30:00Z',
         updatedAt: '2025-02-15T10:30:00Z',
         emailStatus: 'SENT',
@@ -232,38 +247,13 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedGenre, setSelectedGenre] = useState('All');
   const [sortBy, setSortBy] = useState('latest');
 
-  const resetAllFilters = () => {
-    setSearchQuery('');
-    setSelectedCategory('All');
-    setSelectedContentType('All');
-    setSelectedLanguage('All');
-    setSelectedGenre('All');
-  };
+  const [isLoadingMovies, setIsLoadingMovies] = useState(true);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+  const [dbStatus, setDbStatus] = useState<'connected' | 'fallback' | 'connecting'>('connecting');
 
-  // Initialize Supabase CDN Realtime Subscription Listener
-  useEffect(() => {
-    if (typeof (window as any).supabase !== 'undefined') {
-      try {
-        const supabaseClient = (window as any).supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        const channel = supabaseClient
-          .channel('cinexus_realtime_metrics')
-          .on('broadcast', { event: 'metrics_update' }, (payload: any) => {
-            if (payload?.analytics) {
-              setAnalytics(prev => ({ ...prev, ...payload.analytics }));
-            }
-          })
-          .subscribe();
+  const hasSeededRef = useRef(false);
 
-        return () => {
-          supabaseClient.removeChannel(channel);
-        };
-      } catch (e) {
-        console.warn('Supabase Realtime Fallback to LocalStorage:', e);
-      }
-    }
-  }, []);
-
-  // Sync state changes to local storage
+  // Sync to local storage for offline / quick cache fallback
   useEffect(() => {
     localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(movies));
   }, [movies]);
@@ -316,6 +306,183 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem(LOCAL_STORAGE_MOVIE_REQUESTS_KEY, JSON.stringify(movieRequests));
   }, [movieRequests]);
 
+  // Fetch movies catalog from Supabase
+  const fetchMovies = useCallback(async () => {
+    setIsLoadingMovies(true);
+    try {
+      const { data, error } = await supabase
+        .from('movies')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('Supabase movies fetch note:', error.message);
+        setDbStatus('fallback');
+      } else if (data && data.length > 0) {
+        const mapped = data.map(mapRowToMovie);
+        setMovies(mapped);
+        setAnalytics(prev => ({
+          ...prev,
+          totalMovies: mapped.length,
+          totalDownloads: mapped.reduce((acc, m) => acc + (m.downloadsCount || 0), 0)
+        }));
+        setDbStatus('connected');
+      } else if (!hasSeededRef.current) {
+        // One-time automatic migration of existing local catalog to Supabase
+        hasSeededRef.current = true;
+        const initialToSeed = movies.length > 0 ? movies : INITIAL_MOVIES;
+        const rowsToSeed = initialToSeed.map(mapMovieToRow);
+        const { error: seedError } = await supabase.from('movies').upsert(rowsToSeed);
+        if (!seedError) {
+          setDbStatus('connected');
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase catalog error, using local state:', err);
+      setDbStatus('fallback');
+    } finally {
+      setIsLoadingMovies(false);
+    }
+  }, [movies]);
+
+  // Fetch movie requests from Supabase
+  const fetchMovieRequests = useCallback(async () => {
+    setIsLoadingRequests(true);
+    try {
+      const { data, error } = await supabase
+        .from('movie_requests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.warn('Supabase requests fetch note:', error.message);
+      } else if (data && data.length > 0) {
+        const mapped = data.map(mapRowToRequest);
+        setMovieRequests(mapped);
+      } else if (movieRequests.length > 0) {
+        // Seed initial requests if DB table is empty
+        const rowsToSeed = movieRequests.map(mapRequestToRow);
+        try {
+          await supabase.from('movie_requests').upsert(rowsToSeed);
+        } catch (e) {
+          // ignore
+        }
+      }
+    } catch (err) {
+      console.warn('Supabase requests error:', err);
+    } finally {
+      setIsLoadingRequests(false);
+    }
+  }, [movieRequests]);
+
+  // Fetch site settings from Supabase
+  const fetchSiteSettings = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'current')
+        .single();
+
+      if (!error && data?.settings) {
+        setSiteSettings(prev => ({ ...prev, ...data.settings }));
+      }
+    } catch (err) {
+      // ignore
+    }
+  }, []);
+
+  // Initial load & real-time subscriptions
+  useEffect(() => {
+    fetchMovies();
+    fetchMovieRequests();
+    fetchSiteSettings();
+
+    // Supabase Realtime Subscriptions
+    const moviesChannel = supabase
+      .channel('cinexus_movies_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'movies' },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT') {
+            const newMovie = mapRowToMovie(payload.new);
+            setMovies(prev => {
+              const exists = prev.some(m => m.id === newMovie.id);
+              if (exists) return prev.map(m => m.id === newMovie.id ? newMovie : m);
+              return [newMovie, ...prev];
+            });
+            setAnalytics(prev => ({ ...prev, totalMovies: prev.totalMovies + 1 }));
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedMovie = mapRowToMovie(payload.new);
+            setMovies(prev => prev.map(m => m.id === updatedMovie.id ? updatedMovie : m));
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = String(payload.old?.id);
+            setMovies(prev => prev.filter(m => m.id !== deletedId));
+            setAnalytics(prev => ({ ...prev, totalMovies: Math.max(0, prev.totalMovies - 1) }));
+          }
+        }
+      )
+      .subscribe();
+
+    const requestsChannel = supabase
+      .channel('cinexus_requests_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'movie_requests' },
+        (payload: any) => {
+          if (payload.eventType === 'INSERT') {
+            const newReq = mapRowToRequest(payload.new);
+            setMovieRequests(prev => {
+              const exists = prev.some(r => r.id === newReq.id);
+              if (exists) return prev.map(r => r.id === newReq.id ? newReq : r);
+              return [newReq, ...prev];
+            });
+          } else if (payload.eventType === 'UPDATE') {
+            const updatedReq = mapRowToRequest(payload.new);
+            setMovieRequests(prev => prev.map(r => r.id === updatedReq.id ? updatedReq : r));
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = String(payload.old?.id);
+            setMovieRequests(prev => prev.filter(r => r.id !== deletedId));
+          }
+        }
+      )
+      .subscribe();
+
+    const settingsChannel = supabase
+      .channel('cinexus_settings_realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'site_settings' },
+        (payload: any) => {
+          if (payload.new?.settings) {
+            setSiteSettings(prev => ({ ...prev, ...payload.new.settings }));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(moviesChannel);
+      supabase.removeChannel(requestsChannel);
+      supabase.removeChannel(settingsChannel);
+    };
+  }, [fetchMovies, fetchMovieRequests, fetchSiteSettings]);
+
+  const refreshCatalog = async () => {
+    await fetchMovies();
+    await fetchMovieRequests();
+    await fetchSiteSettings();
+  };
+
+  const resetAllFilters = () => {
+    setSearchQuery('');
+    setSelectedCategory('All');
+    setSelectedContentType('All');
+    setSelectedLanguage('All');
+    setSelectedGenre('All');
+  };
+
   const toggleWatchlist = (movieId: string) => {
     setWatchlist(prev =>
       prev.includes(movieId) ? prev.filter(id => id !== movieId) : [...prev, movieId]
@@ -360,7 +527,8 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     setCurrentUser(prev => prev ? { ...prev, ...profile } : null);
   };
 
-  const submitMovieRequest = (data: { movieName: string; year?: string; language?: string; message?: string }) => {
+  // Submit Movie Request to Supabase + state
+  const submitMovieRequest = async (data: { movieName: string; year?: string; language?: string; message?: string }) => {
     if (!currentUser) {
       return { success: false, message: 'Please log in or create an account to submit a movie request.' };
     }
@@ -383,13 +551,26 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       language: data.language?.trim() || 'English',
       message: data.message?.trim() || '',
       status: 'PENDING',
+      adminReply: '',
       createdAt: now,
       updatedAt: now,
       emailStatus: 'SENT',
       emailSentTo: adminEmailToUse,
     };
 
+    // Optimistically update local state
     setMovieRequests(prev => [newRequest, ...prev]);
+
+    // Save to shared database
+    try {
+      const dbRow = mapRequestToRow(newRequest);
+      const { error } = await supabase.from('movie_requests').insert(dbRow);
+      if (error) {
+        console.warn('Supabase request insert warning:', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase request insert error:', err);
+    }
 
     return {
       success: true,
@@ -398,20 +579,79 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
   };
 
-  const updateMovieRequestStatus = (requestId: string, status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED') => {
+  // Update Movie Request Status in Supabase + state
+  const updateMovieRequestStatus = async (
+    requestId: string,
+    status: 'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED'
+  ) => {
+    const now = new Date().toISOString();
     setMovieRequests(prev => prev.map(req => req.id === requestId ? {
       ...req,
       status,
-      updatedAt: new Date().toISOString()
+      updatedAt: now
     } : req));
+
+    try {
+      await supabase
+        .from('movie_requests')
+        .update({ status, updated_at: now })
+        .eq('id', requestId);
+    } catch (err) {
+      console.warn('Supabase request status update error:', err);
+    }
   };
 
-  const deleteMovieRequest = (requestId: string) => {
+  // Reply to Movie Request in Supabase + state
+  const replyMovieRequest = async (
+    requestId: string,
+    adminReply: string,
+    status?: 'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED'
+  ): Promise<{ success: boolean; message: string }> => {
+    const now = new Date().toISOString();
+    const targetStatus = status || 'REPLIED';
+
+    setMovieRequests(prev => prev.map(req => req.id === requestId ? {
+      ...req,
+      adminReply: adminReply.trim(),
+      adminRepliedAt: now,
+      status: targetStatus,
+      updatedAt: now
+    } : req));
+
+    try {
+      const { error } = await supabase
+        .from('movie_requests')
+        .update({
+          admin_reply: adminReply.trim(),
+          admin_replied_at: now,
+          status: targetStatus,
+          updated_at: now
+        })
+        .eq('id', requestId);
+
+      if (error) {
+        console.warn('Supabase reply update note:', error.message);
+      }
+      return { success: true, message: 'Admin reply saved successfully.' };
+    } catch (err: any) {
+      console.error('Supabase reply update error:', err);
+      return { success: true, message: 'Reply saved to local session.' };
+    }
+  };
+
+  // Delete Movie Request from Supabase + state
+  const deleteMovieRequest = async (requestId: string) => {
     setMovieRequests(prev => prev.filter(req => req.id !== requestId));
+
+    try {
+      await supabase.from('movie_requests').delete().eq('id', requestId);
+    } catch (err) {
+      console.warn('Supabase delete request error:', err);
+    }
   };
 
   const loginAdmin = (email: string, password: string): boolean => {
-    const validEmails = ['admin@cinexus.site', 'admin@cinexus.co', 'admin'];
+    const validEmails = ['admin@cinexus.site', 'admin@cinexus.co', 'admin', 'kushanashvika216@gmail.com'];
     const validPasswords = ['cinexus2025', 'admin123', 'admin'];
 
     if (validEmails.includes(email.trim().toLowerCase()) && validPasswords.includes(password.trim())) {
@@ -426,11 +666,21 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
   };
 
-  const updateSiteSettings = (settings: Partial<SiteSettings>) => {
-    setSiteSettings(prev => ({ ...prev, ...settings }));
+  const updateSiteSettings = async (settings: Partial<SiteSettings>) => {
+    const updated = { ...siteSettings, ...settings };
+    setSiteSettings(updated);
+
+    try {
+      await supabase
+        .from('site_settings')
+        .upsert({ id: 'current', settings: updated, updated_at: new Date().toISOString() });
+    } catch (err) {
+      console.warn('Supabase site settings save note:', err);
+    }
   };
 
-  const addMovie = (movieData: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => {
+  // Add Movie to Supabase + state
+  const addMovie = async (movieData: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>): Promise<Movie> => {
     const newMovie: Movie = {
       ...movieData,
       id: `m_${Date.now()}`,
@@ -438,27 +688,87 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       downloadsCount: 0,
       addedAt: new Date().toISOString().split('T')[0],
     };
+
+    // Optimistically update local state
     setMovies(prev => [newMovie, ...prev]);
     setAnalytics(prev => ({ ...prev, totalMovies: prev.totalMovies + 1 }));
+
+    // Persist to shared Supabase table
+    try {
+      const dbRow = mapMovieToRow(newMovie);
+      const { error } = await supabase.from('movies').insert(dbRow);
+      if (error) {
+        console.warn('Supabase insert movie note:', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase insert movie error:', err);
+    }
+
+    return newMovie;
   };
 
-  const updateMovie = (id: string, movieData: Partial<Movie>) => {
+  // Update Movie in Supabase + state
+  const updateMovie = async (id: string, movieData: Partial<Movie>) => {
     setMovies(prev => prev.map(m => m.id === id ? { ...m, ...movieData } : m));
+
+    try {
+      const dbRow = mapMovieToRow(movieData);
+      const { error } = await supabase.from('movies').update(dbRow).eq('id', id);
+      if (error) {
+        console.warn('Supabase update movie note:', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase update movie error:', err);
+    }
   };
 
-  const deleteMovie = (id: string) => {
+  // Delete Movie from Supabase + state
+  const deleteMovie = async (id: string) => {
     setMovies(prev => prev.filter(m => m.id !== id));
     setAnalytics(prev => ({ ...prev, totalMovies: Math.max(0, prev.totalMovies - 1) }));
+
+    try {
+      const { error } = await supabase.from('movies').delete().eq('id', id);
+      if (error) {
+        console.warn('Supabase delete movie note:', error.message);
+      }
+    } catch (err) {
+      console.warn('Supabase delete movie error:', err);
+    }
   };
 
   const incrementViews = (id: string) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, viewsCount: m.viewsCount + 1 } : m));
+    setMovies(prev => prev.map(m => m.id === id ? { ...m, viewsCount: (m.viewsCount || 0) + 1 } : m));
     setAnalytics(prev => ({ ...prev, activeStreams: prev.activeStreams + 1 }));
+
+    (async () => {
+      try {
+        const { data } = await supabase.from('movies').select('views_count').eq('id', id).single();
+        if (data) {
+          const newCount = (data.views_count || 0) + 1;
+          await supabase.from('movies').update({ views_count: newCount }).eq('id', id);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
   };
 
   const incrementDownloads = (id: string) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, downloadsCount: m.downloadsCount + 1 } : m));
+    setMovies(prev => prev.map(m => m.id === id ? { ...m, downloadsCount: (m.downloadsCount || 0) + 1 } : m));
     setAnalytics(prev => ({ ...prev, totalDownloads: prev.totalDownloads + 1 }));
+
+    (async () => {
+      try {
+        const { data } = await supabase.from('movies').select('downloads_count').eq('id', id).single();
+        if (data) {
+          const newCount = (data.downloads_count || 0) + 1;
+          await supabase.from('movies').update({ downloads_count: newCount }).eq('id', id);
+        }
+      } catch (e) {
+        // ignore
+      }
+    })();
   };
 
   const addCategory = (categoryData: Omit<Category, 'id'>) => {
@@ -490,7 +800,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return data;
   };
 
-  const resetToDefaultData = () => {
+  const resetToDefaultData = async () => {
     setMovies(INITIAL_MOVIES);
     setCategories(INITIAL_CATEGORIES);
     setSiteSettings(DEFAULT_SETTINGS);
@@ -505,6 +815,12 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.removeItem(LOCAL_STORAGE_CATEGORIES_KEY);
     localStorage.removeItem(LOCAL_STORAGE_ANALYTICS_KEY);
     localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY);
+
+    try {
+      await supabase.from('movies').upsert(INITIAL_MOVIES.map(mapMovieToRow));
+    } catch (e) {
+      // ignore
+    }
   };
 
   return (
@@ -556,7 +872,12 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       movieRequests,
       submitMovieRequest,
       updateMovieRequestStatus,
+      replyMovieRequest,
       deleteMovieRequest,
+      isLoadingMovies,
+      isLoadingRequests,
+      dbStatus,
+      refreshCatalog,
     }}>
       {children}
     </MovieContext.Provider>

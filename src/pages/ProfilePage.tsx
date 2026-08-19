@@ -189,6 +189,7 @@ export const ProfilePage: React.FC = () => {
                   <span className={`px-2.5 py-1 rounded-xl text-[10px] font-black border ${
                     req.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
                     req.status === 'REVIEWING' ? 'bg-sky-500/20 text-sky-400 border-sky-500/30' :
+                    req.status === 'REPLIED' ? 'bg-indigo-500/20 text-indigo-400 border-indigo-500/30' :
                     req.status === 'REJECTED' ? 'bg-rose-500/20 text-rose-400 border-rose-500/30' :
                     'bg-amber-500/20 text-amber-300 border-amber-500/30'
                   }`}>
@@ -202,6 +203,17 @@ export const ProfilePage: React.FC = () => {
                   <p className="text-xs text-gray-300 italic bg-[#0A0A0E] p-2.5 rounded-xl border border-white/5">
                     "{req.message}"
                   </p>
+                )}
+                {req.adminReply && (
+                  <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-xs space-y-1">
+                    <div className="flex items-center justify-between text-blue-400 font-bold text-[11px]">
+                      <span>Admin Response:</span>
+                      {req.adminRepliedAt && (
+                        <span className="text-gray-400 text-[10px]">{new Date(req.adminRepliedAt).toLocaleDateString()}</span>
+                      )}
+                    </div>
+                    <p className="text-gray-200">{req.adminReply}</p>
+                  </div>
                 )}
                 <p className="text-[10px] text-gray-500 text-right">
                   Requested on {new Date(req.createdAt).toLocaleDateString()}

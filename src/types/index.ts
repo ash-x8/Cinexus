@@ -146,7 +146,9 @@ export interface MovieRequest {
   year?: string | number;
   language?: string;
   message?: string;
-  status: 'PENDING' | 'REVIEWING' | 'COMPLETED' | 'REJECTED';
+  status: 'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED';
+  adminReply?: string;
+  adminRepliedAt?: string;
   createdAt: string;
   updatedAt: string;
   emailStatus: 'PENDING' | 'SENT' | 'FAILED';

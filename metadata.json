@@ -1,0 +1,6 @@
+{
+  "name": "CINEXUS",
+  "description": "Sri Lanka's premier standalone movie brand for high-speed 4K/1080p Sinhala subtitled movies, series streaming, and multi-quality downloads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

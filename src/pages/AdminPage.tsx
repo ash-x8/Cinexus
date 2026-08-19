@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useMovies } from '../context/MovieContext';
-import type { Movie, SiteSettings, ServerPlayer, DownloadLink, CastMember } from '../types';
+import type { Movie, SiteSettings, ServerPlayer, DownloadLink, CastMember, MovieRequest } from '../types';
 import { fetchTMDBMetadata } from '../utils/tmdb';
 import { uploadToCloudinary } from '../utils/cloudinary';
 import {
@@ -60,6 +60,7 @@ export const AdminPage: React.FC = () => {
     resetToDefaultData,
     movieRequests,
     updateMovieRequestStatus,
+    replyMovieRequest,
     deleteMovieRequest,
   } = useMovies();
 
@@ -70,6 +71,13 @@ export const AdminPage: React.FC = () => {
 
   // Admin Tab State
   const [activeTab, setActiveTab] = useState<'movies' | 'requests' | 'branding' | 'social' | 'legal' | 'analytics' | 'categories'>('movies');
+
+  // Admin Request Reply State
+  const [replyingRequest, setReplyingRequest] = useState<MovieRequest | null>(null);
+  const [replyMessageText, setReplyMessageText] = useState('');
+  const [replyStatusChoice, setReplyStatusChoice] = useState<'PENDING' | 'REVIEWING' | 'REPLIED' | 'COMPLETED' | 'REJECTED'>('REPLIED');
+  const [isSavingReply, setIsSavingReply] = useState(false);
+  const [replySuccessMsg, setReplySuccessMsg] = useState(false);
 
   // Site Settings Form State
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
@@ -1227,10 +1235,16 @@ export const AdminPage: React.FC = () => {
                           <span className="text-[10px] text-gray-500">ID: {req.userId}</span>
                         </td>
 
-                        <td className="p-4 max-w-xs">
-                          <p className="text-[#9E9EA0] text-xs truncate" title={req.message}>
+                        <td className="p-4 max-w-xs space-y-1">
+                          <p className="text-[#9E9EA0] text-xs" title={req.message}>
                             {req.message || 'No additional message.'}
                           </p>
+                          {req.adminReply && (
+                            <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-[11px] text-blue-300">
+                              <span className="font-bold text-white block">Admin Reply:</span>
+                              "{req.adminReply}"
+                            </div>
+                          )}
                         </td>
 
                         <td className="p-4 text-[#9E9EA0]">
@@ -1244,18 +1258,32 @@ export const AdminPage: React.FC = () => {
                             className={`px-3 py-1.5 rounded-xl font-bold text-[11px] border focus:outline-none bg-[#0A0A0E] ${
                               req.status === 'COMPLETED' ? 'text-emerald-400 border-emerald-500/30' :
                               req.status === 'REVIEWING' ? 'text-sky-400 border-sky-500/30' :
+                              req.status === 'REPLIED' ? 'text-indigo-400 border-indigo-500/30' :
                               req.status === 'REJECTED' ? 'text-rose-400 border-rose-500/30' :
                               'text-amber-400 border-amber-500/30'
                             }`}
                           >
                             <option value="PENDING">PENDING</option>
                             <option value="REVIEWING">REVIEWING</option>
+                            <option value="REPLIED">REPLIED</option>
                             <option value="COMPLETED">COMPLETED</option>
                             <option value="REJECTED">REJECTED</option>
                           </select>
                         </td>
 
-                        <td className="p-4 text-right">
+                        <td className="p-4 text-right space-x-2">
+                          <button
+                            onClick={() => {
+                              setReplyingRequest(req);
+                              setReplyMessageText(req.adminReply || '');
+                              setReplyStatusChoice(req.status === 'PENDING' ? 'REPLIED' : req.status);
+                              setReplySuccessMsg(false);
+                            }}
+                            className="p-2 rounded-lg bg-blue-600/20 text-blue-300 hover:bg-blue-600 hover:text-white transition-colors"
+                            title="Reply to Request"
+                          >
+                            <MessageSquare className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => {
                               if (confirm(`Delete request for "${req.movieName}"?`)) {
@@ -1275,6 +1303,115 @@ export const AdminPage: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Admin Reply Modal */}
+          {replyingRequest && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl animate-in fade-in duration-200">
+              <div className="relative w-full max-w-lg bg-[#121620] border border-white/10 rounded-3xl overflow-hidden shadow-2xl space-y-5 p-6">
+                <div className="flex items-center justify-between border-b border-white/10 pb-3">
+                  <div className="flex items-center gap-2 text-white font-black text-base">
+                    <MessageSquare className="w-5 h-5 text-blue-400" />
+                    <span>Admin Reply to Movie Request</span>
+                  </div>
+                  <button
+                    onClick={() => setReplyingRequest(null)}
+                    className="p-1 rounded-lg text-gray-400 hover:text-white hover:bg-white/10"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Request Overview */}
+                <div className="p-4 rounded-2xl bg-[#0A0A0E] border border-white/5 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#9E9EA0]">Movie Requested:</span>
+                    <span className="font-bold text-white">{replyingRequest.movieName} ({replyingRequest.year || 'N/A'})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#9E9EA0]">Requester:</span>
+                    <span className="font-bold text-rose-300">{replyingRequest.userName} (@{replyingRequest.userUsername})</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[#9E9EA0]">User Email:</span>
+                    <span className="text-gray-300">{replyingRequest.userEmail}</span>
+                  </div>
+                  {replyingRequest.message && (
+                    <div className="pt-2 border-t border-white/5">
+                      <span className="text-[#9E9EA0] block mb-1">User Message:</span>
+                      <p className="text-gray-300 italic bg-white/5 p-2 rounded-xl">"{replyingRequest.message}"</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Reply Form */}
+                <form
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setIsSavingReply(true);
+                    await replyMovieRequest(replyingRequest.id, replyMessageText, replyStatusChoice);
+                    setIsSavingReply(false);
+                    setReplySuccessMsg(true);
+                    setTimeout(() => {
+                      setReplyingRequest(null);
+                      setReplySuccessMsg(false);
+                    }, 1200);
+                  }}
+                  className="space-y-4 text-xs"
+                >
+                  <div>
+                    <label className="block text-gray-300 font-bold mb-1">Admin Reply Message*</label>
+                    <textarea
+                      rows={3}
+                      required
+                      value={replyMessageText}
+                      onChange={(e) => setReplyMessageText(e.target.value)}
+                      placeholder="e.g., We have added this movie to our translation queue! It will be uploaded this Friday with 1080p Sinhala subs."
+                      className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 font-normal"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-gray-300 font-bold mb-1">Update Request Status</label>
+                    <select
+                      value={replyStatusChoice}
+                      onChange={(e) => setReplyStatusChoice(e.target.value as any)}
+                      className="w-full bg-[#0A0A0E] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-blue-500 font-bold"
+                    >
+                      <option value="REPLIED">REPLIED (Reply Sent)</option>
+                      <option value="REVIEWING">REVIEWING (In Translation Queue)</option>
+                      <option value="COMPLETED">COMPLETED (Published on Site)</option>
+                      <option value="REJECTED">REJECTED (Not Available)</option>
+                      <option value="PENDING">PENDING</option>
+                    </select>
+                  </div>
+
+                  {replySuccessMsg && (
+                    <div className="p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-xl text-emerald-300 font-bold flex items-center gap-2">
+                      <Check className="w-4 h-4" /> Reply saved and synced to database!
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setReplyingRequest(null)}
+                      className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-gray-300 font-bold transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSavingReply}
+                      className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold flex items-center gap-2 shadow-lg hover:opacity-90 disabled:opacity-50"
+                    >
+                      {isSavingReply ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                      <span>Save & Post Reply</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

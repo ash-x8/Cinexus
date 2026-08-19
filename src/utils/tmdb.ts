@@ -1,12 +1,14 @@
 export const TMDB_API_KEY =
-  import.meta.env.VITE_TMDB_API_KEY ||
-  import.meta.env.NEXT_PUBLIC_TMDB_API_KEY ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_API_KEY) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_API_KEY) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_API_KEY) ||
   'abdcc6777a98f6195e7adc6b7d50ed8b';
 
 export const TMDB_READ_ACCESS_TOKEN =
-  import.meta.env.VITE_TMDB_READ_ACCESS_TOKEN ||
-  import.meta.env.TMDB_READ_ACCESS_TOKEN ||
-  'EyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3JiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_READ_ACCESS_TOKEN) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_READ_ACCESS_TOKEN) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN) ||
+  'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3NjJiMTIyNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
 
 export interface TMCastMember {
   tmdb_id?: number | string;
@@ -55,6 +57,16 @@ export interface TMDBMovieDetail {
 
 export const DEFAULT_ACTOR_PLACEHOLDER = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80';
 
+async function tmdbFetch(url: string): Promise<Response> {
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+  };
+  if (TMDB_READ_ACCESS_TOKEN) {
+    headers['Authorization'] = `Bearer ${TMDB_READ_ACCESS_TOKEN}`;
+  }
+  return fetch(url, { headers });
+}
+
 export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail | null> {
   const trimmed = query.trim();
   if (!trimmed) return null;
@@ -68,7 +80,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       mediaId = trimmed;
     } else if (/^tt\d+$/i.test(trimmed)) {
       // Find by IMDb ID
-      const findRes = await fetch(
+      const findRes = await tmdbFetch(
         `https://api.themoviedb.org/3/find/${trimmed}?api_key=${TMDB_API_KEY}&external_source=imdb_id`
       );
       const findData = await findRes.json();
@@ -83,7 +95,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
 
     if (!mediaId) {
       // Search by movie name
-      const searchRes = await fetch(
+      const searchRes = await tmdbFetch(
         `https://api.themoviedb.org/3/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(trimmed)}`
       );
       const searchData = await searchRes.json();
@@ -92,7 +104,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
         mediaType = 'movie';
       } else {
         // Search TV as fallback
-        const tvSearchRes = await fetch(
+        const tvSearchRes = await tmdbFetch(
           `https://api.themoviedb.org/3/search/tv?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(trimmed)}`
         );
         const tvSearchData = await tvSearchRes.json();
@@ -110,8 +122,8 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
     // Step 1: Endpoint Integration
     // Query details and credits endpoint
     const [detailRes, creditsRes] = await Promise.all([
-      fetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}`),
-      fetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}/credits?api_key=${TMDB_API_KEY}`)
+      tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}`),
+      tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}/credits?api_key=${TMDB_API_KEY}`)
     ]);
 
     if (!detailRes.ok) return null;
