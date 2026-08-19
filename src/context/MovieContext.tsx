@@ -40,6 +40,7 @@ interface MovieContextType {
   setSortBy: (sort: string) => void;
 
   // Actions
+  upsertMovie: (movie: Partial<Movie> & { id?: string }) => Promise<{ success: boolean; data?: Movie; error?: string }>;
   addMovie: (movie: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => Promise<Movie>;
   updateMovie: (id: string, movie: Partial<Movie>) => Promise<void>;
   deleteMovie: (id: string) => Promise<void>;
@@ -679,7 +680,87 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
-  // Add Movie to Supabase + state
+  // Direct Upsert Movie to Supabase 'movies' table + update state
+  const upsertMovie = async (movieData: Partial<Movie> & { id?: string }): Promise<{ success: boolean; data?: Movie; error?: string }> => {
+    try {
+      const id = movieData.id || `m_${Date.now()}`;
+      const existing = movies.find(m => m.id === id);
+      
+      const fullMovie: Movie = {
+        id,
+        title: movieData.title || existing?.title || 'Untitled Movie',
+        sinhalaTitle: movieData.sinhalaTitle ?? existing?.sinhalaTitle ?? '',
+        originalTitle: movieData.originalTitle ?? existing?.originalTitle ?? movieData.title ?? '',
+        year: movieData.year ?? existing?.year ?? new Date().getFullYear(),
+        imdbRating: movieData.imdbRating ?? existing?.imdbRating ?? 8.0,
+        duration: movieData.duration || existing?.duration || '2h 00m',
+        qualityBadge: movieData.qualityBadge || existing?.qualityBadge || '1080p WEB-DL',
+        posterUrl: movieData.posterUrl || existing?.posterUrl || '',
+        backdropUrl: movieData.backdropUrl ?? existing?.backdropUrl ?? '',
+        trailerUrl: movieData.trailerUrl ?? existing?.trailerUrl ?? '',
+        streamServer1Url: movieData.streamServer1Url ?? existing?.streamServer1Url ?? '',
+        streamServer2Url: movieData.streamServer2Url ?? existing?.streamServer2Url ?? '',
+        streamServer3Url: movieData.streamServer3Url ?? existing?.streamServer3Url ?? '',
+        trailerEmbedUrl: movieData.trailerEmbedUrl ?? existing?.trailerEmbedUrl ?? movieData.trailerUrl ?? '',
+        sinhalaPlot: movieData.sinhalaPlot ?? existing?.sinhalaPlot ?? '',
+        englishPlot: movieData.englishPlot ?? existing?.englishPlot ?? '',
+        genres: movieData.genres || existing?.genres || ['Action'],
+        languages: movieData.languages || existing?.languages || ['English'],
+        language: movieData.language || existing?.language || 'English',
+        contentType: movieData.contentType || existing?.contentType || 'Sinhala Sub',
+        cast: movieData.cast || existing?.cast || [],
+        director: movieData.director || existing?.director || 'Unknown',
+        audioLanguage: movieData.audioLanguage || existing?.audioLanguage || 'English',
+        subtitleSourceUrl: movieData.subtitleSourceUrl ?? existing?.subtitleSourceUrl ?? '',
+        servers: movieData.servers || existing?.servers || [],
+        downloadLinks: movieData.downloadLinks || existing?.downloadLinks || [],
+        hasSinhalaSub: movieData.hasSinhalaSub ?? existing?.hasSinhalaSub ?? true,
+        isDualAudio: movieData.isDualAudio ?? existing?.isDualAudio ?? false,
+        isTrending: movieData.isTrending ?? existing?.isTrending ?? false,
+        isFeatured: movieData.isFeatured ?? existing?.isFeatured ?? false,
+        isTVSeries: movieData.isTVSeries ?? existing?.isTVSeries ?? false,
+        seasonsCount: movieData.seasonsCount ?? existing?.seasonsCount ?? 0,
+        episodesCount: movieData.episodesCount ?? existing?.episodesCount ?? (movieData.episodes ? movieData.episodes.length : 0),
+        episodes: movieData.episodes || existing?.episodes || [],
+        viewsCount: movieData.viewsCount ?? existing?.viewsCount ?? 0,
+        downloadsCount: movieData.downloadsCount ?? existing?.downloadsCount ?? 0,
+        addedAt: movieData.addedAt || existing?.addedAt || new Date().toISOString().split('T')[0],
+      };
+
+      // Optimistically update React state
+      setMovies(prev => {
+        const idx = prev.findIndex(m => m.id === id);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx] = fullMovie;
+          return updated;
+        }
+        return [fullMovie, ...prev];
+      });
+      setAnalytics(prev => ({ ...prev, totalMovies: Math.max(prev.totalMovies, movies.length + 1) }));
+
+      // Direct Supabase upsert to 'movies' table
+      const dbRow = mapMovieToRow(fullMovie);
+      const { data, error } = await supabase
+        .from('movies')
+        .upsert(dbRow, { onConflict: 'id' })
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('Supabase upsertMovie note:', error.message);
+        return { success: false, data: fullMovie, error: error.message };
+      }
+
+      const savedMovie = data ? mapRowToMovie(data) : fullMovie;
+      return { success: true, data: savedMovie };
+    } catch (err: any) {
+      console.error('upsertMovie error:', err);
+      return { success: false, error: err?.message || 'Database error' };
+    }
+  };
+
+  // Add Movie to Supabase + state (uses upsertMovie)
   const addMovie = async (movieData: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>): Promise<Movie> => {
     const newMovie: Movie = {
       ...movieData,
@@ -689,37 +770,15 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addedAt: new Date().toISOString().split('T')[0],
     };
 
-    // Optimistically update local state
-    setMovies(prev => [newMovie, ...prev]);
-    setAnalytics(prev => ({ ...prev, totalMovies: prev.totalMovies + 1 }));
-
-    // Persist to shared Supabase table
-    try {
-      const dbRow = mapMovieToRow(newMovie);
-      const { error } = await supabase.from('movies').insert(dbRow);
-      if (error) {
-        console.warn('Supabase insert movie note:', error.message);
-      }
-    } catch (err) {
-      console.warn('Supabase insert movie error:', err);
-    }
-
-    return newMovie;
+    const res = await upsertMovie(newMovie);
+    return res.data || newMovie;
   };
 
-  // Update Movie in Supabase + state
+  // Update Movie in Supabase + state (uses upsertMovie)
   const updateMovie = async (id: string, movieData: Partial<Movie>) => {
-    setMovies(prev => prev.map(m => m.id === id ? { ...m, ...movieData } : m));
-
-    try {
-      const dbRow = mapMovieToRow(movieData);
-      const { error } = await supabase.from('movies').update(dbRow).eq('id', id);
-      if (error) {
-        console.warn('Supabase update movie note:', error.message);
-      }
-    } catch (err) {
-      console.warn('Supabase update movie error:', err);
-    }
+    const existing = movies.find(m => m.id === id);
+    const merged = existing ? { ...existing, ...movieData } : { id, ...movieData };
+    await upsertMovie(merged as Movie);
   };
 
   // Delete Movie from Supabase + state
@@ -847,6 +906,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       resetAllFilters,
       sortBy,
       setSortBy,
+      upsertMovie,
       addMovie,
       updateMovie,
       deleteMovie,
