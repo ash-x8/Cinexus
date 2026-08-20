@@ -13,12 +13,12 @@ import {
   Server,
   Film,
   Sparkles,
-  ExternalLink,
   Tv,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck
 } from 'lucide-react';
-import { formatToEmbedUrl } from '../utils/playerSanitizer';
+import { formatToEmbedUrl, extractSourceUrl } from '../utils/playerSanitizer';
 
 export interface CustomPlayerProps {
   src: string;
@@ -41,30 +41,31 @@ export interface CustomPlayerProps {
  */
 export function isDirectVideoSource(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
-  const lower = url.trim().toLowerCase();
+  // Clean raw iframe if present
+  const cleaned = extractSourceUrl(url).trim().toLowerCase();
 
   // Explicit video extensions
   if (
-    lower.endsWith('.mp4') ||
-    lower.endsWith('.webm') ||
-    lower.endsWith('.ogg') ||
-    lower.endsWith('.mov') ||
-    lower.endsWith('.m4v') ||
-    lower.includes('.mp4?') ||
-    lower.includes('.webm?') ||
-    lower.includes('.m3u8')
+    cleaned.endsWith('.mp4') ||
+    cleaned.endsWith('.webm') ||
+    cleaned.endsWith('.ogg') ||
+    cleaned.endsWith('.mov') ||
+    cleaned.endsWith('.m4v') ||
+    cleaned.includes('.mp4?') ||
+    cleaned.includes('.webm?') ||
+    cleaned.includes('.m3u8')
   ) {
     return true;
   }
 
   // Common direct video CDNs and storage endpoints
   if (
-    (lower.includes('cloudinary.com') && lower.includes('/video/upload/')) ||
-    lower.includes('storage.googleapis.com') ||
-    lower.includes('s3.amazonaws.com') ||
-    lower.includes('supabase.co/storage/v1/object/public/videos') ||
-    lower.includes('blob:') ||
-    lower.includes('data:video')
+    (cleaned.includes('cloudinary.com') && cleaned.includes('/video/upload/')) ||
+    cleaned.includes('storage.googleapis.com') ||
+    cleaned.includes('s3.amazonaws.com') ||
+    cleaned.includes('supabase.co/storage/v1/object/public/videos') ||
+    cleaned.includes('blob:') ||
+    cleaned.includes('data:video')
   ) {
     return true;
   }
@@ -102,6 +103,9 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   const videoRef = useRef<HTMLVideoElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
 
+  // Extract pure URL if Admin or user provided an <iframe> code
+  const pureSource = extractSourceUrl(src);
+
   // Playback state for HTML5 direct video
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -114,21 +118,19 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [showServerMenu, setShowServerMenu] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
-  const [hasSubtitles, setHasSubtitles] = useState(Boolean(subtitleUrl));
   const [subtitlesEnabled, setSubtitlesEnabled] = useState(Boolean(subtitleUrl));
   const [loadError, setLoadError] = useState(false);
 
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isDirect = isDirectVideoSource(src);
+  const isDirect = isDirectVideoSource(pureSource);
 
   // Reset error when src changes
   useEffect(() => {
     setLoadError(false);
     setIsBuffering(false);
-  }, [src]);
+  }, [pureSource]);
 
   // Fullscreen change listener
   useEffect(() => {
@@ -149,8 +151,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowSpeedMenu(false);
-        setShowServerMenu(false);
-      }, 3000);
+      }, 3500);
     }
   };
 
@@ -268,7 +269,6 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   // Keyboard shortcut controller
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore when focusing inputs
       if (['input', 'textarea', 'select'].includes((e.target as HTMLElement)?.tagName?.toLowerCase())) {
         return;
       }
@@ -304,7 +304,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [togglePlay, volume, isMuted, duration]);
 
-  const sanitizedEmbedUrl = !isDirect && src ? formatToEmbedUrl(src, serverType) : '';
+  const sanitizedEmbedUrl = !isDirect && pureSource ? formatToEmbedUrl(pureSource, serverType) : '';
 
   return (
     <div
@@ -314,10 +314,9 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
         if (isPlaying) {
           setShowControls(false);
           setShowSpeedMenu(false);
-          setShowServerMenu(false);
         }
       }}
-      className={`relative w-full overflow-hidden bg-black rounded-2xl border border-white/10 shadow-2xl group select-none transition-all ${
+      className={`relative w-full overflow-hidden bg-black rounded-3xl border border-white/10 shadow-2xl group select-none transition-all ${
         isTheaterMode ? 'aspect-[21/9] max-h-[85vh]' : 'aspect-video'
       }`}
     >
@@ -326,7 +325,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
         <>
           <video
             ref={videoRef}
-            src={src}
+            src={pureSource}
             poster={posterUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
@@ -349,6 +348,15 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
               <track src={subtitleUrl} kind="subtitles" srcLang="si" label="Sinhala Subtitle" default />
             )}
           </video>
+
+          {/* Custom Brand Logo Watermark Overlay */}
+          <div className="absolute top-4 right-4 z-20 pointer-events-none opacity-75 hover:opacity-100 transition-opacity">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/10 shadow-lg">
+              <span className="w-2 h-2 rounded-full bg-[#FF0E25] animate-ping" />
+              <span className="font-black text-[11px] tracking-wider text-white">CINEXUS</span>
+              <span className="text-[10px] text-[#FF0E25] font-bold">සිනෙක්ස්</span>
+            </div>
+          </div>
 
           {/* Center Play/Pause Large Pulse Button (Shown when paused or initial) */}
           {!isPlaying && !isBuffering && !loadError && (
@@ -409,13 +417,13 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
 
           {/* Top Brand Header (Fades in/out with controls) */}
           <div
-            className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+            className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between transition-opacity duration-300 ${
               showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >
             <div className="flex items-center gap-2.5 truncate max-w-[70%]">
               <span className="px-2.5 py-1 rounded-lg bg-[#FF0E25] text-white font-black text-[10px] uppercase tracking-wider shadow">
-                CINEXUS Player
+                CINEXUS Custom Player
               </span>
               <span className="text-xs font-extrabold text-white truncate drop-shadow-md">
                 {title}
@@ -626,7 +634,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
           <div className="px-4 py-2.5 bg-gradient-to-r from-[#170305] via-[#C80016]/90 to-[#170305] flex items-center justify-between border-b border-white/10 z-20 select-none">
             <div className="flex items-center gap-2 truncate">
               <span className="px-2 py-0.5 rounded-md bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider">
-                CINEXUS Embed Engine
+                CINEXUS Player Engine
               </span>
               <span className="text-xs font-extrabold text-white truncate max-w-[200px] sm:max-w-[320px]">
                 {title}
@@ -637,6 +645,11 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
               <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/15 text-rose-300 font-bold text-[10px] flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {serverName}
+              </span>
+
+              {/* Watermark badge */}
+              <span className="px-2 py-0.5 rounded-md bg-black/40 border border-white/10 text-white font-extrabold text-[9px] hidden sm:inline-flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-[#FF0E25]" /> CINEXUS
               </span>
 
               {onTheaterToggle && (
@@ -659,7 +672,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
           <div className="relative flex-1 w-full h-full bg-black">
             {sanitizedEmbedUrl ? (
               <iframe
-                key={src}
+                key={pureSource}
                 src={sanitizedEmbedUrl}
                 title={`${title} CINEXUS Player`}
                 className="w-full h-full border-0 aspect-video"
@@ -682,3 +695,4 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
     </div>
   );
 };
+

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Analytics } from '@vercel/analytics/react';
 import { MovieProvider } from './context/MovieContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { PlayerProvider } from './context/PlayerContext';
@@ -88,7 +87,6 @@ export const App: React.FC = () => {
         <PlayerProvider>
           <Router>
             <AppContent />
-            <Analytics />
           </Router>
         </PlayerProvider>
       </LanguageProvider>
