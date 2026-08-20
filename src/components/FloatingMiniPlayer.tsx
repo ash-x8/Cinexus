@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Play, Pause, Maximize2, X, Move, Film } from 'lucide-react';
 import { usePlayer } from '../context/PlayerContext';
 import { formatToEmbedUrl } from '../utils/playerSanitizer';
+import { isDirectVideoSource } from './CustomPlayer';
 
 export const FloatingMiniPlayer: React.FC = () => {
   const { activeStream, isPlaying, togglePlay, expandPlayer, closePlayer } = usePlayer();
@@ -54,7 +55,8 @@ export const FloatingMiniPlayer: React.FC = () => {
     navigate(`/movie/${activeStream.movieId}`);
   };
 
-  const sanitizedUrl = formatToEmbedUrl(activeStream.streamUrl);
+  const isDirect = isDirectVideoSource(activeStream.streamUrl);
+  const sanitizedUrl = !isDirect ? formatToEmbedUrl(activeStream.streamUrl) : '';
 
   return (
     <div
@@ -104,15 +106,25 @@ export const FloatingMiniPlayer: React.FC = () => {
       {/* Mini Video Embed Container */}
       <div className="relative aspect-video w-full bg-black">
         {isPlaying ? (
-          <iframe
-            key={activeStream.streamUrl}
-            src={sanitizedUrl}
-            title={`${activeStream.title} Floating Player`}
-            className="w-full h-full aspect-video border-0"
-            allowFullScreen
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="origin-when-cross-origin"
-          />
+          isDirect ? (
+            <video
+              src={activeStream.streamUrl}
+              autoPlay
+              controls
+              playsInline
+              className="w-full h-full object-contain"
+            />
+          ) : (
+            <iframe
+              key={activeStream.streamUrl}
+              src={sanitizedUrl}
+              title={`${activeStream.title} Floating Player`}
+              className="w-full h-full aspect-video border-0"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="origin-when-cross-origin"
+            />
+          )
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center bg-black/90 p-4 text-center space-y-2">
             <p className="text-xs font-bold text-white">Playback Paused</p>

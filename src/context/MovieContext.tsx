@@ -329,10 +329,9 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         }));
         setDbStatus('connected');
       } else if (!hasSeededRef.current) {
-        // One-time automatic migration of existing local catalog to Supabase
+        // One-time automatic migration of existing catalog to Supabase
         hasSeededRef.current = true;
-        const initialToSeed = movies.length > 0 ? movies : INITIAL_MOVIES;
-        const rowsToSeed = initialToSeed.map(mapMovieToRow);
+        const rowsToSeed = INITIAL_MOVIES.map(mapMovieToRow);
         const { error: seedError } = await supabase.from('movies').upsert(rowsToSeed);
         if (!seedError) {
           setDbStatus('connected');
@@ -344,7 +343,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } finally {
       setIsLoadingMovies(false);
     }
-  }, [movies]);
+  }, []);
 
   // Fetch movie requests from Supabase
   const fetchMovieRequests = useCallback(async () => {
@@ -360,23 +359,15 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       } else if (data && data.length > 0) {
         const mapped = data.map(mapRowToRequest);
         setMovieRequests(mapped);
-      } else if (movieRequests.length > 0) {
-        // Seed initial requests if DB table is empty
-        const rowsToSeed = movieRequests.map(mapRequestToRow);
-        try {
-          await supabase.from('movie_requests').upsert(rowsToSeed);
-        } catch (e) {
-          // ignore
-        }
       }
     } catch (err) {
       console.warn('Supabase requests error:', err);
     } finally {
       setIsLoadingRequests(false);
     }
-  }, [movieRequests]);
+  }, []);
 
-  // Fetch site settings from Supabase
+  // Fetch site settings and categories from Supabase
   const fetchSiteSettings = useCallback(async () => {
     try {
       const { data, error } = await supabase
@@ -387,6 +378,17 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (!error && data?.settings) {
         setSiteSettings(prev => ({ ...prev, ...data.settings }));
+      }
+
+      // Also fetch dynamic categories from Supabase
+      const { data: catData } = await supabase
+        .from('site_settings')
+        .select('*')
+        .eq('id', 'categories')
+        .single();
+
+      if (catData?.settings?.list && Array.isArray(catData.settings.list) && catData.settings.list.length > 0) {
+        setCategories(catData.settings.list);
       }
     } catch (err) {
       // ignore
@@ -456,7 +458,9 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         'postgres_changes',
         { event: '*', schema: 'public', table: 'site_settings' },
         (payload: any) => {
-          if (payload.new?.settings) {
+          if (payload.new?.id === 'categories' && payload.new?.settings?.list) {
+            setCategories(payload.new.settings.list);
+          } else if (payload.new?.settings) {
             setSiteSettings(prev => ({ ...prev, ...payload.new.settings }));
           }
         }
@@ -830,16 +834,34 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     })();
   };
 
-  const addCategory = (categoryData: Omit<Category, 'id'>) => {
+  const addCategory = async (categoryData: Omit<Category, 'id'>) => {
     const newCat: Category = {
       ...categoryData,
       id: `c_${Date.now()}`
     };
-    setCategories(prev => [...prev, newCat]);
+    const updated = [...categories, newCat];
+    setCategories(updated);
+
+    try {
+      await supabase
+        .from('site_settings')
+        .upsert({ id: 'categories', settings: { list: updated }, updated_at: new Date().toISOString() });
+    } catch (e) {
+      console.warn('Supabase addCategory note:', e);
+    }
   };
 
-  const deleteCategory = (id: string) => {
-    setCategories(prev => prev.filter(c => c.id !== id));
+  const deleteCategory = async (id: string) => {
+    const updated = categories.filter(c => c.id !== id);
+    setCategories(updated);
+
+    try {
+      await supabase
+        .from('site_settings')
+        .upsert({ id: 'categories', settings: { list: updated }, updated_at: new Date().toISOString() });
+    } catch (e) {
+      console.warn('Supabase deleteCategory note:', e);
+    }
   };
 
   const logSearchQuery = (query: string) => {

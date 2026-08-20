@@ -5,6 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { usePlayer } from '../context/PlayerContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
+import { CustomPlayer } from '../components/CustomPlayer';
 import { formatToEmbedUrl } from '../utils/playerSanitizer';
 import { executeDownload } from '../utils/downloadEngine';
 import type { CastMember } from '../types';
@@ -47,6 +48,7 @@ export const MovieDetailPage: React.FC = () => {
   const [plotTab, setPlotTab] = useState<'sinhala' | 'english'>('sinhala');
   const [downloadSuccessMessage, setDownloadSuccessMessage] = useState<string>('');
   const [activeEpisodeId, setActiveEpisodeId] = useState<string>('');
+  const [isTheaterMode, setIsTheaterMode] = useState<boolean>(false);
   const [trailerModal, setTrailerModal] = useState<{ isOpen: boolean; url: string; title: string }>({
     isOpen: false,
     url: '',
@@ -459,43 +461,36 @@ export const MovieDetailPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Dynamic Video Player Frame with key={activeServer} for unmount/remount sync */}
-        <div className="relative aspect-video w-full rounded-2xl overflow-hidden bg-black border border-white/10 shadow-inner group">
-          {isIframeProcessing && (
-            <div className="absolute inset-0 z-20 bg-[#0A0A0E]/95 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center space-y-3 border border-white/10">
-              <div className="w-12 h-12 rounded-full border-2 border-[#FF0E25] border-t-transparent animate-spin flex items-center justify-center">
-                <Clock className="w-5 h-5 text-[#FF0E25]" />
-              </div>
-              <p className="text-sm font-extrabold text-white">Video Processing on Server</p>
-              <p className="text-xs text-[#9E9EA0] max-w-sm">Please Refresh in a few minutes while the cloud encoder finalizes stream rendering.</p>
-              <button
-                onClick={() => setIsIframeProcessing(false)}
-                className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white text-xs font-bold shadow-md hover:opacity-90"
-              >
-                Dismiss & Retry Playback
-              </button>
-            </div>
-          )}
-
-          {sanitizedPlayerUrl ? (
-            <iframe
-              key={activeServer}
-              src={sanitizedPlayerUrl}
-              title={`${movie.title} CINEXUS Player`}
-              className="w-full h-full aspect-video rounded-xl border-0"
-              allowFullScreen
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="origin-when-cross-origin"
-              onError={() => setIsIframeProcessing(true)}
-            />
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-2 bg-[#0A0A0E]">
-              <Clock className="w-8 h-8 text-[#FF0E25] animate-pulse" />
-              <p className="text-sm font-bold text-white">Video Processing on Server - Please Refresh in a few minutes</p>
-              <p className="text-xs text-[#9E9EA0]">The selected stream mirror is compiling video segments.</p>
-            </div>
-          )}
-        </div>
+        {/* Dedicated Custom Movie Player Engine */}
+        <CustomPlayer
+          src={activeUrl}
+          title={movie.title}
+          posterUrl={movie.backdropUrl || movie.posterUrl}
+          serverName={activeServerName}
+          serverType={activeServerType}
+          qualityBadge={movie.qualityBadge}
+          subtitleUrl={subtitleUrl}
+          availableServers={[
+            ...(s1Url ? [{ id: 's1', name: 'Server 1: StreamHG', url: s1Url, serverType: 'streamhg' }] : []),
+            ...(s2Url ? [{ id: 's2', name: 'Server 2: EarnVids', url: s2Url, serverType: 'earnvids' }] : []),
+            ...(s3Url ? [{ id: 's3', name: 'Server 3: FileMoon', url: s3Url, serverType: 'filemoon' }] : []),
+            ...(trailerUrl ? [{ id: 'trailer', name: 'Trailer', url: trailerUrl, serverType: 'youtube' }] : []),
+            ...(movie.servers || []).filter(s => s.url && s.url.trim() !== '')
+          ]}
+          activeServerId={activeServer}
+          onServerChange={(srvId) => {
+            if (srvId === 's1' && s1Url) handlePlayActiveServer('s1', s1Url, 'Server 1: StreamHG');
+            else if (srvId === 's2' && s2Url) handlePlayActiveServer('s2', s2Url, 'Server 2: EarnVids');
+            else if (srvId === 's3' && s3Url) handlePlayActiveServer('s3', s3Url, 'Server 3: FileMoon');
+            else if (srvId === 'trailer' && trailerUrl) handlePlayActiveServer('trailer', trailerUrl, 'Trailer');
+            else {
+              const srv = movie.servers?.find(s => s.id === srvId);
+              if (srv) handlePlayActiveServer(srv.id, srv.url, srv.name);
+            }
+          }}
+          isTheaterMode={isTheaterMode}
+          onTheaterToggle={setIsTheaterMode}
+        />
       </section>
 
       {/* DIRECT BROWSER DOWNLOAD ENGINE & SUBTITLE SOURCE LINK */}
