@@ -22,6 +22,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
   const isOriginal = movie.contentType === 'Without Sub / English';
 
   const primaryLanguage = movie.language || movie.languages?.[0] || 'English';
+  const hasTrailer = Boolean(movie.trailerUrl && movie.trailerUrl.trim() !== '');
 
   return (
     <Link
@@ -136,7 +137,7 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
             <Play className="w-6 h-6 fill-white ml-0.5" />
           </div>
 
-          {onTrailerClick && movie.trailerUrl && (
+          {onTrailerClick && hasTrailer && (
             <button
               onClick={(e) => {
                 e.preventDefault();
