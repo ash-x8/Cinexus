@@ -3,6 +3,7 @@ import { useMovies } from '../context/MovieContext';
 import type { Movie, SiteSettings, ServerPlayer, DownloadLink, CastMember, MovieRequest } from '../types';
 import { fetchTMDBMetadata } from '../utils/tmdb';
 import { uploadToCloudinary } from '../utils/cloudinary';
+import { extractVideoUrl } from '../components/CustomPlayer';
 import {
   Film,
   Plus,
@@ -467,12 +468,18 @@ export const AdminPage: React.FC = () => {
       return;
     }
 
+    const cleanS1 = extractVideoUrl(server1Url);
+    const cleanS2 = extractVideoUrl(server2Url);
+    const cleanS3 = extractVideoUrl(server3Url);
+    const cleanS4 = extractVideoUrl(server4Url);
+    const cleanS5 = extractVideoUrl(server5Url || formData.trailerUrl || '');
+
     const updatedServers: ServerPlayer[] = [
-      { id: 's1', name: 'Server 1: StreamHG', url: server1Url, quality: '1080p', serverType: 'streamhg' },
-      { id: 's2', name: 'Server 2: EarnVids', url: server2Url, quality: '720p', serverType: 'earnvids' },
-      { id: 's3', name: 'Server 3: FileMoon', url: server3Url, quality: '720p', serverType: 'filemoon' },
-      { id: 's4', name: 'Server 4: Facebook', url: server4Url, quality: '480p', serverType: 'facebook' },
-      { id: 's5', name: 'Server 5: YouTube Trailer', url: server5Url || formData.trailerUrl || '', quality: '1080p', serverType: 'youtube' }
+      { id: 's1', name: 'Server 1: StreamHG', url: cleanS1, quality: '1080p', serverType: 'streamhg' },
+      { id: 's2', name: 'Server 2: EarnVids', url: cleanS2, quality: '720p', serverType: 'earnvids' },
+      { id: 's3', name: 'Server 3: FileMoon', url: cleanS3, quality: '720p', serverType: 'filemoon' },
+      { id: 's4', name: 'Server 4: Facebook', url: cleanS4, quality: '480p', serverType: 'facebook' },
+      { id: 's5', name: 'Server 5: YouTube Trailer', url: cleanS5, quality: '1080p', serverType: 'youtube' }
     ].filter(s => s.url && s.url.trim() !== '');
 
     // Ensure database schema stores cast as [{ tmdb_id, name: string, character: string, image: string }]
@@ -486,21 +493,28 @@ export const AdminPage: React.FC = () => {
         profileUrl: c.profileUrl || c.image || ''
       }));
 
+    const cleanedEpisodes = episodesList.map(ep => ({
+      ...ep,
+      streamServer1Url: extractVideoUrl(ep.streamServer1Url || ''),
+      streamServer2Url: extractVideoUrl(ep.streamServer2Url || ''),
+      streamServer3Url: extractVideoUrl(ep.streamServer3Url || ''),
+    }));
+
     const movieToSave = {
       ...formData,
-      streamServer1Url: server1Url.trim(),
-      streamServer2Url: server2Url.trim(),
-      streamServer3Url: server3Url.trim(),
-      trailerEmbedUrl: (server5Url || formData.trailerUrl || '').trim(),
-      trailerUrl: (server5Url || formData.trailerUrl || '').trim(),
+      streamServer1Url: cleanS1,
+      streamServer2Url: cleanS2,
+      streamServer3Url: cleanS3,
+      trailerEmbedUrl: cleanS5,
+      trailerUrl: cleanS5,
       cast: formattedCastArray,
       hasSinhalaSub: formData.contentType === 'Sinhala Sub',
       language: formData.language || formData.languages?.[0] || 'English',
       languages: formData.languages && formData.languages.length > 0 ? formData.languages : [formData.language || 'English'],
       servers: updatedServers,
       downloadLinks: downloadLinksList,
-      episodes: episodesList,
-      episodesCount: episodesList.length,
+      episodes: cleanedEpisodes,
+      episodesCount: cleanedEpisodes.length,
     };
 
     if (editingMovieId) {
