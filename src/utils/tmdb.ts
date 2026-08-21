@@ -1,14 +1,14 @@
 export const TMDB_API_KEY =
+  (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_API_KEY) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_API_KEY) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_API_KEY) ||
-  (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_API_KEY) ||
-  'abdcc6777a98f6195e7adc6b7d50ed8b';
+  '';
 
 export const TMDB_READ_ACCESS_TOKEN =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_READ_ACCESS_TOKEN) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_READ_ACCESS_TOKEN) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_READ_ACCESS_TOKEN) ||
-  'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJhYmRjYzY3NzdhOThmNjE5NWU3YWRjNmI3ZDUwZWQ4YiIsIm5iZiI6MTc4Njg1ODgxMy4wNTUsInN1YiI6IjZhODE0ZDNkOTI4MTYxNTM3NjJiMTIyNiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.bnuVpWeDRRerLPOyGYF8BTV5helM2u1SR9C_WTHQbg0';
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_READ_ACCESS_TOKEN) ||
+  '';
 
 export interface TMCastMember {
   tmdb_id?: number | string;
@@ -119,8 +119,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       return null;
     }
 
-    // Step 1: Endpoint Integration
-    // Query details and credits endpoint
+    // Call details endpoint and credits endpoint `/movie/{id}/credits` or `/tv/{id}/credits`
     const [detailRes, creditsRes] = await Promise.all([
       tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}?api_key=${TMDB_API_KEY}`),
       tmdbFetch(`https://api.themoviedb.org/3/${mediaType}/${mediaId}/credits?api_key=${TMDB_API_KEY}`)
@@ -140,13 +139,9 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
       : [];
     const directorName = directors.length > 0 ? directors.join(', ') : 'Unknown Director';
 
-    // Step 2: Data Mapping Logic
-    // Iterate through the `cast` array from the API response and map fields for EVERY cast member:
-    // - Actor Name: Map from original_name (fallback name)
-    // - Character Name: Map from character
-    // - Actor Photo: If profile_path exists: https://image.tmdb.org/t/p/w200/[profile_path], else default placeholder URL
+    // Map fields for every cast member
     const castMembers: TMCastMember[] = credits.cast
-      ? credits.cast.slice(0, 12).map((c: any) => {
+      ? credits.cast.slice(0, 16).map((c: any) => {
           const actorName = c.name || c.original_name || 'Unknown Actor';
           const characterName = c.character || 'Cast Member';
           const image = c.profile_path
@@ -185,7 +180,7 @@ export async function fetchTMDBMetadata(query: string): Promise<TMDBMovieDetail 
         .filter((s: any) => s.season_number > 0)
         .map(async (s: any) => {
           try {
-            const seasonRes = await fetch(
+            const seasonRes = await tmdbFetch(
               `https://api.themoviedb.org/3/tv/${mediaId}/season/${s.season_number}?api_key=${TMDB_API_KEY}`
             );
             if (seasonRes.ok) {
