@@ -3,7 +3,7 @@ import { useMovies } from '../context/MovieContext';
 import type { Movie, SiteSettings, ServerPlayer, DownloadLink, CastMember, MovieRequest } from '../types';
 import { fetchTMDBMetadata } from '../utils/tmdb';
 import { uploadToCloudinary } from '../utils/cloudinary';
-import { extractSourceUrl } from '../utils/playerSanitizer';
+import { extractVideoUrl } from '../components/CustomPlayer';
 import {
   Film,
   Plus,
@@ -472,11 +472,11 @@ export const AdminPage: React.FC = () => {
       return;
     }
 
-    const cleanS1 = extractSourceUrl(server1Url).trim();
-    const cleanS2 = extractSourceUrl(server2Url).trim();
-    const cleanS3 = extractSourceUrl(server3Url).trim();
-    const cleanS4 = extractSourceUrl(server4Url).trim();
-    const cleanS5 = extractSourceUrl(server5Url || formData.trailerUrl || '').trim();
+    const cleanS1 = extractVideoUrl(server1Url);
+    const cleanS2 = extractVideoUrl(server2Url);
+    const cleanS3 = extractVideoUrl(server3Url);
+    const cleanS4 = extractVideoUrl(server4Url);
+    const cleanS5 = extractVideoUrl(server5Url || formData.trailerUrl || '');
 
     const updatedServers: ServerPlayer[] = [
       { id: 's1', name: 'Server 1: StreamHG', url: cleanS1, quality: '1080p', serverType: 'streamhg' },
@@ -497,12 +497,11 @@ export const AdminPage: React.FC = () => {
         profileUrl: c.profileUrl || c.image || ''
       }));
 
-    const sanitizedEpisodes = (episodesList || []).map(ep => ({
+    const cleanedEpisodes = episodesList.map(ep => ({
       ...ep,
-      streamServer1Url: extractSourceUrl(ep.streamServer1Url || '').trim(),
-      streamServer2Url: extractSourceUrl(ep.streamServer2Url || '').trim(),
-      streamServer3Url: extractSourceUrl(ep.streamServer3Url || '').trim(),
-      downloadUrl: extractSourceUrl(ep.downloadUrl || '').trim(),
+      streamServer1Url: extractVideoUrl(ep.streamServer1Url || ''),
+      streamServer2Url: extractVideoUrl(ep.streamServer2Url || ''),
+      streamServer3Url: extractVideoUrl(ep.streamServer3Url || ''),
     }));
 
     const movieToSave = {
@@ -518,8 +517,8 @@ export const AdminPage: React.FC = () => {
       languages: formData.languages && formData.languages.length > 0 ? formData.languages : [formData.language || 'English'],
       servers: updatedServers,
       downloadLinks: downloadLinksList,
-      episodes: sanitizedEpisodes,
-      episodesCount: sanitizedEpisodes.length,
+      episodes: cleanedEpisodes,
+      episodesCount: cleanedEpisodes.length,
     };
 
     if (editingMovieId) {

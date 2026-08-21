@@ -124,21 +124,8 @@ const DEFAULT_SETTINGS: SiteSettings = {
 };
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [movies, setMovies] = useState<Movie[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_MOVIES_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return INITIAL_MOVIES;
-  });
-
-  const [categories, setCategories] = useState<Category[]>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_CATEGORIES_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return INITIAL_CATEGORIES;
-  });
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
 
   const [tags] = useState<Tag[]>([
     { id: '1', name: '4K UHD' },
@@ -148,27 +135,15 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     { id: '5', name: 'Dual Audio' },
   ]);
 
-  const [analytics, setAnalytics] = useState<Analytics>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_ANALYTICS_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) { console.error(e); }
-    }
-    return {
-      totalMovies: INITIAL_MOVIES.length,
-      activeStreams: 1420,
-      totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + m.downloadsCount, 0),
-      userTrafficToday: 18450,
-      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
-    };
+  const [analytics, setAnalytics] = useState<Analytics>({
+    totalMovies: 0,
+    activeStreams: 1420,
+    totalDownloads: 0,
+    userTrafficToday: 18450,
+    recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
   });
 
-  const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY);
-    if (saved) {
-      try { return { ...DEFAULT_SETTINGS, ...JSON.parse(saved) }; } catch (e) { console.error(e); }
-    }
-    return DEFAULT_SETTINGS;
-  });
+  const [siteSettings, setSiteSettings] = useState<SiteSettings>(DEFAULT_SETTINGS);
 
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     const token = localStorage.getItem(LOCAL_STORAGE_AUTH_KEY);
@@ -254,22 +229,13 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const hasSeededRef = useRef(false);
 
-  // Sync to local storage for offline / quick cache fallback
+  // Clean up legacy localStorage cache keys if present
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(movies));
-  }, [movies]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_CATEGORIES_KEY, JSON.stringify(categories));
-  }, [categories]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_ANALYTICS_KEY, JSON.stringify(analytics));
-  }, [analytics]);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(siteSettings));
-  }, [siteSettings]);
+    localStorage.removeItem(LOCAL_STORAGE_MOVIES_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_CATEGORIES_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_ANALYTICS_KEY);
+    localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY);
+  }, []);
 
   useEffect(() => {
     if (isAdminAuthenticated) {
@@ -318,6 +284,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (error) {
         console.warn('Supabase movies fetch note:', error.message);
+        setMovies(INITIAL_MOVIES);
         setDbStatus('fallback');
       } else if (data && data.length > 0) {
         const mapped = data.map(mapRowToMovie);
@@ -328,17 +295,20 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           totalDownloads: mapped.reduce((acc, m) => acc + (m.downloadsCount || 0), 0)
         }));
         setDbStatus('connected');
-      } else if (!hasSeededRef.current) {
-        // One-time automatic migration of existing catalog to Supabase
-        hasSeededRef.current = true;
-        const rowsToSeed = INITIAL_MOVIES.map(mapMovieToRow);
-        const { error: seedError } = await supabase.from('movies').upsert(rowsToSeed);
-        if (!seedError) {
-          setDbStatus('connected');
+      } else {
+        setMovies(INITIAL_MOVIES);
+        if (!hasSeededRef.current) {
+          hasSeededRef.current = true;
+          const rowsToSeed = INITIAL_MOVIES.map(mapMovieToRow);
+          const { error: seedError } = await supabase.from('movies').upsert(rowsToSeed);
+          if (!seedError) {
+            setDbStatus('connected');
+          }
         }
       }
     } catch (err) {
-      console.warn('Supabase catalog error, using local state:', err);
+      console.warn('Supabase catalog error, using initial catalog:', err);
+      setMovies(INITIAL_MOVIES);
       setDbStatus('fallback');
     } finally {
       setIsLoadingMovies(false);

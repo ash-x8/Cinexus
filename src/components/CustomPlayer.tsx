@@ -36,13 +36,30 @@ export interface CustomPlayerProps {
 }
 
 /**
+ * Extracts a pure video source URL if an HTML <iframe> snippet or raw embed code is provided.
+ * Uses regex: src=["']([^"']+)["']
+ */
+export function extractVideoUrl(rawInput: string): string {
+  if (!rawInput || typeof rawInput !== 'string') return '';
+  const trimmed = rawInput.trim();
+
+  // Match src="..." or src='...' inside <iframe> tags or general HTML
+  const iframeMatch = trimmed.match(/src=["']([^"']+)["']/i);
+  if (iframeMatch && iframeMatch[1]) {
+    return iframeMatch[1].trim();
+  }
+
+  return trimmed;
+}
+
+/**
  * Detects if a URL is a direct HTML5 playable video stream (mp4, webm, ogg, direct stream)
  * vs an external iframe embed provider.
  */
 export function isDirectVideoSource(url: string): boolean {
   if (!url || typeof url !== 'string') return false;
-  // Clean raw iframe if present
-  const cleaned = extractSourceUrl(url).trim().toLowerCase();
+  const extracted = extractVideoUrl(url);
+  const lower = extracted.toLowerCase();
 
   // Explicit video extensions
   if (
@@ -124,7 +141,8 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   const [loadError, setLoadError] = useState(false);
 
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isDirect = isDirectVideoSource(pureSource);
+  const cleanSrc = extractVideoUrl(src);
+  const isDirect = isDirectVideoSource(cleanSrc);
 
   // Reset error when src changes
   useEffect(() => {
@@ -325,7 +343,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
         <>
           <video
             ref={videoRef}
-            src={pureSource}
+            src={cleanSrc}
             poster={posterUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
@@ -415,7 +433,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
             </div>
           )}
 
-          {/* Top Brand Header (Fades in/out with controls) */}
+          {/* Top Brand Header & Watermark (Fades in/out with controls) */}
           <div
             className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/85 via-black/40 to-transparent flex items-center justify-between transition-opacity duration-300 ${
               showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
@@ -436,6 +454,12 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
                 {serverName} • {qualityBadge}
               </span>
             </div>
+          </div>
+
+          {/* Persistent Brand Logo Watermark Overlay */}
+          <div className="absolute top-4 right-4 z-20 pointer-events-none opacity-40 hover:opacity-80 transition-opacity flex items-center gap-1 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
+            <span className="text-[11px] font-black tracking-wider text-white">CINEXUS</span>
+            <span className="text-[9px] font-bold text-[#FF0E25] uppercase">සිනෙක්ස්</span>
           </div>
 
           {/* Bottom Custom Controls Bar */}
