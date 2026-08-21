@@ -4,27 +4,6 @@
  * supporting EarnVids, FileMoon, StreamHG, Streamtape, Doodstream, Facebook, and YouTube.
  */
 
-/**
- * Extracts pure URL from an HTML <iframe> tag or raw string if iframe code is provided.
- * Uses regex matching src=["']([^"']+)["']
- */
-export function extractSourceUrl(input: string): string {
-  if (!input || typeof input !== 'string') return '';
-  const trimmed = input.trim();
-  if (!trimmed) return '';
-
-  // Check if input contains an HTML <iframe> or <embed> tag
-  if (trimmed.includes('<iframe') || trimmed.includes('<IFRAME') || trimmed.includes('<embed')) {
-    // Regex matching src="..." or src='...' or src=...
-    const srcMatch = trimmed.match(/src=["']([^"']+)["']/i) || trimmed.match(/src=([^\s>]+)/i);
-    if (srcMatch && srcMatch[1]) {
-      return srcMatch[1].trim();
-    }
-  }
-
-  return trimmed;
-}
-
 const SAMPLE_YOUTUBE_IDS = new Set([
   'd9MyW72ELq0',
   'Way9Dexny3w',
@@ -40,9 +19,7 @@ const SAMPLE_YOUTUBE_IDS = new Set([
  */
 export function formatToEmbedUrl(url: string, serverType?: string): string {
   if (!url || typeof url !== 'string') return '';
-  // First extract pure URL in case an iframe snippet was passed
-  const extracted = extractSourceUrl(url);
-  const trimmed = extracted.trim();
+  const trimmed = url.trim();
   if (!trimmed) return '';
 
   const lowerUrl = trimmed.toLowerCase();
