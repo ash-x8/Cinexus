@@ -36,7 +36,7 @@ import {
 
 export const MovieDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { movies, incrementViews, incrementDownloads, watchlist, favorites, toggleWatchlist, toggleFavorite, addToRecentlyViewed, isLoadingMovies } = useMovies();
+  const { movies, siteSettings, incrementViews, incrementDownloads, watchlist, favorites, toggleWatchlist, toggleFavorite, addToRecentlyViewed, isLoadingMovies } = useMovies();
   const { t } = useLanguage();
   const { playStream } = usePlayer();
 
@@ -470,6 +470,7 @@ export const MovieDetailPage: React.FC = () => {
           src={activeUrl}
           title={movie.title}
           posterUrl={movie.backdropUrl || movie.posterUrl}
+          logoUrl="/logo.png"
           serverName={activeServerName}
           serverType={activeServerType}
           qualityBadge={movie.qualityBadge}

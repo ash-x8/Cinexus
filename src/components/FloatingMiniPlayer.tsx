@@ -78,8 +78,12 @@ export const FloatingMiniPlayer: React.FC = () => {
         className="px-3.5 py-2 bg-gradient-to-r from-[#170305] via-[#C80016]/90 to-[#170305] flex items-center justify-between cursor-move select-none border-b border-white/10"
       >
         <div className="flex items-center gap-2 truncate">
+          <img
+            src="/logo.png"
+            alt="CINEXUS"
+            className="h-4 w-auto object-contain shrink-0"
+          />
           <Move className="w-3.5 h-3.5 text-rose-300 shrink-0" />
-          <Film className="w-3.5 h-3.5 text-[#FF0E25] shrink-0" />
           <span className="text-xs font-extrabold text-white truncate max-w-[160px] sm:max-w-[200px]">
             {activeStream.title}
           </span>

@@ -25,16 +25,23 @@ export const TrailerModal: React.FC<TrailerModalProps> = ({
       <div className="relative w-full max-w-4xl bg-[#121620] border border-white/10 rounded-2xl overflow-hidden shadow-2xl">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-[#0A0A0E]">
-          <div className="flex items-center gap-2">
-            <Film className="w-5 h-5 text-[#FF0E25]" />
-            <h3 className="text-sm font-bold text-white truncate max-w-md">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/10 bg-[#0A0A0E]">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <img
+              src="/logo.png"
+              alt="CINEXUS Logo"
+              className="h-5 w-auto object-contain shrink-0"
+            />
+            <span className="px-1.5 py-0.5 rounded bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider shrink-0">
+              CINEXUS
+            </span>
+            <h3 className="text-xs sm:text-sm font-bold text-white truncate">
               {title} - Official Player / Trailer
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-colors shrink-0"
           >
             <X className="w-5 h-5" />
           </button>

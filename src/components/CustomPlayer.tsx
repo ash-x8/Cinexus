@@ -8,22 +8,26 @@ import {
   Minimize,
   RotateCcw,
   RotateCw,
-  Settings,
   Subtitles,
   Server,
   Film,
   Sparkles,
-  ExternalLink,
   Tv,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  Scan,
+  Monitor,
+  StretchHorizontal
 } from 'lucide-react';
 import { formatToEmbedUrl } from '../utils/playerSanitizer';
+
+export type ScreenFitMode = 'auto' | 'screen' | '16-9' | '21-9' | 'cover';
 
 export interface CustomPlayerProps {
   src: string;
   title: string;
   posterUrl?: string;
+  logoUrl?: string;
   serverName?: string;
   serverType?: string;
   qualityBadge?: string;
@@ -106,6 +110,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   src,
   title,
   posterUrl,
+  logoUrl = '/logo.png',
   serverName = 'Primary Server',
   serverType = 'generic',
   qualityBadge = 'HD',
@@ -132,21 +137,25 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   const [showControls, setShowControls] = useState(true);
   const [isBuffering, setIsBuffering] = useState(false);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
-  const [showServerMenu, setShowServerMenu] = useState(false);
+  const [showFitMenu, setShowFitMenu] = useState(false);
   const [hoverTime, setHoverTime] = useState<number | null>(null);
   const [hoverPosition, setHoverPosition] = useState<number>(0);
-  const [hasSubtitles, setHasSubtitles] = useState(Boolean(subtitleUrl));
   const [subtitlesEnabled, setSubtitlesEnabled] = useState(Boolean(subtitleUrl));
   const [loadError, setLoadError] = useState(false);
+
+  // Dynamic Video Screen Size & Aspect Ratio Fit state
+  const [videoNaturalAspect, setVideoNaturalAspect] = useState<number | null>(null);
+  const [screenFitMode, setScreenFitMode] = useState<ScreenFitMode>('auto');
 
   const controlsTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cleanSrc = extractVideoUrl(src);
   const isDirect = isDirectVideoSource(cleanSrc);
 
-  // Reset error when src changes
+  // Reset error and aspect ratio when src changes
   useEffect(() => {
     setLoadError(false);
     setIsBuffering(false);
+    setVideoNaturalAspect(null);
   }, [src]);
 
   // Fullscreen change listener
@@ -168,8 +177,8 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
       controlsTimeoutRef.current = setTimeout(() => {
         setShowControls(false);
         setShowSpeedMenu(false);
-        setShowServerMenu(false);
-      }, 3000);
+        setShowFitMenu(false);
+      }, 3500);
     }
   };
 
@@ -198,6 +207,12 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
     setDuration(videoRef.current.duration);
     setLoadError(false);
     setIsBuffering(false);
+
+    // Calculate natural video aspect ratio for exact screen fit
+    if (videoRef.current.videoWidth && videoRef.current.videoHeight) {
+      const naturalAspect = videoRef.current.videoWidth / videoRef.current.videoHeight;
+      setVideoNaturalAspect(naturalAspect);
+    }
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -287,7 +302,6 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
   // Keyboard shortcut controller
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore when focusing inputs
       if (['input', 'textarea', 'select'].includes((e.target as HTMLElement)?.tagName?.toLowerCase())) {
         return;
       }
@@ -325,6 +339,40 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
 
   const sanitizedEmbedUrl = !isDirect && src ? formatToEmbedUrl(src, serverType) : '';
 
+  // Determine dynamic container aspect ratio and height classes based on screenFitMode & isTheaterMode
+  const getContainerSizingStyles = (): { className: string; style?: React.CSSProperties } => {
+    if (isFullscreen) {
+      return { className: 'w-screen h-screen max-w-none max-h-none rounded-none border-0' };
+    }
+
+    if (isTheaterMode) {
+      return { className: 'w-full aspect-[21/9] min-h-[420px] max-h-[85vh]' };
+    }
+
+    switch (screenFitMode) {
+      case 'screen':
+        // Maximize fit to screen viewport while maintaining full visibility
+        return { className: 'w-full h-[65vh] sm:h-[75vh] md:h-[82vh] max-h-[880px]' };
+      case '21-9':
+        return { className: 'w-full aspect-[21/9] max-h-[80vh]' };
+      case '16-9':
+        return { className: 'w-full aspect-video max-h-[80vh]' };
+      case 'cover':
+        return { className: 'w-full aspect-video max-h-[80vh]' };
+      case 'auto':
+      default:
+        if (videoNaturalAspect && isDirect) {
+          return {
+            className: 'w-full max-h-[82vh]',
+            style: { aspectRatio: `${videoNaturalAspect}` }
+          };
+        }
+        return { className: 'w-full aspect-video max-h-[82vh]' };
+    }
+  };
+
+  const sizing = getContainerSizingStyles();
+
   return (
     <div
       ref={containerRef}
@@ -333,12 +381,11 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
         if (isPlaying) {
           setShowControls(false);
           setShowSpeedMenu(false);
-          setShowServerMenu(false);
+          setShowFitMenu(false);
         }
       }}
-      className={`relative w-full overflow-hidden bg-black rounded-2xl border border-white/10 shadow-2xl group select-none transition-all ${
-        isTheaterMode ? 'aspect-[21/9] max-h-[85vh]' : 'aspect-video'
-      }`}
+      style={sizing.style}
+      className={`relative overflow-hidden bg-[#050608] rounded-2xl sm:rounded-3xl border border-white/10 shadow-2xl group select-none transition-all duration-300 ${sizing.className}`}
     >
       {/* 1. DIRECT HTML5 VIDEO PLAYER WITH CUSTOM CINEXUS UI */}
       {isDirect ? (
@@ -361,7 +408,9 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
               setIsBuffering(false);
             }}
             onClick={togglePlay}
-            className="w-full h-full object-contain cursor-pointer"
+            className={`w-full h-full cursor-pointer transition-all duration-300 ${
+              screenFitMode === 'cover' ? 'object-cover' : 'object-contain'
+            }`}
             playsInline
           >
             {subtitleUrl && subtitlesEnabled && (
@@ -373,23 +422,35 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
           {!isPlaying && !isBuffering && !loadError && (
             <div
               onClick={togglePlay}
-              className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer"
+              className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px] cursor-pointer group/center"
             >
               <button
                 aria-label="Play Video"
-                className="w-20 h-20 rounded-full bg-gradient-to-tr from-[#FF0E25] to-[#C80016] text-white flex items-center justify-center shadow-2xl shadow-[#FF0E25]/50 transform transition-transform hover:scale-110 active:scale-95"
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-tr from-[#FF0E25] via-[#E10B1E] to-[#C80016] text-white flex items-center justify-center shadow-2xl shadow-[#FF0E25]/60 transform transition-all duration-300 group-hover/center:scale-110 active:scale-95 border-2 border-white/20"
               >
-                <Play className="w-9 h-9 fill-white ml-1.5" />
+                <Play className="w-9 h-9 sm:w-10 sm:h-10 fill-white ml-1.5 drop-shadow-md" />
               </button>
+              <div className="mt-3 flex items-center gap-2 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md border border-white/10 text-white text-xs font-black shadow-lg">
+                <span className="w-2 h-2 rounded-full bg-[#FF0E25] animate-ping" />
+                <span>Click to Play</span>
+              </div>
             </div>
           )}
 
-          {/* Buffering Spinner */}
+          {/* Buffering Spinner with Logo Badge */}
           {isBuffering && !loadError && (
-            <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/50 backdrop-blur-[2px]">
-              <div className="w-14 h-14 rounded-full border-4 border-[#FF0E25] border-t-transparent animate-spin flex items-center justify-center">
-                <Sparkles className="w-5 h-5 text-[#FF0E25] animate-pulse" />
+            <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-black/60 backdrop-blur-[3px] space-y-3">
+              <div className="relative flex items-center justify-center">
+                <div className="w-16 h-16 rounded-full border-4 border-[#FF0E25] border-t-transparent animate-spin" />
+                <img
+                  src={logoUrl}
+                  alt="CINEXUS Logo"
+                  className="absolute w-8 h-8 object-contain animate-pulse"
+                />
               </div>
+              <p className="text-xs font-extrabold text-white tracking-wider animate-pulse flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-[#FF0E25]" /> Buffering Stream...
+              </p>
             </div>
           )}
 
@@ -426,38 +487,57 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
             </div>
           )}
 
-          {/* Top Brand Header & Watermark (Fades in/out with controls) */}
+          {/* Top Brand Header & Movie Title (Fades in/out with controls) */}
           <div
-            className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between transition-opacity duration-300 ${
+            className={`absolute top-0 inset-x-0 z-30 p-4 bg-gradient-to-b from-black/90 via-black/50 to-transparent flex items-center justify-between transition-opacity duration-300 ${
               showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >
-            <div className="flex items-center gap-2.5 truncate max-w-[70%]">
-              <span className="px-2.5 py-1 rounded-lg bg-[#FF0E25] text-white font-black text-[10px] uppercase tracking-wider shadow">
-                CINEXUS Player
-              </span>
-              <span className="text-xs font-extrabold text-white truncate drop-shadow-md">
+            <div className="flex items-center gap-3 truncate max-w-[70%]">
+              {/* Logo in top header */}
+              <div className="flex items-center gap-2 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow-md shrink-0">
+                <img
+                  src={logoUrl}
+                  alt="CINEXUS Logo"
+                  className="h-5 sm:h-6 w-auto object-contain drop-shadow"
+                />
+                <span className="px-1.5 py-0.5 rounded-md bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider hidden sm:inline-block">
+                  CINEXUS
+                </span>
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold text-white truncate drop-shadow-md">
                 {title}
               </span>
             </div>
 
             <div className="flex items-center gap-2 shrink-0">
-              <span className="px-2.5 py-1 rounded-lg bg-black/60 border border-white/20 text-rose-300 font-bold text-[10px] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md border border-white/20 text-rose-300 font-bold text-[10px] sm:text-xs flex items-center gap-1.5 shadow">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                 {serverName} • {qualityBadge}
               </span>
             </div>
           </div>
 
-          {/* Persistent Brand Logo Watermark Overlay */}
-          <div className="absolute top-4 right-4 z-20 pointer-events-none opacity-40 hover:opacity-80 transition-opacity flex items-center gap-1 bg-black/40 backdrop-blur-md px-2.5 py-1 rounded-lg border border-white/10">
-            <span className="text-[11px] font-black tracking-wider text-white">CINEXUS</span>
-            <span className="text-[9px] font-bold text-[#FF0E25] uppercase">සිනෙක්ස්</span>
+          {/* User Brand Logo Watermark Overlay (Prominent, Elegant & Non-Intrusive) */}
+          <div className="absolute top-4 right-4 z-20 pointer-events-none opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2 bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/15 shadow-2xl">
+            <img
+              src={logoUrl}
+              alt="CINEXUS Brand Logo"
+              className="h-6 sm:h-7 w-auto object-contain drop-shadow-[0_2px_8px_rgba(255,14,37,0.5)]"
+            />
+            <div className="flex flex-col">
+              <span className="text-[11px] font-black tracking-wider text-white leading-none drop-shadow">
+                CINEXUS
+              </span>
+              <span className="text-[8px] font-extrabold text-[#FF0E25] uppercase tracking-tighter leading-tight">
+                සිනෙක්ස්
+              </span>
+            </div>
           </div>
 
           {/* Bottom Custom Controls Bar */}
           <div
-            className={`absolute bottom-0 inset-x-0 z-30 p-4 pt-10 bg-gradient-to-t from-black/95 via-black/70 to-transparent space-y-2.5 transition-opacity duration-300 ${
+            className={`absolute bottom-0 inset-x-0 z-30 p-3 sm:p-4 pt-12 bg-gradient-to-t from-black/95 via-black/75 to-transparent space-y-2.5 transition-opacity duration-300 ${
               showControls || !isPlaying ? 'opacity-100' : 'opacity-0 pointer-events-none'
             }`}
           >
@@ -497,16 +577,16 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
             {/* Bottom Button Row */}
             <div className="flex items-center justify-between text-white text-xs">
               {/* Left Controls (Play, Replay, Forward, Volume, Time) */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 <button
                   onClick={togglePlay}
-                  className="p-1.5 rounded-lg text-white hover:text-[#FF0E25] hover:bg-white/10 transition-colors"
+                  className="p-1.5 sm:p-2 rounded-xl text-white hover:text-[#FF0E25] hover:bg-white/10 transition-colors"
                   title={isPlaying ? 'Pause (Space)' : 'Play (Space)'}
                 >
                   {isPlaying ? (
-                    <Pause className="w-4 h-4 fill-current" />
+                    <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                   ) : (
-                    <Play className="w-4 h-4 fill-current" />
+                    <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
                   )}
                 </button>
 
@@ -546,24 +626,86 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
                     step="0.05"
                     value={isMuted ? 0 : volume}
                     onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
-                    className="w-16 sm:w-20 h-1 bg-white/30 accent-[#FF0E25] rounded-lg cursor-pointer transition-all"
+                    className="w-14 sm:w-20 h-1 bg-white/30 accent-[#FF0E25] rounded-lg cursor-pointer transition-all"
                   />
                 </div>
 
                 {/* Timestamp */}
-                <div className="text-[11px] font-semibold text-gray-300 pl-1 font-mono">
+                <div className="text-[10px] sm:text-[11px] font-semibold text-gray-300 pl-1 font-mono">
                   <span>{formatTime(currentTime)}</span>
                   <span className="text-gray-500 mx-1">/</span>
                   <span>{formatTime(duration)}</span>
                 </div>
               </div>
 
-              {/* Right Controls (Speed, Subtitles, Theater, PiP, Fullscreen) */}
-              <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Right Controls (Screen Size Fit, Speed, Subtitles, Theater, PiP, Fullscreen) */}
+              <div className="flex items-center gap-1 sm:gap-2">
+                {/* Screen Size / Aspect Ratio Fit Selector */}
+                <div className="relative">
+                  <button
+                    onClick={() => {
+                      setShowFitMenu(!showFitMenu);
+                      setShowSpeedMenu(false);
+                    }}
+                    className={`px-2 py-1 rounded-lg text-[11px] font-extrabold flex items-center gap-1 transition-colors ${
+                      screenFitMode !== 'auto'
+                        ? 'bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30'
+                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    }`}
+                    title="Fit Video to Screen Size & Aspect Ratio"
+                  >
+                    <Scan className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">
+                      {screenFitMode === 'auto' && 'Auto Fit'}
+                      {screenFitMode === 'screen' && 'Fit Screen'}
+                      {screenFitMode === '16-9' && '16:9'}
+                      {screenFitMode === '21-9' && '21:9'}
+                      {screenFitMode === 'cover' && 'Fill Screen'}
+                    </span>
+                  </button>
+
+                  {showFitMenu && (
+                    <div className="absolute bottom-9 right-0 bg-[#0A0A0E]/95 backdrop-blur-xl border border-white/15 rounded-2xl p-2 shadow-2xl space-y-1 z-40 min-w-[170px]">
+                      <div className="px-2 py-1 text-[10px] font-black uppercase text-gray-400 border-b border-white/10 mb-1">
+                        Screen Size & Video Fit
+                      </div>
+                      {[
+                        { id: 'auto', label: 'Auto (Video Ratio)', desc: 'Matches exact video dimensions', icon: Monitor },
+                        { id: 'screen', label: 'Fit to Screen', desc: 'Maximizes viewport height', icon: Scan },
+                        { id: '16-9', label: '16:9 Standard HD', desc: 'Standard widescreen ratio', icon: Tv },
+                        { id: '21-9', label: '21:9 Cinema Scope', desc: 'Ultra-wide cinematic ratio', icon: Film },
+                        { id: 'cover', label: 'Fill / Crop Fit', desc: 'Eliminates all black bars', icon: StretchHorizontal },
+                      ].map((item) => (
+                        <button
+                          key={item.id}
+                          onClick={() => {
+                            setScreenFitMode(item.id as ScreenFitMode);
+                            setShowFitMenu(false);
+                          }}
+                          className={`w-full px-2.5 py-1.5 rounded-xl text-left transition-colors flex items-start gap-2 ${
+                            screenFitMode === item.id
+                              ? 'bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-extrabold shadow'
+                              : 'text-gray-300 hover:bg-white/10'
+                          }`}
+                        >
+                          <item.icon className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="text-[11px] leading-tight font-bold">{item.label}</span>
+                            <span className="text-[9px] text-gray-400 leading-tight">{item.desc}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 {/* Playback Speed Menu */}
                 <div className="relative">
                   <button
-                    onClick={() => setShowSpeedMenu(!showSpeedMenu)}
+                    onClick={() => {
+                      setShowSpeedMenu(!showSpeedMenu);
+                      setShowFitMenu(false);
+                    }}
                     className="px-2 py-1 rounded-lg text-[11px] font-bold text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                     title="Playback Speed"
                   >
@@ -571,7 +713,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
                   </button>
 
                   {showSpeedMenu && (
-                    <div className="absolute bottom-8 right-0 bg-[#0A0A0E]/95 backdrop-blur-md border border-white/15 rounded-xl p-1.5 shadow-2xl space-y-1 z-40 min-w-[70px]">
+                    <div className="absolute bottom-9 right-0 bg-[#0A0A0E]/95 backdrop-blur-md border border-white/15 rounded-xl p-1.5 shadow-2xl space-y-1 z-40 min-w-[75px]">
                       {[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => (
                         <button
                           key={s}
@@ -622,7 +764,7 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
                         ? 'text-[#FF0E25] bg-[#FF0E25]/20'
                         : 'text-gray-300 hover:text-white hover:bg-white/10'
                     }`}
-                    title="Theater Mode"
+                    title="Toggle Theater Mode"
                   >
                     <Film className="w-4 h-4" />
                   </button>
@@ -645,24 +787,51 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
           </div>
         </>
       ) : (
-        /* 2. EMBED PLAYER (STREAMHG, EARNVIDS, FILEMOON, YOUTUBE) IN A CUSTOM BRANDED CONTAINER */
-        <div className="relative w-full h-full bg-black flex flex-col">
-          {/* Top Bar for Embed Provider */}
+        /* 2. EMBED PLAYER (STREAMHG, EARNVIDS, FILEMOON, YOUTUBE) IN A CUSTOM BRANDED RESPONSIVE CONTAINER */
+        <div className="relative w-full h-full bg-[#050608] flex flex-col">
+          {/* Top Bar for Embed Provider with Brand Logo */}
           <div className="px-4 py-2.5 bg-gradient-to-r from-[#170305] via-[#C80016]/90 to-[#170305] flex items-center justify-between border-b border-white/10 z-20 select-none">
-            <div className="flex items-center gap-2 truncate">
-              <span className="px-2 py-0.5 rounded-md bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider">
-                CINEXUS Embed Engine
-              </span>
-              <span className="text-xs font-extrabold text-white truncate max-w-[200px] sm:max-w-[320px]">
+            <div className="flex items-center gap-2.5 truncate">
+              {/* Brand Logo */}
+              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-white/15 shrink-0">
+                <img
+                  src={logoUrl}
+                  alt="CINEXUS Logo"
+                  className="h-4 sm:h-5 w-auto object-contain drop-shadow"
+                />
+                <span className="px-1.5 py-0.5 rounded-md bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider">
+                  CINEXUS
+                </span>
+              </div>
+              <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-[360px]">
                 {title}
               </span>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/15 text-rose-300 font-bold text-[10px] flex items-center gap-1.5">
+              <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/15 text-rose-300 font-bold text-[10px] sm:text-xs flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {serverName}
               </span>
+
+              {/* Screen Fit Mode Cycle for Embed Player */}
+              <button
+                onClick={() => {
+                  setScreenFitMode(prev => {
+                    if (prev === 'auto') return 'screen';
+                    if (prev === 'screen') return '21-9';
+                    if (prev === '21-9') return '16-9';
+                    return 'auto';
+                  });
+                }}
+                className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 hover:border-white/30 text-gray-200 text-xs font-bold transition-all flex items-center gap-1"
+                title="Change Video Screen Fit Mode"
+              >
+                <Scan className="w-3.5 h-3.5 text-[#FF0E25]" />
+                <span className="hidden sm:inline">
+                  {screenFitMode === 'auto' ? 'Standard' : screenFitMode === 'screen' ? 'Fit Screen' : screenFitMode}
+                </span>
+              </button>
 
               {onTheaterToggle && (
                 <button
@@ -680,20 +849,42 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
             </div>
           </div>
 
-          {/* Iframe Playback Body */}
-          <div className="relative flex-1 w-full h-full bg-black">
+          {/* User Brand Logo Watermark Overlay for Embed Streaming (Top-Right) */}
+          <div className="absolute top-12 right-4 z-20 pointer-events-none opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow-2xl">
+            <img
+              src={logoUrl}
+              alt="CINEXUS Brand Logo"
+              className="h-5 sm:h-6 w-auto object-contain drop-shadow-[0_2px_8px_rgba(255,14,37,0.5)]"
+            />
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black tracking-wider text-white leading-none drop-shadow">
+                CINEXUS
+              </span>
+              <span className="text-[8px] font-extrabold text-[#FF0E25] uppercase tracking-tighter leading-tight">
+                සිනෙක්ස්
+              </span>
+            </div>
+          </div>
+
+          {/* Iframe Playback Body with 100% Screen-Fit Stretch */}
+          <div className="relative flex-1 w-full h-full min-h-[360px] sm:min-h-[440px] bg-black">
             {sanitizedEmbedUrl ? (
               <iframe
                 key={src}
                 src={sanitizedEmbedUrl}
                 title={`${title} CINEXUS Player`}
-                className="w-full h-full border-0 aspect-video"
+                className="absolute inset-0 w-full h-full border-0"
                 allowFullScreen
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                 referrerPolicy="origin-when-cross-origin"
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-3 bg-[#0A0A0E]">
+                <img
+                  src={logoUrl}
+                  alt="CINEXUS Logo"
+                  className="w-12 h-12 object-contain opacity-50 mb-1"
+                />
                 <Film className="w-10 h-10 text-[#FF0E25] animate-pulse" />
                 <p className="text-sm font-extrabold text-white">Stream Initializing</p>
                 <p className="text-xs text-[#9E9EA0] max-w-sm">
