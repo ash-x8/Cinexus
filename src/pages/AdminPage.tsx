@@ -84,6 +84,10 @@ export const AdminPage: React.FC = () => {
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
 
+  React.useEffect(() => {
+    setSettingsForm(siteSettings);
+  }, [siteSettings]);
+
   // TMDB fetch loading state
   const [isTmdbLoading, setIsTmdbLoading] = useState(false);
 
