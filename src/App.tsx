@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
-import { Analytics } from '@vercel/analytics/react';
+// Analytics component stub for compatibility
+const Analytics: React.FC = () => null;
 import { MovieProvider } from './context/MovieContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { PlayerProvider } from './context/PlayerContext';
