@@ -5,6 +5,7 @@ import { MovieCard } from '../components/MovieCard';
 import { HeroSlider } from '../components/HeroSlider';
 import { TrailerModal } from '../components/TrailerModal';
 import { Sidebar } from '../components/Sidebar';
+import { SkeletonHero, SkeletonGrid } from '../components/SkeletonLoader';
 import { Sparkles, TrendingUp, Filter, ArrowUpDown, X, RotateCcw, Layers, Globe2, Tag } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
@@ -22,7 +23,8 @@ export const HomePage: React.FC = () => {
     resetAllFilters,
     sortBy,
     setSortBy,
-    searchQuery
+    searchQuery,
+    isLoadingMovies
   } = useMovies();
 
   const { t } = useLanguage();
@@ -43,14 +45,22 @@ export const HomePage: React.FC = () => {
   };
 
   // Advanced multi-filter logic combining Search, Category, ContentType, Language, Genre, and Release Type
-  const filteredMovies = movies.filter(movie => {
+  const filteredMovies = (movies || []).filter(movie => {
+    if (!movie || !movie.id) return false;
+    const title = movie.title || '';
+    const sinhalaTitle = movie.sinhalaTitle || '';
+    const genres = Array.isArray(movie.genres) ? movie.genres : [];
+    const languages = Array.isArray(movie.languages) ? movie.languages : [];
+    const language = movie.language || languages[0] || 'English';
+    const audioLanguage = movie.audioLanguage || '';
+
     const matchesSearch = searchQuery === '' ||
-      movie.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      movie.sinhalaTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      movie.genres.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+      title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sinhalaTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      genres.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
 
     const matchesCategory = selectedCategory === 'All' ||
-      movie.genres.includes(selectedCategory) ||
+      genres.includes(selectedCategory) ||
       (selectedCategory === 'Sinhala Subbed' && (movie.hasSinhalaSub || movie.contentType === 'Sinhala Sub')) ||
       (selectedCategory === 'TV Series' && movie.isTVSeries) ||
       (selectedCategory === 'Dual Audio' && movie.isDualAudio);
@@ -61,11 +71,11 @@ export const HomePage: React.FC = () => {
       (selectedContentType === 'Sinhala Dubbed' && movie.contentType === 'Sinhala Dubbed');
 
     const matchesLanguage = selectedLanguage === 'All' ||
-      movie.language === selectedLanguage ||
-      movie.languages?.includes(selectedLanguage) ||
-      movie.audioLanguage?.toLowerCase().includes(selectedLanguage.toLowerCase());
+      language === selectedLanguage ||
+      languages.includes(selectedLanguage) ||
+      audioLanguage.toLowerCase().includes(selectedLanguage.toLowerCase());
 
-    const matchesGenre = selectedGenre === 'All' || movie.genres.includes(selectedGenre);
+    const matchesGenre = selectedGenre === 'All' || genres.includes(selectedGenre);
 
     const matchesType = filterType === 'all' ||
       (filterType === 'movies' && !movie.isTVSeries) ||
@@ -76,14 +86,14 @@ export const HomePage: React.FC = () => {
 
   // Sort movies
   const sortedMovies = [...filteredMovies].sort((a, b) => {
-    if (sortBy === 'rating') return b.imdbRating - a.imdbRating;
-    if (sortBy === 'year') return b.year - a.year;
-    if (sortBy === 'popular') return b.viewsCount - a.viewsCount;
-    return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime(); // default 'latest'
+    if (sortBy === 'rating') return (b.imdbRating || 0) - (a.imdbRating || 0);
+    if (sortBy === 'year') return (b.year || 0) - (a.year || 0);
+    if (sortBy === 'popular') return (b.viewsCount || 0) - (a.viewsCount || 0);
+    return new Date(b.addedAt || 0).getTime() - new Date(a.addedAt || 0).getTime(); // default 'latest'
   });
 
-  const featuredMovies = movies.filter(m => m.isFeatured || m.isTrending);
-  const tvSeriesList = sortedMovies.filter(m => m.isTVSeries);
+  const featuredMovies = (movies || []).filter(m => m && (m.isFeatured || m.isTrending));
+  const tvSeriesList = sortedMovies.filter(m => m && m.isTVSeries);
 
   const hasActiveMultiFilters =
     selectedCategory !== 'All' ||
@@ -108,10 +118,14 @@ export const HomePage: React.FC = () => {
 
         {/* Featured Hero Carousel Slider (When no strict search or multi-filters) */}
         {!hasActiveMultiFilters && (
-          <HeroSlider
-            movies={featuredMovies.length > 0 ? featuredMovies : movies.slice(0, 3)}
-            onTrailerClick={handleOpenTrailer}
-          />
+          isLoadingMovies ? (
+            <SkeletonHero />
+          ) : (
+            <HeroSlider
+              movies={featuredMovies.length > 0 ? featuredMovies : movies.slice(0, 3)}
+              onTrailerClick={handleOpenTrailer}
+            />
+          )
         )}
 
         {/* Multi-Filter Bar & Section Toolbar */}
@@ -253,7 +267,9 @@ export const HomePage: React.FC = () => {
           </div>
 
           {/* Main Grid: Movies Display with Glassmorphism Hover Effects */}
-          {sortedMovies.length > 0 ? (
+          {isLoadingMovies ? (
+            <SkeletonGrid count={10} />
+          ) : sortedMovies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {sortedMovies.map((movie) => (
                 <MovieCard
@@ -284,7 +300,7 @@ export const HomePage: React.FC = () => {
         </section>
 
         {/* Trending TV Series Section (If on default view) */}
-        {!hasActiveMultiFilters && tvSeriesList.length > 0 && (
+        {!hasActiveMultiFilters && (isLoadingMovies || tvSeriesList.length > 0) && (
           <section className="space-y-4 pt-6">
             <div className="flex items-center justify-between border-b border-white/10 pb-3">
               <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
@@ -299,11 +315,15 @@ export const HomePage: React.FC = () => {
               </span>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-              {tvSeriesList.slice(0, 5).map((movie) => (
-                <MovieCard key={`tv_${movie.id}`} movie={movie} />
-              ))}
-            </div>
+            {isLoadingMovies ? (
+              <SkeletonGrid count={5} />
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+                {tvSeriesList.slice(0, 5).map((movie) => (
+                  <MovieCard key={`tv_${movie.id}`} movie={movie} />
+                ))}
+              </div>
+            )}
           </section>
         )}
 

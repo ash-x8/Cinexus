@@ -14,12 +14,30 @@ const SAMPLE_YOUTUBE_IDS = new Set([
 ]);
 
 /**
+ * Extracts a pure video source URL if an HTML <iframe> snippet or raw embed code is provided.
+ * Uses regex: src=["']([^"']+)["']
+ */
+export function extractVideoUrl(rawInput: string): string {
+  if (!rawInput || typeof rawInput !== 'string') return '';
+  const trimmed = rawInput.trim();
+
+  // Match src="..." or src='...' inside <iframe> tags or raw embed codes
+  const iframeMatch = trimmed.match(/src=["']([^"']+)["']/i);
+  if (iframeMatch && iframeMatch[1]) {
+    return iframeMatch[1].trim();
+  }
+
+  return trimmed;
+}
+
+/**
  * Format and convert standard streaming file links into direct embed URLs.
  * Converts EarnVids (/v/, /d/ -> /e/), FileMoon (/d/, /v/ -> /e/), StreamHG (/e/), etc.
  */
 export function formatToEmbedUrl(url: string, serverType?: string): string {
   if (!url || typeof url !== 'string') return '';
-  const trimmed = url.trim();
+  const cleanUrl = extractVideoUrl(url);
+  const trimmed = cleanUrl.trim();
   if (!trimmed) return '';
 
   const lowerUrl = trimmed.toLowerCase();

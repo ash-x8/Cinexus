@@ -225,7 +225,10 @@ export const AdminPage: React.FC = () => {
   };
 
   const handleUpdateEpisodeRow = (index: number, key: string, value: any) => {
-    setEpisodesList(prev => prev.map((ep, idx) => idx === index ? { ...ep, [key]: value } : ep));
+    const finalVal = typeof value === 'string' && key.startsWith('streamServer')
+      ? extractVideoUrl(value)
+      : value;
+    setEpisodesList(prev => prev.map((ep, idx) => idx === index ? { ...ep, [key]: finalVal } : ep));
   };
 
   // Editable Cast Members State

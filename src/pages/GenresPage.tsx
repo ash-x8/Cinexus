@@ -2,6 +2,7 @@ import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { MovieCard } from '../components/MovieCard';
+import { SkeletonGrid } from '../components/SkeletonLoader';
 import { Tag, Film, ArrowLeft, Sparkles, Layers } from 'lucide-react';
 
 interface GenreDef {
@@ -32,7 +33,7 @@ const GENRE_LIST: GenreDef[] = [
 
 export const GenresPage: React.FC = () => {
   const { slug } = useParams<{ slug?: string }>();
-  const { movies, setSelectedCategory, setSelectedGenre } = useMovies();
+  const { movies, setSelectedCategory, setSelectedGenre, isLoadingMovies } = useMovies();
   const navigate = useNavigate();
 
   // Selected genre matching slug
@@ -78,7 +79,9 @@ export const GenresPage: React.FC = () => {
             </h2>
           </div>
 
-          {filteredMovies.length > 0 ? (
+          {isLoadingMovies ? (
+            <SkeletonGrid count={10} />
+          ) : filteredMovies.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
               {filteredMovies.map(movie => (
                 <MovieCard key={movie.id} movie={movie} />

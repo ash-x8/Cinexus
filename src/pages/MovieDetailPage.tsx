@@ -6,6 +6,7 @@ import { usePlayer } from '../context/PlayerContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
 import { CustomPlayer } from '../components/CustomPlayer';
+import { SkeletonMovieDetail } from '../components/SkeletonLoader';
 import { formatToEmbedUrl } from '../utils/playerSanitizer';
 import { executeDownload } from '../utils/downloadEngine';
 import type { CastMember } from '../types';
@@ -35,7 +36,7 @@ import {
 
 export const MovieDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const { movies, incrementViews, incrementDownloads, watchlist, favorites, toggleWatchlist, toggleFavorite, addToRecentlyViewed } = useMovies();
+  const { movies, incrementViews, incrementDownloads, watchlist, favorites, toggleWatchlist, toggleFavorite, addToRecentlyViewed, isLoadingMovies } = useMovies();
   const { t } = useLanguage();
   const { playStream } = usePlayer();
 
@@ -87,6 +88,9 @@ export const MovieDetailPage: React.FC = () => {
   }, [id, movie?.id, s1Url, s2Url, s3Url, trailerUrl]);
 
   if (!movie) {
+    if (isLoadingMovies) {
+      return <SkeletonMovieDetail />;
+    }
     return (
       <div className="text-center py-24 bg-[#121620]/80 backdrop-blur-xl rounded-3xl border border-white/5 space-y-4">
         <Film className="w-16 h-16 text-[#FF0E25] mx-auto" />
@@ -149,7 +153,7 @@ export const MovieDetailPage: React.FC = () => {
     }
   };
 
-  const relatedMovies = movies.filter(m => m.id !== movie.id && m.genres.some(g => movie.genres.includes(g))).slice(0, 6);
+  const relatedMovies = (movies || []).filter(m => m && m.id !== movie.id && (m.genres || []).some(g => (movie.genres || []).includes(g))).slice(0, 6);
 
   const handleDownloadTrigger = (quality: string, url: string, audioSubAttr?: string) => {
     const result = executeDownload({

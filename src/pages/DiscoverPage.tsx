@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
+import { SkeletonGrid } from '../components/SkeletonLoader';
 import {
   Sparkles,
   Shuffle,
@@ -20,7 +21,7 @@ import {
 import type { Movie } from '../types';
 
 export const DiscoverPage: React.FC = () => {
-  const { movies } = useMovies();
+  const { movies, isLoadingMovies } = useMovies();
   const navigate = useNavigate();
 
   const [selectedGenre, setSelectedGenre] = useState<string>('All');
@@ -44,10 +45,16 @@ export const DiscoverPage: React.FC = () => {
   };
 
   // Filter logic
-  const filteredMovies = movies.filter(movie => {
-    const matchesGenre = selectedGenre === 'All' || movie.genres.includes(selectedGenre);
-    const matchesLanguage = selectedLanguage === 'All' || movie.language === selectedLanguage || movie.languages?.includes(selectedLanguage);
-    const matchesQuality = selectedQuality === 'All' || movie.qualityBadge.toLowerCase().includes(selectedQuality.toLowerCase());
+  const filteredMovies = (movies || []).filter(movie => {
+    if (!movie || !movie.id) return false;
+    const genres = Array.isArray(movie.genres) ? movie.genres : [];
+    const languages = Array.isArray(movie.languages) ? movie.languages : [];
+    const language = movie.language || languages[0] || 'English';
+    const qualityBadge = movie.qualityBadge || '';
+
+    const matchesGenre = selectedGenre === 'All' || genres.includes(selectedGenre);
+    const matchesLanguage = selectedLanguage === 'All' || language === selectedLanguage || languages.includes(selectedLanguage);
+    const matchesQuality = selectedQuality === 'All' || qualityBadge.toLowerCase().includes(selectedQuality.toLowerCase());
     const matchesSub = selectedSubtitle === 'All' ||
       (selectedSubtitle === 'sub' && (movie.hasSinhalaSub || movie.contentType === 'Sinhala Sub')) ||
       (selectedSubtitle === 'dub' && movie.contentType === 'Sinhala Dubbed');
@@ -57,16 +64,16 @@ export const DiscoverPage: React.FC = () => {
 
   // Sorting logic
   const sortedMovies = [...filteredMovies].sort((a, b) => {
-    if (sortBy === 'rating') return b.imdbRating - a.imdbRating;
-    if (sortBy === 'year') return b.year - a.year;
-    if (sortBy === 'title') return a.title.localeCompare(b.title);
-    if (sortBy === 'latest') return new Date(b.addedAt).getTime() - new Date(a.addedAt).getTime();
-    return b.viewsCount - a.viewsCount; // default 'popular'
+    if (sortBy === 'rating') return (b.imdbRating || 0) - (a.imdbRating || 0);
+    if (sortBy === 'year') return (b.year || 0) - (a.year || 0);
+    if (sortBy === 'title') return (a.title || '').localeCompare(b.title || '');
+    if (sortBy === 'latest') return new Date(b.addedAt || 0).getTime() - new Date(a.addedAt || 0).getTime();
+    return (b.viewsCount || 0) - (a.viewsCount || 0); // default 'popular'
   });
 
-  const trendingList = movies.filter(m => m.isTrending);
-  const topRatedList = [...movies].sort((a, b) => b.imdbRating - a.imdbRating).slice(0, 5);
-  const hiddenGems = movies.filter(m => m.imdbRating >= 7.5 && m.viewsCount < 50000).slice(0, 5);
+  const trendingList = (movies || []).filter(m => m && m.isTrending);
+  const topRatedList = [...(movies || []).filter(Boolean)].sort((a, b) => (b.imdbRating || 0) - (a.imdbRating || 0)).slice(0, 5);
+  const hiddenGems = (movies || []).filter(m => m && (m.imdbRating || 0) >= 7.5 && (m.viewsCount || 0) < 50000).slice(0, 5);
 
   const genres = ['All', 'Action', 'Sci-Fi', 'Romance', 'Horror', 'Adventure', 'Drama', 'Crime', 'Anime', 'TV Series'];
   const languages = ['All', 'Tamil', 'Hindi', 'English', 'Sinhala', 'Malayalam', 'Telugu', 'Japanese', 'Korean'];
@@ -220,7 +227,9 @@ export const DiscoverPage: React.FC = () => {
           <Flame className="w-5 h-5 text-[#FF0E25]" /> Catalog Exploration Results
         </h2>
 
-        {sortedMovies.length > 0 ? (
+        {isLoadingMovies ? (
+          <SkeletonGrid count={10} />
+        ) : sortedMovies.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {sortedMovies.map((movie) => (
               <MovieCard
@@ -249,11 +258,15 @@ export const DiscoverPage: React.FC = () => {
                 <Star className="w-5 h-5 text-amber-400 fill-amber-400" /> Highest Rated Masterpieces
               </h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {topRatedList.map((movie) => (
-                <MovieCard key={`top_${movie.id}`} movie={movie} />
-              ))}
-            </div>
+            {isLoadingMovies ? (
+              <SkeletonGrid count={5} />
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {topRatedList.map((movie) => (
+                  <MovieCard key={`top_${movie.id}`} movie={movie} />
+                ))}
+              </div>
+            )}
           </section>
 
           {/* Hidden Gems Section */}
@@ -263,11 +276,15 @@ export const DiscoverPage: React.FC = () => {
                 <Gem className="w-5 h-5 text-purple-400" /> Hidden Gems You Might Have Missed
               </h2>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {hiddenGems.map((movie) => (
-                <MovieCard key={`gem_${movie.id}`} movie={movie} />
-              ))}
-            </div>
+            {isLoadingMovies ? (
+              <SkeletonGrid count={5} />
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                {hiddenGems.map((movie) => (
+                  <MovieCard key={`gem_${movie.id}`} movie={movie} />
+                ))}
+              </div>
+            )}
           </section>
         </>
       )}

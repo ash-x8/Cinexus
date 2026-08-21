@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { MovieCard } from '../components/MovieCard';
+import { SkeletonGrid } from '../components/SkeletonLoader';
 import { Bookmark, Heart, CheckCircle2, History, Film, ArrowLeft } from 'lucide-react';
 
 export const MyListPage: React.FC = () => {
-  const { movies, watchlist, favorites, watchedHistory, recentlyViewed } = useMovies();
+  const { movies, watchlist, favorites, watchedHistory, recentlyViewed, isLoadingMovies } = useMovies();
   const [activeTab, setActiveTab] = useState<'watchlist' | 'favorites' | 'watched' | 'recent'>('watchlist');
 
   const watchlistMovies = movies.filter(m => watchlist.includes(m.id));
@@ -94,7 +95,9 @@ export const MyListPage: React.FC = () => {
 
       {/* Movie Grid or Empty State */}
       <section>
-        {currentList.length > 0 ? (
+        {isLoadingMovies ? (
+          <SkeletonGrid count={5} />
+        ) : currentList.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {currentList.map(movie => (
               <MovieCard key={movie.id} movie={movie} />

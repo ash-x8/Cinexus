@@ -2,7 +2,7 @@ export const TMDB_API_KEY =
   (typeof import.meta !== 'undefined' && import.meta.env?.NEXT_PUBLIC_TMDB_API_KEY) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.VITE_TMDB_API_KEY) ||
   (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_API_KEY) ||
-  '';
+  'abdcc6777a98f6195e7adc6b7d50ed8b';
 
 export const TMDB_READ_ACCESS_TOKEN =
   (typeof import.meta !== 'undefined' && import.meta.env?.TMDB_READ_ACCESS_TOKEN) ||

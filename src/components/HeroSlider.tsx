@@ -11,12 +11,14 @@ interface HeroSliderProps {
 
 export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }) => {
   const { t } = useLanguage();
-  const featuredMovies = movies.filter(m => m.isFeatured || m.isTrending);
-  const slideList = featuredMovies.length > 0 ? featuredMovies : movies;
+  const validMovies = (movies || []).filter((m): m is Movie => Boolean(m && m.id && m.title));
+  const featuredMovies = validMovies.filter(m => m.isFeatured || m.isTrending);
+  const slideList = featuredMovies.length > 0 ? featuredMovies : validMovies;
 
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (slideList.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % slideList.length);
     }, 7000);
@@ -25,7 +27,10 @@ export const HeroSlider: React.FC<HeroSliderProps> = ({ movies, onTrailerClick }
 
   if (slideList.length === 0) return null;
 
-  const currentMovie = slideList[currentIndex];
+  const safeIndex = ((currentIndex % slideList.length) + slideList.length) % slideList.length;
+  const currentMovie = slideList[safeIndex];
+
+  if (!currentMovie) return null;
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev === 0 ? slideList.length - 1 : prev - 1));

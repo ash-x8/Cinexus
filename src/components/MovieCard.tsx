@@ -13,6 +13,8 @@ export const MovieCard: React.FC<MovieCardProps> = ({ movie, onTrailerClick }) =
   const [imageLoaded, setImageLoaded] = useState(false);
   const { watchlist, favorites, toggleWatchlist, toggleFavorite } = useMovies();
 
+  if (!movie || !movie.id) return null;
+
   const isBookmarked = watchlist.includes(movie.id);
   const isLiked = favorites.includes(movie.id);
 

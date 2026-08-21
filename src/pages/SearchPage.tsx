@@ -3,10 +3,11 @@ import { useSearchParams } from 'react-router-dom';
 import { useMovies } from '../context/MovieContext';
 import { MovieCard } from '../components/MovieCard';
 import { TrailerModal } from '../components/TrailerModal';
+import { SkeletonGrid } from '../components/SkeletonLoader';
 import { Search, X, Filter, History, Film, Sparkles, SlidersHorizontal } from 'lucide-react';
 
 export const SearchPage: React.FC = () => {
-  const { movies, analytics, logSearchQuery } = useMovies();
+  const { movies, analytics, logSearchQuery, isLoadingMovies } = useMovies();
   const [searchParams, setSearchParams] = useSearchParams();
   const queryParam = searchParams.get('q') || '';
 
@@ -50,23 +51,36 @@ export const SearchPage: React.FC = () => {
   };
 
   // Search matching multi-fields: Title, Sinhala Title, Original Title, Cast, Director, Genre, Year, Language
-  const matchingMovies = movies.filter(movie => {
+  const matchingMovies = (movies || []).filter(movie => {
+    if (!movie || !movie.id) return false;
     const q = query.trim().toLowerCase();
+    const title = movie.title || '';
+    const sinhalaTitle = movie.sinhalaTitle || '';
+    const originalTitle = movie.originalTitle || '';
+    const director = movie.director || '';
+    const genres = Array.isArray(movie.genres) ? movie.genres : [];
+    const yearStr = (movie.year || '').toString();
+    const languages = Array.isArray(movie.languages) ? movie.languages : [];
+    const language = movie.language || languages[0] || 'English';
+    const qualityBadge = movie.qualityBadge || '';
+    const cast = Array.isArray(movie.cast) ? movie.cast : [];
+
     const matchesQuery = !q || (
-      movie.title.toLowerCase().includes(q) ||
-      movie.sinhalaTitle.toLowerCase().includes(q) ||
-      (movie.originalTitle && movie.originalTitle.toLowerCase().includes(q)) ||
-      movie.director.toLowerCase().includes(q) ||
-      movie.genres.some(g => g.toLowerCase().includes(q)) ||
-      movie.year.toString().includes(q) ||
-      movie.language.toLowerCase().includes(q) ||
-      movie.cast.some(actor => typeof actor === 'string' ? actor.toLowerCase().includes(q) : actor.name.toLowerCase().includes(q))
+      title.toLowerCase().includes(q) ||
+      sinhalaTitle.toLowerCase().includes(q) ||
+      originalTitle.toLowerCase().includes(q) ||
+      director.toLowerCase().includes(q) ||
+      genres.some(g => g.toLowerCase().includes(q)) ||
+      yearStr.includes(q) ||
+      language.toLowerCase().includes(q) ||
+      languages.some(l => l.toLowerCase().includes(q)) ||
+      cast.some(actor => typeof actor === 'string' ? actor.toLowerCase().includes(q) : (actor?.name || '').toLowerCase().includes(q))
     );
 
-    const matchesGenre = selectedGenre === 'All' || movie.genres.includes(selectedGenre);
-    const matchesLanguage = selectedLanguage === 'All' || movie.language === selectedLanguage;
-    const matchesYear = selectedYear === 'All' || movie.year.toString() === selectedYear;
-    const matchesQuality = selectedQuality === 'All' || movie.qualityBadge.toLowerCase().includes(selectedQuality.toLowerCase());
+    const matchesGenre = selectedGenre === 'All' || genres.includes(selectedGenre);
+    const matchesLanguage = selectedLanguage === 'All' || language === selectedLanguage || languages.includes(selectedLanguage);
+    const matchesYear = selectedYear === 'All' || yearStr === selectedYear;
+    const matchesQuality = selectedQuality === 'All' || qualityBadge.toLowerCase().includes(selectedQuality.toLowerCase());
 
     return matchesQuery && matchesGenre && matchesLanguage && matchesYear && matchesQuality;
   });
@@ -193,7 +207,9 @@ export const SearchPage: React.FC = () => {
 
       {/* Results Display */}
       <section className="space-y-4">
-        {matchingMovies.length > 0 ? (
+        {isLoadingMovies ? (
+          <SkeletonGrid count={10} />
+        ) : matchingMovies.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {matchingMovies.map(movie => (
               <MovieCard
