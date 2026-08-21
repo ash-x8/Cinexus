@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import type { Movie, Category, Tag, Analytics, SiteSettings, UserProfile, MovieRequest } from '../types';
-import { INITIAL_MOVIES, INITIAL_CATEGORIES } from '../data/initialMovies';
+import { INITIAL_MOVIES, INITIAL_CATEGORIES, DEMO_MOVIE_IDS } from '../data/initialMovies';
 import {
   supabase,
   mapRowToMovie,
@@ -44,6 +44,7 @@ interface MovieContextType {
   addMovie: (movie: Omit<Movie, 'id' | 'viewsCount' | 'downloadsCount' | 'addedAt'>) => Promise<Movie>;
   updateMovie: (id: string, movie: Partial<Movie>) => Promise<void>;
   deleteMovie: (id: string) => Promise<void>;
+  clearAllMovies: () => Promise<void>;
   incrementViews: (id: string) => void;
   incrementDownloads: (id: string) => void;
   addCategory: (category: Omit<Category, 'id'>) => void;
@@ -134,15 +135,17 @@ const DEFAULT_SETTINGS: SiteSettings = {
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [movies, setMovies] = useState<Movie[]>(() => {
     const saved = localStorage.getItem(LOCAL_STORAGE_MOVIES_KEY);
-    if (saved) {
+    if (saved !== null) {
       try {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed)) {
+          return parsed.filter((m: any) => m && m.id && !DEMO_MOVIE_IDS.includes(m.id));
+        }
       } catch (e) {
         console.error('Failed to parse cached movies:', e);
       }
     }
-    return INITIAL_MOVIES;
+    return [];
   });
 
   const [categories, setCategories] = useState<Category[]>(() => {
@@ -177,11 +180,11 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       }
     }
     return {
-      totalMovies: INITIAL_MOVIES.length,
+      totalMovies: 0,
       activeStreams: 1420,
-      totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + (m.downloadsCount || 0), 0),
+      totalDownloads: 0,
       userTrafficToday: 18450,
-      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
+      recentSearches: [],
     };
   });
 
@@ -208,7 +211,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return ['m1', 'm2'];
+    return [];
   });
 
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -216,7 +219,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return ['m2', 'm5'];
+    return [];
   });
 
   const [watchedHistory, setWatchedHistory] = useState<string[]>(() => {
@@ -224,7 +227,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return ['m3'];
+    return [];
   });
 
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>(() => {
@@ -232,7 +235,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return ['m1', 'm2', 'm3'];
+    return [];
   });
 
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
@@ -248,25 +251,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved) {
       try { return JSON.parse(saved); } catch (e) { console.error(e); }
     }
-    return [
-      {
-        id: 'req_sample_1',
-        userId: 'u_sample_101',
-        userName: 'Sahan Perera',
-        userUsername: 'sahan_p',
-        userEmail: 'sahan@example.com',
-        movieName: 'Inception 2',
-        year: '2025',
-        language: 'English',
-        message: 'Please add Sinhala subtitles as soon as digital release is out.',
-        status: 'PENDING',
-        adminReply: '',
-        createdAt: '2025-02-15T10:30:00Z',
-        updatedAt: '2025-02-15T10:30:00Z',
-        emailStatus: 'SENT',
-        emailSentTo: 'kushanashvika216@gmail.com',
-      }
-    ];
+    return [];
   });
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -280,13 +265,9 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isLoadingRequests, setIsLoadingRequests] = useState(false);
   const [dbStatus, setDbStatus] = useState<'connected' | 'fallback' | 'connecting'>('connecting');
 
-  const hasSeededRef = useRef(false);
-
   // Persistent storage synchronizers
   useEffect(() => {
-    if (movies.length > 0) {
-      localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(movies));
-    }
+    localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(movies));
   }, [movies]);
 
   useEffect(() => {
@@ -339,10 +320,17 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem(LOCAL_STORAGE_MOVIE_REQUESTS_KEY, JSON.stringify(movieRequests));
   }, [movieRequests]);
 
-  // Fetch movies catalog from Supabase
+  // Fetch movies catalog from Supabase - strictly user catalog without auto-added demo movies
   const fetchMovies = useCallback(async () => {
     setIsLoadingMovies(true);
     try {
+      // Proactively ensure demo movies are deleted from cloud storage
+      try {
+        await supabase.from('movies').delete().in('id', DEMO_MOVIE_IDS);
+      } catch (e) {
+        // ignore
+      }
+
       const { data, error } = await supabase
         .from('movies')
         .select('*')
@@ -350,10 +338,11 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
       if (error) {
         console.warn('Supabase movies fetch note:', error.message);
-        // Retain local / cached movies with all admin changes intact
         setDbStatus('fallback');
-      } else if (data && data.length > 0) {
-        const mapped = data.map(mapRowToMovie);
+      } else if (data) {
+        const mapped = data
+          .map(mapRowToMovie)
+          .filter(m => m && m.id && !DEMO_MOVIE_IDS.includes(m.id));
         setMovies(mapped);
         localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(mapped));
         setAnalytics(prev => ({
@@ -362,19 +351,6 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           totalDownloads: mapped.reduce((acc, m) => acc + (m.downloadsCount || 0), 0)
         }));
         setDbStatus('connected');
-      } else {
-        // Supabase returned 0 rows -> Seed using current state (including custom/admin movies)
-        const currentSaved = localStorage.getItem(LOCAL_STORAGE_MOVIES_KEY);
-        const moviesToSeed = currentSaved ? JSON.parse(currentSaved) : INITIAL_MOVIES;
-        setMovies(moviesToSeed);
-        if (!hasSeededRef.current) {
-          hasSeededRef.current = true;
-          const rowsToSeed = moviesToSeed.map(mapMovieToRow);
-          const { error: seedError } = await supabase.from('movies').upsert(rowsToSeed);
-          if (!seedError) {
-            setDbStatus('connected');
-          }
-        }
       }
     } catch (err) {
       console.warn('Supabase catalog error, using persisted catalog:', err);
@@ -856,6 +832,19 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   };
 
+  // Clear All Movies completely from local state & cloud database
+  const clearAllMovies = async () => {
+    setMovies([]);
+    localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify([]));
+    setAnalytics(prev => ({ ...prev, totalMovies: 0, totalDownloads: 0 }));
+
+    try {
+      await supabase.from('movies').delete().neq('id', 'non_existing_guard_id');
+    } catch (err) {
+      console.warn('Supabase clear all movies error:', err);
+    }
+  };
+
   const incrementViews = (id: string) => {
     setMovies(prev => prev.map(m => m.id === id ? { ...m, viewsCount: (m.viewsCount || 0) + 1 } : m));
     setAnalytics(prev => ({ ...prev, activeStreams: prev.activeStreams + 1 }));
@@ -940,32 +929,17 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   const resetToDefaultData = async () => {
-    setMovies(INITIAL_MOVIES);
     setCategories(INITIAL_CATEGORIES);
     setSiteSettings(DEFAULT_SETTINGS);
     setAnalytics({
-      totalMovies: INITIAL_MOVIES.length,
+      totalMovies: movies.length,
       activeStreams: 1420,
-      totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + (m.downloadsCount || 0), 0),
+      totalDownloads: movies.reduce((acc, m) => acc + (m.downloadsCount || 0), 0),
       userTrafficToday: 18450,
-      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
+      recentSearches: [],
     });
-    localStorage.setItem(LOCAL_STORAGE_MOVIES_KEY, JSON.stringify(INITIAL_MOVIES));
     localStorage.setItem(LOCAL_STORAGE_CATEGORIES_KEY, JSON.stringify(INITIAL_CATEGORIES));
-    localStorage.setItem(LOCAL_STORAGE_ANALYTICS_KEY, JSON.stringify({
-      totalMovies: INITIAL_MOVIES.length,
-      activeStreams: 1420,
-      totalDownloads: INITIAL_MOVIES.reduce((acc, m) => acc + (m.downloadsCount || 0), 0),
-      userTrafficToday: 18450,
-      recentSearches: ['Avatar 2', 'Dune Part Two', 'Demon Slayer', 'Stranger Things'],
-    }));
     localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
-
-    try {
-      await supabase.from('movies').upsert(INITIAL_MOVIES.map(mapMovieToRow));
-    } catch (e) {
-      // ignore
-    }
   };
 
   return (
@@ -996,6 +970,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addMovie,
       updateMovie,
       deleteMovie,
+      clearAllMovies,
       incrementViews,
       incrementDownloads,
       addCategory,

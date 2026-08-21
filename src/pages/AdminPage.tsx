@@ -61,6 +61,7 @@ export const AdminPage: React.FC = () => {
     addMovie,
     updateMovie,
     deleteMovie,
+    clearAllMovies,
     addCategory,
     deleteCategory,
     resetToDefaultData,
@@ -941,89 +942,128 @@ export const AdminPage: React.FC = () => {
                 className="w-full bg-[#0A0A0E] text-xs text-white pl-9 pr-3 py-2 rounded-xl border border-white/10 focus:outline-none focus:border-[#FF0E25]"
               />
             </div>
-            <span className="text-xs text-[#9E9EA0]">Showing {filteredAdminMovies.length} of {movies.length} titles</span>
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-[#9E9EA0]">Showing {filteredAdminMovies.length} of {movies.length} titles</span>
+              {movies.length > 0 && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (confirm('Are you sure you want to delete ALL movies from your catalog and database? This action cannot be undone.')) {
+                      await clearAllMovies();
+                      showSaveToast('All movies have been cleared.');
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-300 hover:text-white border border-rose-800/40 text-[11px] font-bold transition-all flex items-center gap-1.5"
+                >
+                  <Trash2 className="w-3 h-3" /> Clear Catalog
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="bg-[#121620]/90 backdrop-blur-xl rounded-2xl border border-white/10 overflow-hidden shadow-2xl">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-gray-300">
-                <thead className="bg-[#0A0A0E] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
-                  <tr>
-                    <th className="p-4">Movie / Series</th>
-                    <th className="p-4">Language & Type</th>
-                    <th className="p-4">IMDb Score</th>
-                    <th className="p-4">Quality</th>
-                    <th className="p-4">Download Links</th>
-                    <th className="p-4 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {filteredAdminMovies.map((movie) => (
-                    <tr key={movie.id} className="hover:bg-white/[0.02] transition-colors">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={movie.posterUrl}
-                            alt={movie.title}
-                            className="w-10 h-14 object-cover rounded-lg border border-white/10"
-                          />
-                          <div>
-                            <p className="font-bold text-white text-sm">{movie.title}</p>
-                            <p className="text-rose-300 text-xs">{movie.sinhalaTitle}</p>
-                            <span className="text-[10px] text-[#9E9EA0]">{movie.year} • {movie.genres.join(', ')}</span>
-                          </div>
-                        </div>
-                      </td>
-
-                      <td className="p-4 font-bold text-sky-300">
-                        <p>{movie.language || 'English'}</p>
-                        <span className="text-[10px] text-[#9E9EA0]">{movie.contentType || 'Sinhala Sub'}</span>
-                      </td>
-
-                      <td className="p-4 font-bold text-amber-400">
-                        ★ {movie.imdbRating}
-                      </td>
-
-                      <td className="p-4">
-                        <span className="px-2 py-0.5 rounded bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30 font-bold">
-                          {movie.qualityBadge}
-                        </span>
-                      </td>
-
-                      <td className="p-4">
-                        <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30">
-                          {movie.downloadLinks?.length || 0} Tagged Links
-                        </span>
-                      </td>
-
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={() => handleOpenEditModal(movie)}
-                            className="p-2 rounded-lg bg-[#FF0E25]/20 text-rose-300 hover:bg-[#FF0E25] hover:text-white transition-colors"
-                            title="Edit Movie & Tagging Options"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm(`Are you sure you want to delete "${movie.title}"?`)) {
-                                deleteMovie(movie.id);
-                                showSaveToast(`Movie "${movie.title}" removed.`);
-                              }
-                            }}
-                            className="p-2 rounded-lg bg-rose-600/30 text-rose-300 hover:bg-rose-600 hover:text-white transition-colors"
-                            title="Delete Movie"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
+            {filteredAdminMovies.length === 0 ? (
+              <div className="p-12 text-center flex flex-col items-center justify-center">
+                <div className="w-14 h-14 rounded-2xl bg-[#FF0E25]/10 border border-[#FF0E25]/20 flex items-center justify-center mb-4">
+                  <Film className="w-7 h-7 text-[#FF0E25]" />
+                </div>
+                <h4 className="text-white font-bold text-base mb-1">Catalog Is Empty</h4>
+                <p className="text-xs text-[#9E9EA0] max-w-md mb-5">
+                  {movies.length === 0
+                    ? "You don't have any movies yet. Auto-added demo movies have been removed. Click '+ Add New Movie / Series' at the top to publish your movies."
+                    : "No movies match your search query."}
+                </p>
+                {movies.length === 0 && (
+                  <button
+                    type="button"
+                    onClick={handleOpenAddModal}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] to-[#C80016] text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30 hover:opacity-90 transition-all"
+                  >
+                    <Plus className="w-4 h-4" /> Add Your First Movie
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-gray-300">
+                  <thead className="bg-[#0A0A0E] text-[#9E9EA0] font-bold uppercase tracking-wider border-b border-white/10">
+                    <tr>
+                      <th className="p-4">Movie / Series</th>
+                      <th className="p-4">Language & Type</th>
+                      <th className="p-4">IMDb Score</th>
+                      <th className="p-4">Quality</th>
+                      <th className="p-4">Download Links</th>
+                      <th className="p-4 text-right">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-white/5">
+                    {filteredAdminMovies.map((movie) => (
+                      <tr key={movie.id} className="hover:bg-white/[0.02] transition-colors">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={movie.posterUrl}
+                              alt={movie.title}
+                              className="w-10 h-14 object-cover rounded-lg border border-white/10"
+                            />
+                            <div>
+                              <p className="font-bold text-white text-sm">{movie.title}</p>
+                              <p className="text-rose-300 text-xs">{movie.sinhalaTitle}</p>
+                              <span className="text-[10px] text-[#9E9EA0]">{movie.year} • {movie.genres.join(', ')}</span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td className="p-4 font-bold text-sky-300">
+                          <p>{movie.language || 'English'}</p>
+                          <span className="text-[10px] text-[#9E9EA0]">{movie.contentType || 'Sinhala Sub'}</span>
+                        </td>
+
+                        <td className="p-4 font-bold text-amber-400">
+                          ★ {movie.imdbRating}
+                        </td>
+
+                        <td className="p-4">
+                          <span className="px-2 py-0.5 rounded bg-[#FF0E25]/20 text-[#FF0E25] border border-[#FF0E25]/30 font-bold">
+                            {movie.qualityBadge}
+                          </span>
+                        </td>
+
+                        <td className="p-4">
+                          <span className="px-2 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 font-extrabold text-[11px] border border-emerald-500/30">
+                            {movie.downloadLinks?.length || 0} Tagged Links
+                          </span>
+                        </td>
+
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleOpenEditModal(movie)}
+                              className="p-2 rounded-lg bg-[#FF0E25]/20 text-rose-300 hover:bg-[#FF0E25] hover:text-white transition-colors"
+                              title="Edit Movie & Tagging Options"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                if (confirm(`Are you sure you want to delete "${movie.title}"?`)) {
+                                  deleteMovie(movie.id);
+                                  showSaveToast(`Movie "${movie.title}" removed.`);
+                                }
+                              }}
+                              className="p-2 rounded-lg bg-rose-600/30 text-rose-300 hover:bg-rose-600 hover:text-white transition-colors"
+                              title="Delete Movie"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
         </div>
