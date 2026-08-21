@@ -393,14 +393,14 @@ export const MovieDetailPage: React.FC = () => {
       )}
 
       {/* ONLINE STREAMING PLAYER */}
-      <section className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/5 shadow-2xl space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/5 pb-4">
+      <section className="bg-[#121620]/90 backdrop-blur-xl p-3.5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-3xl border border-white/5 shadow-2xl space-y-4 sm:space-y-6">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-white/5 pb-3 sm:pb-4">
           <div>
-            <h2 className="text-lg font-black text-white flex items-center gap-2">
-              <Play className="w-5 h-5 text-[#FF0E25] fill-[#FF0E25]" />
+            <h2 className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+              <Play className="w-4 h-4 sm:w-5 sm:h-5 text-[#FF0E25] fill-[#FF0E25]" />
               In-Site Multi-Server Player Engine (නරඹන්න)
             </h2>
-            <p className="text-xs text-[#9E9EA0] mt-0.5">
+            <p className="text-[11px] sm:text-xs text-[#9E9EA0] mt-0.5">
               100% In-Site Playback • StreamHG, EarnVids, FileMoon, Facebook Data & YouTube.
             </p>
           </div>

@@ -21,8 +21,8 @@ export function extractVideoUrl(rawInput: string): string {
   if (!rawInput || typeof rawInput !== 'string') return '';
   const trimmed = rawInput.trim();
 
-  // Match src="..." or src='...' inside <iframe> tags or raw embed codes
-  const iframeMatch = trimmed.match(/src=["']([^"']+)["']/i);
+  // Match src="..." or src='...' or src=https://... inside <iframe> tags or raw embed codes
+  const iframeMatch = trimmed.match(/src\s*=\s*["']?([^"'\s>]+)["']?/i);
   if (iframeMatch && iframeMatch[1]) {
     return iframeMatch[1].trim();
   }

@@ -787,59 +787,69 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
           </div>
         </>
       ) : (
-        /* 2. EMBED PLAYER (STREAMHG, EARNVIDS, FILEMOON, YOUTUBE) IN A CUSTOM BRANDED RESPONSIVE CONTAINER */
-        <div className="relative w-full h-full bg-[#050608] flex flex-col">
-          {/* Top Bar for Embed Provider with Brand Logo */}
-          <div className="px-4 py-2.5 bg-gradient-to-r from-[#170305] via-[#C80016]/90 to-[#170305] flex items-center justify-between border-b border-white/10 z-20 select-none">
-            <div className="flex items-center gap-2.5 truncate">
-              {/* Brand Logo */}
-              <div className="flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-0.5 rounded-lg border border-white/15 shrink-0">
+        /* 2. EMBED PLAYER (STREAMHG, EARNVIDS, FILEMOON, YOUTUBE) IN FULL-SIZE 16:9 RESPONSIVE CONTAINER */
+        <div className="relative w-full h-full bg-black flex items-center justify-center">
+          {/* Iframe Playback Body with Full 16:9 Responsive Fill */}
+          {sanitizedEmbedUrl ? (
+            <iframe
+              key={src}
+              src={sanitizedEmbedUrl}
+              title={`${title} CINEXUS Player`}
+              className="w-full h-full absolute inset-0 border-0"
+              allowFullScreen
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="origin-when-cross-origin"
+            />
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-3 bg-[#0A0A0E]">
+              <img
+                src={logoUrl}
+                alt="CINEXUS Logo"
+                className="w-12 h-12 object-contain opacity-50 mb-1"
+              />
+              <Film className="w-10 h-10 text-[#FF0E25] animate-pulse" />
+              <p className="text-sm font-extrabold text-white">Stream Initializing</p>
+              <p className="text-xs text-[#9E9EA0] max-w-sm">
+                Please select an active streaming server above to begin playback.
+              </p>
+            </div>
+          )}
+
+          {/* Floating Subtle Top Overlay Info Bar (Fades out when playing/idle) */}
+          <div
+            className={`absolute top-0 inset-x-0 z-20 p-2.5 sm:p-3.5 bg-gradient-to-b from-black/80 via-black/40 to-transparent flex items-center justify-between pointer-events-none transition-opacity duration-300 ${
+              showControls ? 'opacity-100' : 'opacity-0'
+            }`}
+          >
+            <div className="flex items-center gap-2 truncate max-w-[65%] pointer-events-auto">
+              <div className="flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-2 py-1 rounded-lg border border-white/15 shrink-0 shadow">
                 <img
                   src={logoUrl}
                   alt="CINEXUS Logo"
                   className="h-4 sm:h-5 w-auto object-contain drop-shadow"
                 />
-                <span className="px-1.5 py-0.5 rounded-md bg-[#FF0E25] text-white font-black text-[9px] uppercase tracking-wider">
+                <span className="px-1.5 py-0.5 rounded bg-[#FF0E25] text-white font-black text-[8px] sm:text-[9px] uppercase tracking-wider">
                   CINEXUS
                 </span>
               </div>
-              <span className="text-xs sm:text-sm font-extrabold text-white truncate max-w-[200px] sm:max-w-[360px]">
+              <span className="text-xs sm:text-sm font-extrabold text-white truncate drop-shadow">
                 {title}
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/15 text-rose-300 font-bold text-[10px] sm:text-xs flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5 pointer-events-auto">
+              <span className="px-2 py-0.5 sm:py-1 rounded-lg bg-black/70 backdrop-blur-md border border-white/15 text-rose-300 font-bold text-[9px] sm:text-xs flex items-center gap-1 shadow">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 {serverName}
               </span>
 
-              {/* Screen Fit Mode Cycle for Embed Player */}
-              <button
-                onClick={() => {
-                  setScreenFitMode(prev => {
-                    if (prev === 'auto') return 'screen';
-                    if (prev === 'screen') return '21-9';
-                    if (prev === '21-9') return '16-9';
-                    return 'auto';
-                  });
-                }}
-                className="px-2.5 py-1 rounded-lg bg-black/50 border border-white/10 hover:border-white/30 text-gray-200 text-xs font-bold transition-all flex items-center gap-1"
-                title="Change Video Screen Fit Mode"
-              >
-                <Scan className="w-3.5 h-3.5 text-[#FF0E25]" />
-                <span className="hidden sm:inline">
-                  {screenFitMode === 'auto' ? 'Standard' : screenFitMode === 'screen' ? 'Fit Screen' : screenFitMode}
-                </span>
-              </button>
-
               {onTheaterToggle && (
                 <button
                   onClick={() => onTheaterToggle(!isTheaterMode)}
-                  className={`p-1.5 rounded-lg border text-xs font-bold transition-colors ${
+                  className={`p-1 sm:p-1.5 rounded-lg border text-xs font-bold transition-colors ${
                     isTheaterMode
                       ? 'bg-[#FF0E25] text-white border-[#FF0E25]'
-                      : 'bg-black/50 text-gray-300 border-white/10 hover:text-white'
+                      : 'bg-black/70 backdrop-blur-md text-gray-300 border-white/15 hover:text-white'
                   }`}
                   title="Toggle Theater Mode"
                 >
@@ -849,49 +859,16 @@ export const CustomPlayer: React.FC<CustomPlayerProps> = ({
             </div>
           </div>
 
-          {/* User Brand Logo Watermark Overlay for Embed Streaming (Top-Right) */}
-          <div className="absolute top-12 right-4 z-20 pointer-events-none opacity-80 hover:opacity-100 transition-opacity flex items-center gap-2 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-xl border border-white/15 shadow-2xl">
+          {/* User Brand Logo Watermark Overlay for Embed Streaming (Top-Right Subtle Corner Badge) */}
+          <div className="absolute top-2.5 sm:top-3 right-2.5 sm:right-3 z-10 pointer-events-none opacity-70 sm:opacity-85 hover:opacity-100 transition-opacity flex items-center gap-1.5 bg-black/40 backdrop-blur-sm px-2 py-1 rounded-lg border border-white/10 shadow-lg">
             <img
               src={logoUrl}
               alt="CINEXUS Brand Logo"
-              className="h-5 sm:h-6 w-auto object-contain drop-shadow-[0_2px_8px_rgba(255,14,37,0.5)]"
+              className="h-4 sm:h-5 w-auto object-contain drop-shadow"
             />
-            <div className="flex flex-col">
-              <span className="text-[10px] font-black tracking-wider text-white leading-none drop-shadow">
-                CINEXUS
-              </span>
-              <span className="text-[8px] font-extrabold text-[#FF0E25] uppercase tracking-tighter leading-tight">
-                සිනෙක්ස්
-              </span>
-            </div>
-          </div>
-
-          {/* Iframe Playback Body with 100% Screen-Fit Stretch */}
-          <div className="relative flex-1 w-full h-full min-h-[360px] sm:min-h-[440px] bg-black">
-            {sanitizedEmbedUrl ? (
-              <iframe
-                key={src}
-                src={sanitizedEmbedUrl}
-                title={`${title} CINEXUS Player`}
-                className="absolute inset-0 w-full h-full border-0"
-                allowFullScreen
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                referrerPolicy="origin-when-cross-origin"
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full p-6 text-center space-y-3 bg-[#0A0A0E]">
-                <img
-                  src={logoUrl}
-                  alt="CINEXUS Logo"
-                  className="w-12 h-12 object-contain opacity-50 mb-1"
-                />
-                <Film className="w-10 h-10 text-[#FF0E25] animate-pulse" />
-                <p className="text-sm font-extrabold text-white">Stream Initializing</p>
-                <p className="text-xs text-[#9E9EA0] max-w-sm">
-                  Please select an active streaming server above to begin playback.
-                </p>
-              </div>
-            )}
+            <span className="text-[10px] font-black tracking-wider text-white leading-none">
+              CINEXUS
+            </span>
           </div>
         </div>
       )}
