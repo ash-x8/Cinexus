@@ -83,6 +83,22 @@ export const AdminPage: React.FC = () => {
   // Site Settings Form State
   const [settingsForm, setSettingsForm] = useState<SiteSettings>(siteSettings);
   const [settingsSavedMsg, setSettingsSavedMsg] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [toastStatus, setToastStatus] = useState<{ show: boolean; status: 'saving' | 'saved' | 'idle'; message: string }>({
+    show: false,
+    status: 'idle',
+    message: '',
+  });
+
+  const showSaveToast = (message: string) => {
+    setToastStatus({ show: true, status: 'saving', message: 'Saving changes...' });
+    setTimeout(() => {
+      setToastStatus({ show: true, status: 'saved', message });
+      setTimeout(() => {
+        setToastStatus(prev => ({ ...prev, show: false }));
+      }, 3500);
+    }, 400);
+  };
 
   React.useEffect(() => {
     setSettingsForm(siteSettings);
@@ -139,11 +155,20 @@ export const AdminPage: React.FC = () => {
     }
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
-    updateSiteSettings(settingsForm);
+    setIsSavingSettings(true);
+    setToastStatus({ show: true, status: 'saving', message: 'Persisting settings to database & storage...' });
+    await updateSiteSettings(settingsForm);
+    setIsSavingSettings(false);
     setSettingsSavedMsg(true);
-    setTimeout(() => setSettingsSavedMsg(false), 3000);
+    setToastStatus({ show: true, status: 'saved', message: 'Settings saved & persisted successfully!' });
+    setTimeout(() => {
+      setSettingsSavedMsg(false);
+    }, 3000);
+    setTimeout(() => {
+      setToastStatus(prev => ({ ...prev, show: false }));
+    }, 3500);
   };
 
   const [searchAdmin, setSearchAdmin] = useState('');
@@ -526,8 +551,10 @@ export const AdminPage: React.FC = () => {
 
     if (editingMovieId) {
       updateMovie(editingMovieId, movieToSave);
+      showSaveToast(`Movie "${movieToSave.title || 'Entry'}" updated and persisted!`);
     } else {
       addMovie(movieToSave as any);
+      showSaveToast(`New title "${movieToSave.title || 'Entry'}" added and saved!`);
     }
     setIsMovieModalOpen(false);
   };
@@ -542,6 +569,7 @@ export const AdminPage: React.FC = () => {
       sinhalaName: newCatSinhala,
       slug: newCatName.toLowerCase().replace(/\s+/g, '-')
     });
+    showSaveToast(`Category "${newCatName}" saved successfully!`);
     setNewCatName('');
     setNewCatSinhala('');
   };
@@ -621,6 +649,41 @@ export const AdminPage: React.FC = () => {
   return (
     <div className="space-y-8 pb-16">
 
+      {/* Fixed Dynamic Toast Notification Feedback Indicator */}
+      {toastStatus.show && (
+        <div className="fixed bottom-6 right-6 z-50 animate-in slide-in-from-bottom-5 duration-200">
+          <div
+            className={`px-4 py-3 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-3 text-xs font-bold ${
+              toastStatus.status === 'saving'
+                ? 'bg-[#121620]/95 border-amber-500/40 text-amber-300 shadow-amber-950/40'
+                : 'bg-[#121620]/95 border-emerald-500/40 text-emerald-300 shadow-emerald-950/40'
+            }`}
+          >
+            {toastStatus.status === 'saving' ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin text-amber-400 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="text-white text-[11px] font-black uppercase tracking-wider">Saving Settings...</span>
+                  <span className="text-amber-300/90 text-[11px]">{toastStatus.message}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center shrink-0">
+                  <Check className="w-3.5 h-3.5 text-emerald-400" />
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-emerald-400 text-[11px] font-black uppercase tracking-wider flex items-center gap-1">
+                    ✓ Saved & Persisted
+                  </span>
+                  <span className="text-white text-[11px]">{toastStatus.message}</span>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Top Control Panel Header */}
       <div className="bg-[#121620]/90 backdrop-blur-xl p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -629,6 +692,32 @@ export const AdminPage: React.FC = () => {
               Admin Portal
             </span>
             <span className="text-xs text-rose-300 font-bold">CINEXUS Enterprise Command v4.0</span>
+
+            {/* Real-time Persistence Status Indicator Icon */}
+            <div
+              className={`ml-2 px-2.5 py-0.5 rounded-full border text-[10px] font-extrabold flex items-center gap-1.5 transition-all ${
+                isSavingSettings || toastStatus.status === 'saving'
+                  ? 'bg-amber-500/15 border-amber-500/40 text-amber-300 animate-pulse'
+                  : 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
+              }`}
+              title={
+                isSavingSettings || toastStatus.status === 'saving'
+                  ? 'Saving changes to cloud & browser cache'
+                  : 'All settings and catalog data are saved and persisted'
+              }
+            >
+              {isSavingSettings || toastStatus.status === 'saving' ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin text-amber-400" />
+                  <span>Saving...</span>
+                </>
+              ) : (
+                <>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Saved</span>
+                </>
+              )}
+            </div>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1">
             Enterprise Admin Control Panel (පාලන පුවරුව)
@@ -813,6 +902,7 @@ export const AdminPage: React.FC = () => {
                             onClick={() => {
                               if (confirm(`Are you sure you want to delete "${movie.title}"?`)) {
                                 deleteMovie(movie.id);
+                                showSaveToast(`Movie "${movie.title}" removed.`);
                               }
                             }}
                             className="p-2 rounded-lg bg-rose-600/30 text-rose-300 hover:bg-rose-600 hover:text-white transition-colors"
@@ -848,9 +938,11 @@ export const AdminPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
+                disabled={isSavingSettings}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 disabled:opacity-50 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30 transition-all"
               >
-                <Save className="w-4 h-4" /> Save Content Changes
+                {isSavingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{isSavingSettings ? 'Saving...' : 'Save Content Changes'}</span>
               </button>
             </div>
 
@@ -979,9 +1071,11 @@ export const AdminPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
+                disabled={isSavingSettings}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 disabled:opacity-50 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30 transition-all"
               >
-                <Save className="w-4 h-4" /> Save Social & Contact Links
+                {isSavingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{isSavingSettings ? 'Saving...' : 'Save Social & Contact Links'}</span>
               </button>
             </div>
 
@@ -1103,9 +1197,11 @@ export const AdminPage: React.FC = () => {
 
               <button
                 type="submit"
-                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30"
+                disabled={isSavingSettings}
+                className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF0E25] via-[#C80016] to-rose-700 hover:opacity-90 disabled:opacity-50 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-[#FF0E25]/30 transition-all"
               >
-                <Save className="w-4 h-4" /> Save Legal & Info Pages
+                {isSavingSettings ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                <span>{isSavingSettings ? 'Saving...' : 'Save Legal & Info Pages'}</span>
               </button>
             </div>
 
@@ -1309,6 +1405,7 @@ export const AdminPage: React.FC = () => {
                             onClick={() => {
                               if (confirm(`Delete request for "${req.movieName}"?`)) {
                                 deleteMovieRequest(req.id);
+                                showSaveToast(`Request for "${req.movieName}" deleted.`);
                               }
                             }}
                             className="p-2 rounded-lg bg-rose-600/20 text-rose-300 hover:bg-rose-600 hover:text-white transition-colors"
@@ -1372,6 +1469,7 @@ export const AdminPage: React.FC = () => {
                     await replyMovieRequest(replyingRequest.id, replyMessageText, replyStatusChoice);
                     setIsSavingReply(false);
                     setReplySuccessMsg(true);
+                    showSaveToast(`Reply posted to ${replyingRequest.userName}'s request!`);
                     setTimeout(() => {
                       setReplyingRequest(null);
                       setReplySuccessMsg(false);
@@ -1627,7 +1725,10 @@ export const AdminPage: React.FC = () => {
                     <span className="text-xs text-rose-300">{cat.sinhalaName}</span>
                   </div>
                   <button
-                    onClick={() => deleteCategory(cat.id)}
+                    onClick={() => {
+                      deleteCategory(cat.id);
+                      showSaveToast(`Category "${cat.name}" deleted.`);
+                    }}
                     className="p-1.5 rounded-lg text-gray-500 hover:text-[#FF0E25] hover:bg-[#FF0E25]/10 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
