@@ -134,6 +134,14 @@ export interface SiteSettings {
 
   // Movie Request Admin Notification Email
   movieRequestAdminEmail: string;
+
+  // Maintenance Mode (නඩත්තු ප්‍රකාරය)
+  maintenanceMode: boolean;
+  maintenanceTitle: string;
+  maintenanceSinhalaTitle: string;
+  maintenanceMessage: string;
+  maintenanceEstimatedTime: string;
+  maintenanceShowAdminBypass: boolean;
 }
 
 export interface MovieRequest {

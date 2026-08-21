@@ -40,7 +40,12 @@ import {
   Layers,
   Upload,
   Link as LinkIcon,
-  UserCheck
+  UserCheck,
+  Wrench,
+  AlertTriangle,
+  PowerOff,
+  Eye,
+  Clock
 } from 'lucide-react';
 
 export const AdminPage: React.FC = () => {
@@ -98,6 +103,25 @@ export const AdminPage: React.FC = () => {
         setToastStatus(prev => ({ ...prev, show: false }));
       }, 3500);
     }, 400);
+  };
+
+  const [showMaintenancePreview, setShowMaintenancePreview] = useState(false);
+
+  const handleToggleMaintenanceQuick = async () => {
+    const nextVal = !siteSettings.maintenanceMode;
+    setIsSavingSettings(true);
+    setToastStatus({ show: true, status: 'saving', message: nextVal ? 'Activating Maintenance Mode...' : 'Deactivating Maintenance Mode...' });
+    await updateSiteSettings({ maintenanceMode: nextVal });
+    setSettingsForm(prev => ({ ...prev, maintenanceMode: nextVal }));
+    setIsSavingSettings(false);
+    setToastStatus({
+      show: true,
+      status: 'saved',
+      message: nextVal ? '⚠️ Maintenance Mode is now ACTIVE for visitors!' : '✅ Site is LIVE for all visitors!'
+    });
+    setTimeout(() => {
+      setToastStatus(prev => ({ ...prev, show: false }));
+    }, 4000);
   };
 
   React.useEffect(() => {
@@ -750,6 +774,89 @@ export const AdminPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Global Maintenance Mode Quick Control Bar */}
+      <div
+        className={`p-4 sm:p-5 rounded-2xl border transition-all shadow-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
+          siteSettings.maintenanceMode
+            ? 'bg-gradient-to-r from-amber-950/80 via-[#1C1107] to-[#121620] border-amber-500/50 shadow-amber-950/30'
+            : 'bg-[#121620]/80 border-white/10 hover:border-white/20'
+        }`}
+      >
+        <div className="flex items-center gap-3.5">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
+              siteSettings.maintenanceMode
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-400 animate-pulse'
+                : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+            }`}
+          >
+            {siteSettings.maintenanceMode ? (
+              <AlertTriangle className="w-5 h-5" />
+            ) : (
+              <ShieldCheck className="w-5 h-5" />
+            )}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span
+                className={`text-xs font-black uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                  siteSettings.maintenanceMode
+                    ? 'bg-amber-500/20 text-amber-300 border-amber-500/40'
+                    : 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                }`}
+              >
+                {siteSettings.maintenanceMode ? '⚠️ MAINTENANCE MODE ACTIVE' : '● PRODUCTION LIVE'}
+              </span>
+              <span className="text-[11px] text-[#9E9EA0]">
+                {siteSettings.maintenanceMode
+                  ? 'Visitors are blocked by the maintenance notice overlay'
+                  : 'Public access is fully open and streaming normally'}
+              </span>
+            </div>
+            <p className="text-xs text-gray-300 font-bold mt-1">
+              {siteSettings.maintenanceMode
+                ? `Notice: "${siteSettings.maintenanceTitle || 'Scheduled System Upgrade in Progress'}"`
+                : 'Activate Maintenance Mode whenever updating catalog nodes, CDN servers, or performing backups.'}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2.5 w-full sm:w-auto shrink-0 justify-end">
+          <button
+            type="button"
+            onClick={() => setShowMaintenancePreview(true)}
+            className="px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-bold flex items-center gap-1.5 transition-all"
+            title="Preview Maintenance Screen as a visitor"
+          >
+            <Eye className="w-3.5 h-3.5 text-rose-300" /> Preview Overlay
+          </button>
+
+          <button
+            type="button"
+            onClick={handleToggleMaintenanceQuick}
+            disabled={isSavingSettings}
+            className={`px-4 py-2 rounded-xl font-extrabold text-xs flex items-center gap-2 shadow-lg transition-all ${
+              siteSettings.maintenanceMode
+                ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-emerald-950/40'
+                : 'bg-gradient-to-r from-amber-600 to-rose-700 hover:opacity-90 text-white shadow-amber-950/40'
+            }`}
+          >
+            {isSavingSettings ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : siteSettings.maintenanceMode ? (
+              <PowerOff className="w-3.5 h-3.5" />
+            ) : (
+              <Wrench className="w-3.5 h-3.5" />
+            )}
+            <span>
+              {siteSettings.maintenanceMode
+                ? 'Deactivate Maintenance (Go Live)'
+                : 'Activate Maintenance Mode'}
+            </span>
+          </button>
+        </div>
+      </div>
+
       {/* Streamlined Admin Navigation Tabs Switcher */}
       <div className="flex flex-wrap items-center gap-2 border-b border-white/10 pb-2">
         <button
@@ -1019,6 +1126,115 @@ export const AdminPage: React.FC = () => {
                   placeholder="Enter notice text shown at the top of every page..."
                   className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
                 />
+              </div>
+
+              {/* MAINTENANCE MODE CONTROLS */}
+              <div className={`md:col-span-2 space-y-4 p-5 rounded-2xl border transition-all ${
+                settingsForm.maintenanceMode
+                  ? 'bg-gradient-to-br from-amber-950/40 via-[#121620] to-[#121620] border-amber-500/50 shadow-lg shadow-amber-950/20'
+                  : 'bg-[#0A0A0E] border-white/10'
+              }`}>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <Wrench className={`w-4 h-4 ${settingsForm.maintenanceMode ? 'text-amber-400' : 'text-[#FF0E25]'}`} />
+                      <label className="font-black text-white text-sm">
+                        Maintenance Mode Engine (නඩත්තු ප්‍රකාරය)
+                      </label>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase ${
+                        settingsForm.maintenanceMode
+                          ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
+                          : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                      }`}>
+                        {settingsForm.maintenanceMode ? 'ACTIVE' : 'INACTIVE'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-[#9E9EA0] mt-0.5">
+                      When enabled, visitors will see a full-page maintenance overlay with your custom message and update notices.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={() => setShowMaintenancePreview(true)}
+                      className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-bold text-gray-200 flex items-center gap-1 transition-all"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-rose-300" /> Preview
+                    </button>
+                    <label className={`flex items-center gap-2 cursor-pointer px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-all ${
+                      settingsForm.maintenanceMode
+                        ? 'bg-amber-500 text-black border-amber-400 shadow-md'
+                        : 'bg-white/5 text-gray-300 border-white/15 hover:border-white/30'
+                    }`}>
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.maintenanceMode}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMode: e.target.checked })}
+                        className="accent-[#FF0E25] w-4 h-4"
+                      />
+                      <span>{settingsForm.maintenanceMode ? 'Maintenance ON' : 'Enable Maintenance'}</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                  <div>
+                    <label className="font-bold text-gray-300 block mb-1.5">Maintenance Headline (English)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.maintenanceTitle || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceTitle: e.target.value })}
+                      placeholder="e.g. Scheduled System Upgrade in Progress"
+                      className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-300 block mb-1.5">Maintenance Headline (Sinhala - විකල්ප)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.maintenanceSinhalaTitle || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceSinhalaTitle: e.target.value })}
+                      placeholder="e.g. පද්ධති වැඩිදියුණු කිරීමේ කටයුත්තක් සිදුවෙමින් පවතී"
+                      className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="font-bold text-gray-300 block mb-1.5">Detailed Visitor Message & Update Notice</label>
+                    <textarea
+                      rows={3}
+                      value={settingsForm.maintenanceMessage || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceMessage: e.target.value })}
+                      placeholder="Explain the updates taking place (e.g., CDN node optimizations, new Sinhala subtitles sync, server maintenance)..."
+                      className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="font-bold text-gray-300 block mb-1.5">Estimated Online Time (Expected Return)</label>
+                    <input
+                      type="text"
+                      value={settingsForm.maintenanceEstimatedTime || ''}
+                      onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceEstimatedTime: e.target.value })}
+                      placeholder="e.g. Expected Online: Within 30–45 minutes"
+                      className="w-full bg-[#121620] border border-white/10 rounded-xl p-3 text-white focus:outline-none focus:border-[#FF0E25]"
+                    />
+                  </div>
+
+                  <div className="flex items-center">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-300 hover:text-white p-3 rounded-xl bg-[#121620] border border-white/5 w-full">
+                      <input
+                        type="checkbox"
+                        checked={settingsForm.maintenanceShowAdminBypass ?? true}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, maintenanceShowAdminBypass: e.target.checked })}
+                        className="accent-[#FF0E25] w-4 h-4"
+                      />
+                      <span>Show "Admin Portal Access" link on maintenance overlay</span>
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -2432,6 +2648,92 @@ export const AdminPage: React.FC = () => {
               </div>
 
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MAINTENANCE OVERLAY PREVIEW MODAL */}
+      {showMaintenancePreview && (
+        <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="relative max-w-2xl w-full bg-[#0F121A] border border-amber-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center animate-in zoom-in-95 duration-200">
+            {/* Top Badge */}
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div className="flex items-center gap-2 text-amber-400 text-xs font-black uppercase tracking-wider">
+                <Eye className="w-4 h-4" />
+                <span>Live Visitor Overlay Preview (නඩත්තු පෙරදසුන)</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMaintenancePreview(false)}
+                className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-all"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Inner Simulated Screen */}
+            <div className="bg-[#08090C] border border-white/10 rounded-2xl p-6 space-y-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#FF0E25]/20 via-black to-[#FF0E25]/10 border border-[#FF0E25]/40 flex items-center justify-center mx-auto shadow-lg shadow-[#FF0E25]/20">
+                <Wrench className="w-8 h-8 text-amber-400" />
+              </div>
+
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-extrabold uppercase">
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
+                <span>Scheduled Maintenance • පද්ධති නඩත්තුව</span>
+              </div>
+
+              <h2 className="text-xl font-black text-white">
+                {settingsForm.maintenanceTitle || siteSettings.maintenanceTitle || 'Scheduled System Upgrade in Progress'}
+              </h2>
+              {(settingsForm.maintenanceSinhalaTitle || siteSettings.maintenanceSinhalaTitle) && (
+                <p className="text-sm font-extrabold text-[#FF0E25]">
+                  {settingsForm.maintenanceSinhalaTitle || siteSettings.maintenanceSinhalaTitle}
+                </p>
+              )}
+
+              <div className="bg-[#121620]/90 border border-white/5 p-4 rounded-xl text-xs text-gray-300 leading-relaxed text-left whitespace-pre-line">
+                {settingsForm.maintenanceMessage || siteSettings.maintenanceMessage || 'We are currently upgrading our streaming CDN nodes...'}
+              </div>
+
+              {(settingsForm.maintenanceEstimatedTime || siteSettings.maintenanceEstimatedTime) && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-rose-200 font-bold">
+                  <Clock className="w-3.5 h-3.5 text-[#FF0E25]" />
+                  <span>{settingsForm.maintenanceEstimatedTime || siteSettings.maintenanceEstimatedTime}</span>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <span className="text-[11px] text-[#9E9EA0]">
+                Current Site Status:{' '}
+                <strong className={siteSettings.maintenanceMode ? 'text-amber-400' : 'text-emerald-400'}>
+                  {siteSettings.maintenanceMode ? 'Maintenance Mode Active' : 'Site Live (Production)'}
+                </strong>
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowMaintenancePreview(false)}
+                  className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs transition-all"
+                >
+                  Close Preview
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await handleToggleMaintenanceQuick();
+                    setShowMaintenancePreview(false);
+                  }}
+                  className={`px-4 py-2 rounded-xl font-extrabold text-xs flex items-center gap-1.5 shadow-lg transition-all ${
+                    siteSettings.maintenanceMode
+                      ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                      : 'bg-gradient-to-r from-amber-600 to-rose-700 hover:opacity-90 text-white'
+                  }`}
+                >
+                  {siteSettings.maintenanceMode ? 'Turn Off Maintenance' : 'Activate Maintenance Now'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

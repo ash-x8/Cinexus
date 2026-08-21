@@ -121,6 +121,14 @@ const DEFAULT_SETTINGS: SiteSettings = {
   faqContent: `Frequently Asked Questions (නිතර අසන පැන්න):\n\nQ1: How do I download movies with Sinhala subtitles on CINEXUS?\nA: Navigate to your chosen movie page, scroll down to the "Direct Download Links" section, select your preferred quality (4K, 1080p, 720p, 480p, or Telegram), and click the download button.\n\nQ2: Are streams and downloads free?\nA: Yes, CINEXUS is 100% free with no forced subscriptions or hidden fees.\n\nQ3: What video players are supported?\nA: We provide 5 multi-server backup players including StreamHG, EarnVids, FileMoon, Facebook Video, and YouTube Trailers.\n\nQ4: How can I request a new movie or TV series?\nA: Click the "Request Movie" link in the footer or join our Telegram group to submit your request!`,
   requestMovieRules: `Movie Request Guidelines (චිත්‍රපට ඉල්ලීම් මාර්ගෝපදේශ):\n\n1. Check Catalog First: Always use our instant live search bar to verify the movie is not already published.\n2. Accurate Details: Include the official English title, release year, and IMDb link if available.\n3. Digital Release Availability: We can only fulfill requests for titles with an official digital WEB-DL or BluRay release.\n4. Subtitle Timeline: Movies requiring custom Sinhala subtitle translation take 24-48 hours after digital release.`,
   movieRequestAdminEmail: 'kushanashvika216@gmail.com',
+
+  // Maintenance Mode Defaults
+  maintenanceMode: false,
+  maintenanceTitle: 'Scheduled System Upgrade in Progress',
+  maintenanceSinhalaTitle: 'පද්ධති වැඩිදියුණු කිරීමේ කටයුත්තක් සිදුවෙමින් පවතී',
+  maintenanceMessage: 'We are currently performing critical infrastructure upgrades across our streaming CDN nodes and subtitle servers to bring you ultra-fast speeds and 4K playback. CINEXUS will return shortly! Thank you for your patience.',
+  maintenanceEstimatedTime: 'Expected Online: Within 30–45 minutes',
+  maintenanceShowAdminBypass: true,
 };
 
 export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {

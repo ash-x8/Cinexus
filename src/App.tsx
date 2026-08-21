@@ -6,6 +6,7 @@ import { MovieProvider } from './context/MovieContext';
 import { LanguageProvider } from './context/LanguageContext';
 import { PlayerProvider } from './context/PlayerContext';
 import { FloatingMiniPlayer } from './components/FloatingMiniPlayer';
+import { MaintenanceOverlay } from './components/MaintenanceOverlay';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { MobileBottomNav } from './components/MobileBottomNav';
@@ -78,6 +79,7 @@ export const AppContent: React.FC = () => {
       <Footer />
       <MobileBottomNav />
       <FloatingMiniPlayer />
+      <MaintenanceOverlay />
     </div>
   );
 };
