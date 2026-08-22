@@ -65,11 +65,28 @@ export const AdminPage: React.FC = () => {
     addCategory,
     deleteCategory,
     resetToDefaultData,
+    clearBrowserCache,
     movieRequests,
     updateMovieRequestStatus,
     replyMovieRequest,
     deleteMovieRequest,
   } = useMovies();
+
+  const [isClearingCache, setIsClearingCache] = useState(false);
+
+  const handleCleanBrowserCache = async () => {
+    if (window.confirm('Are you sure you want to clean all browser cache, local storage, and cached assets? This will refresh your data cleanly.')) {
+      setIsClearingCache(true);
+      showSaveToast('Cleaning browser cache & storage...');
+      const res = await clearBrowserCache();
+      setIsClearingCache(false);
+      if (res.success) {
+        showSaveToast('Browser cache and local storage cleared cleanly!');
+      } else {
+        alert(res.message);
+      }
+    }
+  };
 
   // Auth passcode / email state
   const [adminEmail, setAdminEmail] = useState('');
@@ -749,7 +766,17 @@ export const AdminPage: React.FC = () => {
           </h1>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleCleanBrowserCache}
+            disabled={isClearingCache}
+            className="px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 hover:bg-amber-500/20 text-xs font-bold flex items-center gap-1.5 transition-colors disabled:opacity-50"
+            title="Purge browser cache, local storage, and cached tokens"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            {isClearingCache ? 'Cleaning Cache...' : 'Clean Browser Cache'}
+          </button>
+
           <button
             onClick={resetToDefaultData}
             className="px-3.5 py-2 rounded-xl bg-[#FF0E25]/10 border border-[#FF0E25]/30 text-rose-300 hover:bg-[#FF0E25]/20 text-xs font-bold flex items-center gap-1.5 transition-colors"

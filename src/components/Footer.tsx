@@ -1,15 +1,24 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowUp, Share2, Send, MessageSquare, Video, Globe, Mail } from 'lucide-react';
+import { ArrowUp, Share2, Send, MessageSquare, Video, Globe, Mail, Sparkles } from 'lucide-react';
 import { useMovies } from '../context/MovieContext';
 import { useLanguage } from '../context/LanguageContext';
 import { ContentModal, type ContentModalType } from './ContentModal';
 
 export const Footer: React.FC = () => {
-  const { siteSettings, setSelectedCategory, setSelectedGenre, setSelectedLanguage } = useMovies();
+  const { siteSettings, setSelectedCategory, setSelectedGenre, setSelectedLanguage, clearBrowserCache } = useMovies();
   const { t } = useLanguage();
   const [activeModal, setActiveModal] = useState<ContentModalType>(null);
+  const [isClearing, setIsClearing] = useState(false);
   const navigate = useNavigate();
+
+  const handleCleanCacheClick = async () => {
+    if (window.confirm('Clear all local browser cache and saved preferences?')) {
+      setIsClearing(true);
+      await clearBrowserCache();
+      setIsClearing(false);
+    }
+  };
 
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -258,9 +267,20 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* Bottom Bar: Copyright + Back to Top Button */}
+        {/* Bottom Bar: Copyright + Cache & Back to Top Buttons */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row items-center justify-between text-xs text-[#9E9EA0] gap-4">
-          <p>© 2026 CINEXUS (සිනෙක්ස්). All rights reserved.</p>
+          <div className="flex flex-wrap items-center gap-4">
+            <p>© 2026 CINEXUS (සිනෙක්ස්). All rights reserved.</p>
+            <button
+              onClick={handleCleanCacheClick}
+              disabled={isClearing}
+              className="text-[11px] text-gray-500 hover:text-rose-400 underline decoration-dotted transition-colors flex items-center gap-1"
+              title="Clean browser cache & saved local storage"
+            >
+              <Sparkles className="w-3 h-3 text-amber-400" />
+              {isClearing ? 'Purging Cache...' : 'Clean Cache'}
+            </button>
+          </div>
 
           <button
             onClick={handleScrollToTop}

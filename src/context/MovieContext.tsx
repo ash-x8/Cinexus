@@ -50,6 +50,7 @@ interface MovieContextType {
   addCategory: (category: Omit<Category, 'id'>) => void;
   deleteCategory: (id: string) => void;
   resetToDefaultData: () => void;
+  clearBrowserCache: () => Promise<{ success: boolean; message: string }>;
   fetchOMDbMetadata: (titleOrImdbId: string) => Promise<any>;
   logSearchQuery: (query: string) => void;
 
@@ -942,6 +943,73 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
   };
 
+  const clearBrowserCache = async () => {
+    try {
+      // 1. Clear all localStorage keys with cinexus_ prefix or session/tokens
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('cinexus_') || key.startsWith('sb-') || key.includes('movie') || key.includes('watchlist') || key.includes('auth'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k));
+
+      // Direct explicit key cleanup
+      localStorage.removeItem(LOCAL_STORAGE_MOVIES_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_CATEGORIES_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_ANALYTICS_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_AUTH_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_WATCHLIST_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_FAVORITES_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_WATCHED_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_RECENT_VIEWED_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_USER_PROFILE_KEY);
+      localStorage.removeItem(LOCAL_STORAGE_MOVIE_REQUESTS_KEY);
+      localStorage.removeItem('cinexus_app_language_v1');
+
+      // 2. Clear sessionStorage
+      try {
+        sessionStorage.clear();
+      } catch (e) {}
+
+      // 3. Clear window.caches (Service Worker / CacheStorage) if available
+      if (typeof window !== 'undefined' && 'caches' in window) {
+        try {
+          const cacheKeys = await window.caches.keys();
+          await Promise.all(cacheKeys.map(key => window.caches.delete(key)));
+        } catch (e) {
+          console.warn('CacheStorage cleanup note:', e);
+        }
+      }
+
+      // 4. Reset React state to fresh defaults
+      setWatchlist([]);
+      setFavorites([]);
+      setWatchedHistory([]);
+      setRecentlyViewed([]);
+      setCurrentUser(null);
+      setCategories(INITIAL_CATEGORIES);
+      setSiteSettings(DEFAULT_SETTINGS);
+      setSearchQuery('');
+      setSelectedCategory('All');
+      setSelectedContentType('All');
+      setSelectedLanguage('All');
+      setSelectedGenre('All');
+      setSortBy('latest');
+
+      // 5. Reload movies from Supabase cloud database
+      await fetchMovies();
+      await fetchMovieRequests();
+
+      return { success: true, message: 'Browser cache and local storage cleared successfully!' };
+    } catch (err: any) {
+      console.error('Error clearing browser cache:', err);
+      return { success: false, message: err?.message || 'Failed to clear cache' };
+    }
+  };
+
   return (
     <MovieContext.Provider value={{
       movies,
@@ -976,6 +1044,7 @@ export const MovieProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       addCategory,
       deleteCategory,
       resetToDefaultData,
+      clearBrowserCache,
       fetchOMDbMetadata,
       logSearchQuery,
       watchlist,

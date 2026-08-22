@@ -15,7 +15,8 @@ import {
   Mail,
   Edit2,
   Check,
-  Send
+  Send,
+  Sparkles
 } from 'lucide-react';
 
 export const ProfilePage: React.FC = () => {
@@ -28,13 +29,26 @@ export const ProfilePage: React.FC = () => {
     watchedHistory,
     recentlyViewed,
     movies,
-    movieRequests
+    movieRequests,
+    clearBrowserCache
   } = useMovies();
 
   const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
   const [usernameInput, setUsernameInput] = useState(currentUser?.username || '');
+  const [isClearingCache, setIsClearingCache] = useState(false);
+  const [cacheMessage, setCacheMessage] = useState('');
+
+  const handleCleanCache = async () => {
+    if (window.confirm('Clear all local browser cache, history, and preferences?')) {
+      setIsClearingCache(true);
+      const res = await clearBrowserCache();
+      setIsClearingCache(false);
+      setCacheMessage(res.message);
+      setTimeout(() => setCacheMessage(''), 4000);
+    }
+  };
 
   if (!currentUser) {
     return (
@@ -91,7 +105,17 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={handleCleanCache}
+            disabled={isClearingCache}
+            className="px-3.5 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 hover:bg-amber-500/20 text-amber-300 font-extrabold text-xs flex items-center gap-1.5 transition-all disabled:opacity-50"
+            title="Clean browser cache & saved data"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+            {isClearingCache ? 'Cleaning Cache...' : 'Clean Cache'}
+          </button>
+
           <button
             onClick={() => setIsEditing(!isEditing)}
             className="px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:border-[#FF0E25] text-white font-extrabold text-xs flex items-center gap-2 transition-all"
@@ -109,6 +133,12 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {cacheMessage && (
+        <div className="p-3.5 bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold rounded-2xl animate-in fade-in">
+          ✓ {cacheMessage}
+        </div>
+      )}
 
       {/* Edit Profile Form Panel */}
       {isEditing && (
